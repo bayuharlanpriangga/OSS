@@ -442,6 +442,19 @@ svg text{font-family:'Inter',system-ui,sans-serif}
 }
 .csel-opt-check{width:16px;flex-shrink:0;font-size:11px;color:#c084fc}
 
+/* ── APA COPY BUTTON ── */
+.btn-apa-copy{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:6px;
+  background:rgba(99,102,241,.12);
+  border:1px solid rgba(99,102,241,.28);
+  color:#818cf8;font-size:10.5px;font-weight:700;
+  cursor:pointer;transition:all .15s;
+  font-family:'Inter',sans-serif;white-space:nowrap;
+}
+.btn-apa-copy:hover{background:rgba(99,102,241,.25);border-color:rgba(99,102,241,.5);color:#a5b4fc;}
+.btn-apa-copy.copied{background:rgba(5,150,105,.18);border-color:rgba(5,150,105,.4);color:#34d399;}
+
 /* ── SPREADSHEET MODE ── */
 .spr-cell{
   width:100%;min-width:60px;padding:4px 7px;
@@ -753,8 +766,8 @@ svg text{font-family:'Inter',system-ui,sans-serif}
     <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
     <div class="hero-kicker">· Orias Statistik System</div>
     <h1 class="hero-title">OSS</h1>
-    <p class="hero-sub">Welcome</p>
-    <button class="hero-cta" onclick="enterApp()"><span>OPEN →</span></button>
+    <p class="hero-sub">Scientific-grade statistics with a painter's soul. Fully in your browser.</p>
+    <button class="hero-cta" onclick="enterApp()"><span>Enter the Studio →</span></button>
   </div>
 </div>
 
@@ -830,6 +843,8 @@ svg text{font-family:'Inter',system-ui,sans-serif}
         <span class="s-item-ic" style="color:#fb923c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Corr Matrix</div>
       <div class="s-item" data-tab="analyze" data-sub="efa" onclick="openAnalyze('efa')">
         <span class="s-item-ic" style="color:#a5f3fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="12" rx="10" ry="5"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M2 12c3-4 7-6 10-6s7 2 10 6"/></svg></span>Factor Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="mediation" onclick="openAnalyze('mediation')">
+        <span class="s-item-ic" style="color:#fb923c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="5" r="2" fill="currentColor"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="11" x2="10" y2="6"/><line x1="14" y1="6" x2="17" y2="11"/></svg></span>Mediation</div>
       <div class="s-item" data-tab="analyze" data-sub="charts" onclick="openAnalyze('charts')">
         <span class="s-item-ic" style="color:#f472b6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="8" cy="14" r="1.5" fill="currentColor"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="14" r="1.5" fill="currentColor"/></svg></span>Charts</div>
 
@@ -2586,13 +2601,13 @@ var SE = (() => {
   }
 
   return {
-    validNums, isV, mean, std, quantile, normInv, sw,
+    validNums, isV, mean, std, quantile, normInv, sw, normCDF,
     descriptive, tTest, oneSampleT, pairedTTest, onewayANOVA,
     tukeyHSD, lsdPosthoc, bonferroniPosthoc,
     pearsonR, spearmanR, partialCorr,
     linearReg, multipleReg, glmUnivariate,
     chiSquare, mannWhitney, kruskalWallis, wilcoxon,
-    cronbachAlpha, efa, levene, f4
+    cronbachAlpha, efa, levene, f4, pFmt, tP
   };
 
 })();
@@ -2684,6 +2699,8 @@ var aState = {
   alphaVars: [],
   // EFA
   efaVars: [], efaFactors: 2, efaRotation: 'varimax',
+  // Mediation
+  medX: '', medM: [], medY: '', medBootN: 5000,
 };
 
 
@@ -3096,7 +3113,7 @@ function renderData(el){
     html+='<tr class="'+(sel?'selected':ri%2===0?'alt':'')+'">';
     if(editMode&&!sprMode){
       html+='<td style="min-width:26px;width:26px">';
-      html+='<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleRow('+row.id+',this)" style="accent-color:#7c3aed;width:14px;height:14px"/>';
+      html+='<input type="checkbox" data-rowcb="'+row.id+'" '+(sel?'checked':'')+' onchange="toggleRow('+row.id+',this)" style="accent-color:#7c3aed;width:14px;height:14px"/>';
       html+='</td>';
       html+='<td style="min-width:30px;width:30px;padding:4px">';
       html+='<button onclick="editRowModal('+row.id+')" style="background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);border-radius:5px;color:#c084fc;cursor:pointer;padding:3px 5px;display:flex;align-items:center;justify-content:center;width:24px;height:24px">';
@@ -3464,17 +3481,48 @@ function searchData(q){searchQ=q;renderTab('data');}
 function toggleSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}renderTab('data');}
 function toggleRow(id,cb){
   if(cb.checked)selRows.add(id);else selRows.delete(id);
+  // Sync del button
   var btn=document.getElementById('del-btn');
   if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del('+selRows.size+')';}
+  // Sync header checkbox
+  syncHeaderCheckbox();
+}
+
+function syncHeaderCheckbox(){
   var chkAll=document.getElementById('chk-all');
-  if(chkAll){
-    var total=data.length,checked=selRows.size;
-    if(checked===0){chkAll.checked=false;chkAll.indeterminate=false;}
-    else if(checked===total){chkAll.checked=true;chkAll.indeterminate=false;}
-    else{chkAll.checked=false;chkAll.indeterminate=true;}
+  if(!chkAll) return;
+  var total=data.length, checked=selRows.size;
+  if(checked===0){
+    chkAll.checked=false;
+    chkAll.indeterminate=false;
+  } else if(checked===total){
+    chkAll.checked=true;
+    chkAll.indeterminate=false;
+  } else {
+    chkAll.checked=false;
+    chkAll.indeterminate=true; // sebagian → tanda minus (—)
   }
 }
-function toggleAllRows(cb){if(cb.checked)data.forEach(function(r){selRows.add(r.id);});else selRows.clear();renderTab('data');}
+function toggleAllRows(cb){
+  // Jika semua sudah tercentang → uncheck semua; sebaliknya → check semua
+  var allChecked=(selRows.size===data.length&&data.length>0);
+  if(allChecked){
+    selRows.clear();
+    cb.checked=false;
+    cb.indeterminate=false;
+  } else {
+    data.forEach(function(r){selRows.add(r.id);});
+    cb.checked=true;
+    cb.indeterminate=false;
+  }
+  // Sync semua row checkbox tanpa re-render penuh
+  document.querySelectorAll('input[data-rowcb]').forEach(function(inp){
+    inp.checked=selRows.has(parseInt(inp.dataset.rowcb));
+  });
+  // Sync del button
+  var btn=document.getElementById('del-btn');
+  if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del('+selRows.size+')';}
+}
 function deleteSelected(){if(!selRows.size)return;data=data.filter(r=>!selRows.has(r.id));selRows.clear();updateBadges();renderTab('data');showToast('Deleted');}
 function addDataRow(){
   var nid=Math.max.apply(null,data.map(function(r){return r.id;}).concat([0]))+1;
@@ -4028,6 +4076,7 @@ function renderAnalyze(el){
     {id:'crosstab',label:'Crosstab'},
     {id:'corrmatrix',label:'Corr Matrix'},
     {id:'efa',label:'Factor Analysis'},
+    {id:'mediation',label:'Mediation'},
     {id:'charts',label:'Charts'},
     {id:'transform',label:'Transform'},
     {id:'recode',label:'Recode'},
@@ -4066,6 +4115,9 @@ function renderAnalyze(el){
   if(!aState.glmFactors) aState.glmFactors=[];
   if(!aState.glmCovs) aState.glmCovs=[];
   if(!aState.recodeFld&&aF.length) aState.recodeFld=aF[0];
+  if(!aState.medX&&nF.length>0) aState.medX=nF[0];
+  if(!aState.medY&&nF.length>1) aState.medY=nF[Math.min(1,nF.length-1)];
+  if(!aState.medM||!aState.medM.length) aState.medM=nF.length>2?[nF[2]]:[];
 
   var html='<div class="sub-tabs">';
   SUBS.forEach(function(s){
@@ -4841,6 +4893,110 @@ function renderASub(){
     }
   }
 
+  else if(currentASub==='mediation'){
+    if(!aState.medM) aState.medM=[];
+    if(!aState.medBootN) aState.medBootN=5000;
+
+    // Live path preview (Baron-Kenny steps)
+    var medPreview=null;
+    var canPreview=aState.medX&&aState.medY&&aState.medM.length>=1;
+    if(canPreview){
+      medPreview=tryStats(function(){return computeMediation(aState.medX,aState.medM,aState.medY,500);});
+    }
+
+    html+='<div class="card"><div class="sec-hd">⚗ Mediation Analysis <span style="font-size:10px;font-style:normal;color:rgba(232,222,255,.3);margin-left:7px">Baron-Kenny Steps · Sobel Test · Bootstrap CI</span></div>';
+    html+='<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:12px;line-height:1.7">Apakah variabel <b style="color:#fb923c">X</b> berpengaruh terhadap <b style="color:#67e8f9">Y</b> <em>melalui</em> <b style="color:#f472b6">M</b>? Mediation Analysis menjawab pertanyaan ini dengan menghitung efek tidak langsung (indirect effect) menggunakan Sobel test dan Bootstrap confidence interval.</div>';
+
+    // Path Diagram SVG
+    var numM=aState.medM.length;
+    html+='<div style="margin-bottom:14px;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.12);border-radius:10px;padding:12px;text-align:center">';
+    html+=svgMediationPath(aState.medX||'X',aState.medM,aState.medY||'Y',medPreview);
+    html+='</div>';
+
+    html+='<div class="grid2">';
+    // Left column: variable selection
+    html+='<div>';
+    html+='<div style="margin-bottom:9px"><label class="lbl">Independent Variable (X) <span style="color:#fb923c">●</span></label>'+mkSelect('med-x',nF,aState.medX,'aState.medX=val;renderASub()','Select X')+'</div>';
+    html+='<div style="margin-bottom:9px"><label class="lbl">Dependent Variable (Y) <span style="color:#67e8f9">●</span></label>'+mkSelect('med-y',nF,aState.medY,'aState.medY=val;renderASub()','Select Y')+'</div>';
+    html+='<div style="margin-bottom:9px"><label class="lbl">Mediator(s) (M) <span style="color:#f472b6">●</span> <span style="font-size:9.5px;color:rgba(232,222,255,.3)">(dapat lebih dari 1)</span></label>';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">';
+    nF.forEach(function(f){
+      if(f===aState.medX||f===aState.medY) return;
+      var sel=aState.medM.includes(f);
+      html+='<label style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;cursor:pointer;font-size:11.5px;'
+        +(sel?'background:rgba(244,114,182,.12);color:#f472b6;border:1px solid rgba(244,114,182,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.12);')
+        +'">'
+        +'<input type="checkbox" '+(sel?'checked':'')
+        +' onchange="toggleMedM(this.dataset.fld,this.checked)" data-fld="'+f
+        +'" style="accent-color:#f472b6;width:12px;height:12px"/>'+f+'</label>';
+    });
+    html+='</div></div>';
+    html+='<div style="margin-bottom:9px"><label class="lbl">Bootstrap Samples</label>';
+    html+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
+    [1000,2000,5000].forEach(function(n){
+      html+='<button onclick="aState.medBootN='+n+';renderASub()" style="padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;'+(aState.medBootN===n?'background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:none;':'background:rgba(124,58,237,.07);color:rgba(232,222,255,.5);border:1px solid rgba(124,58,237,.2);')+'">'+n+'</button>';
+    });
+    html+='</div></div>';
+    html+='<button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="runMediation()">▶ Run Full Mediation → Output</button>';
+    html+='</div>';
+
+    // Right column: live preview
+    html+='<div>';
+    if(!canPreview){
+      html+='<div style="padding:28px 16px;text-align:center;color:rgba(232,222,255,.3);font-size:12px">Pilih X, Y, dan minimal 1 Mediator untuk melihat preview Baron-Kenny Steps.</div>';
+    } else if(medPreview&&medPreview._err){
+      html+='<div class="miss-warn">'+medPreview.msg+'</div>';
+    } else if(medPreview){
+      html+='<div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Baron-Kenny Steps (preview)</div>';
+      var bk=medPreview.barronKenny;
+      html+='<div style="display:flex;flex-direction:column;gap:6px">';
+      var steps=[
+        {step:'Step 1',desc:'X → Y (total effect, path c)',val:'c = '+bk.c,p:bk.p_c,note:'X harus signifikan prediktor Y'},
+        {step:'Step 2',desc:'X → M (path a)',val:'a = '+bk.a,p:bk.p_a,note:'X harus signifikan prediktor M'},
+        {step:'Step 3',desc:'M → Y (path b, controlling X)',val:'b = '+bk.b,p:bk.p_b,note:'M harus signifikan prediktor Y'},
+        {step:'Step 4',desc:'X → Y (direct effect, path c\')',val:"c' = "+bk.c_prime,p:bk.p_c_prime,note:parseFloat(bk.p_c_prime)>=0.05?"c' tidak sig → Full mediation":"c' masih sig → Partial mediation"},
+      ];
+      steps.forEach(function(s){
+        var sig=parseFloat(s.p)<0.05;
+        var pFmtted=SE.pFmt?SE.pFmt(parseFloat(s.p)):parseFloat(s.p).toFixed(3);
+        html+='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.12);border-left:3px solid '+(sig?'#34d399':'#f87171')+';border-radius:7px;padding:8px 10px">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center">';
+        html+='<span style="font-size:10.5px;font-weight:700;color:'+(sig?'#34d399':'rgba(232,222,255,.5)')+'">'+s.step+'</span>';
+        html+='<span style="font-size:10px;background:rgba('+(sig?'5,150,105':'220,38,38')+',.12);color:'+(sig?'#34d399':'#f87171')+';padding:2px 7px;border-radius:999px;font-weight:700">'+(sig?'✓ sig':'✗ n.s.')+' p='+parseFloat(s.p).toFixed(3)+'</span>';
+        html+='</div>';
+        html+='<div style="font-size:11.5px;color:rgba(232,222,255,.7);margin-top:3px">'+s.desc+' → <b style="color:#e8deff">'+s.val+'</b></div>';
+        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:2px">'+s.note+'</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+
+      // Sobel + indirect effect preview
+      if(medPreview.mediators&&medPreview.mediators.length){
+        html+='<div style="margin-top:10px;font-size:11px;font-weight:700;color:#c084fc;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Indirect Effect (Sobel)</div>';
+        medPreview.mediators.forEach(function(med){
+          var sobelSig=parseFloat(med.sobel_p)<0.05;
+          html+='<div style="background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.15);border-radius:7px;padding:8px 10px;margin-bottom:5px">';
+          html+='<div style="font-size:11px;font-weight:700;color:#f472b6">via '+med.name+'</div>';
+          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px">';
+          html+='<div class="sb"><div class="sb-label">Indirect (a×b)</div><div class="sb-value" style="font-size:13px">'+SE.f4(med.indirect)+'</div></div>';
+          html+='<div class="sb"><div class="sb-label">Sobel z</div><div class="sb-value" style="font-size:13px;color:'+(sobelSig?'#34d399':'#f87171')+'">'+SE.f4(med.sobel_z)+'</div><div class="sb-note">p='+parseFloat(med.sobel_p).toFixed(3)+'</div></div>';
+          html+='</div></div>';
+        });
+      }
+    }
+    html+='</div>';
+    html+='</div>';
+
+    // Interpretation guide
+    html+='<div class="card" style="margin-top:0"><div class="sec-hd">Panduan Interpretasi</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;font-size:11.5px;color:rgba(232,222,255,.6);line-height:1.65">';
+    html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#34d399">Full Mediation</b><br>c signifikan, a & b signifikan, tapi c\' tidak signifikan → X hanya berpengaruh ke Y lewat M.</div>';
+    html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#fbbf24">Partial Mediation</b><br>c, a, b, dan c\' semuanya signifikan → X berpengaruh langsung ke Y dan juga lewat M.</div>';
+    html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#f87171">No Mediation</b><br>a atau b tidak signifikan → M tidak memediasi X→Y.</div>';
+    html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#a5f3fc">Bootstrap CI</b><br>Jika 95% CI dari indirect effect tidak melewati 0, maka mediasi signifikan (lebih akurat dari Sobel).</div>';
+    html+='</div></div>';
+  }
+
   else {
     html='<div class="card" style="text-align:center;padding:38px"><div style="font-size:32px;margin-bottom:9px"></div><div style="color:#475569">Select a sub-tab above to begin analysis.</div></div>';
   }
@@ -4852,6 +5008,248 @@ function renderASub(){
 // ════════════════════════════════════════════════════════════════════════
 // RUN ANALYSIS FUNCTIONS
 // ════════════════════════════════════════════════════════════════════════
+
+// ── Mediation path diagram SVG ──────────────────────────────────────────
+function svgMediationPath(xName,mNames,yName,preview){
+  var W=420,H=mNames&&mNames.length>1?160:120;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:420px;height:auto;display:inline-block">';
+  var cx=W/2,xc=50,yc=W-50,mc=cx;
+  var mCount=mNames?mNames.length:1;
+  var yBase=H-30;
+
+  // Draw X node
+  svg+='<rect x="10" y="'+(yBase-16)+'" width="76" height="28" rx="8" fill="rgba(251,146,60,.15)" stroke="rgba(251,146,60,.5)" stroke-width="1.5"/>';
+  svg+='<text x="48" y="'+(yBase+5)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#fb923c">'+xName.slice(0,8)+'</text>';
+  // Draw Y node
+  svg+='<rect x="'+(W-86)+'" y="'+(yBase-16)+'" width="76" height="28" rx="8" fill="rgba(103,232,249,.12)" stroke="rgba(103,232,249,.45)" stroke-width="1.5"/>';
+  svg+='<text x="'+(W-48)+'" y="'+(yBase+5)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#67e8f9">'+yName.slice(0,8)+'</text>';
+
+  // Direct effect arrow X→Y (dashed = c')
+  var c_prime=preview&&preview.barronKenny?preview.barronKenny.c_prime:'';
+  var directSig=preview&&preview.barronKenny?parseFloat(preview.barronKenny.p_c_prime)<0.05:true;
+  svg+='<line x1="86" y1="'+yBase+'" x2="'+(W-86)+'" y2="'+yBase+'" stroke="'+(directSig?'#67e8f9':'rgba(100,116,139,.6)')+'" stroke-width="1.8" stroke-dasharray="'+(directSig?'0':'5,3')+'"/>';
+  svg+='<polygon points="'+(W-86)+','+yBase+' '+(W-92)+','+(yBase-4)+' '+(W-92)+','+(yBase+4)+'" fill="'+(directSig?'#67e8f9':'rgba(100,116,139,.6)')+'"/>';
+  if(c_prime) svg+='<text x="'+cx+'" y="'+(yBase-6)+'" text-anchor="middle" font-size="9" fill="rgba(232,222,255,.45)">c\'='+c_prime+'</text>';
+
+  // Draw mediators
+  if(mNames&&mNames.length>0){
+    var mSpacing=mCount>1?Math.min(80,(W-120)/(mCount)):0;
+    var mStartX=cx-(mSpacing*(mCount-1)/2);
+    var mY=22;
+    mNames.forEach(function(mName,i){
+      var mx=mStartX+i*mSpacing;
+      // M box
+      svg+='<rect x="'+(mx-38)+'" y="'+(mY-16)+'" width="76" height="28" rx="8" fill="rgba(244,114,182,.12)" stroke="rgba(244,114,182,.4)" stroke-width="1.5"/>';
+      svg+='<text x="'+mx+'" y="'+(mY+5)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#f472b6">'+mName.slice(0,8)+'</text>';
+      // a: X→M
+      var aSig=preview&&preview.barronKenny?parseFloat(preview.barronKenny.p_a)<0.05:true;
+      svg+='<line x1="72" y1="'+(yBase-16)+'" x2="'+(mx-10)+'" y2="'+(mY+12)+'" stroke="'+(aSig?'#fb923c':'rgba(100,116,139,.5)')+'" stroke-width="1.5"/>';
+      if(preview&&preview.barronKenny) svg+='<text x="'+(72+(mx-10))/2+'" y="'+(yBase/2)+'" font-size="8.5" fill="rgba(251,146,60,.7)">a='+preview.barronKenny.a+'</text>';
+      // b: M→Y
+      var bSig=preview&&preview.barronKenny?parseFloat(preview.barronKenny.p_b)<0.05:true;
+      svg+='<line x1="'+(mx+10)+'" y1="'+(mY+12)+'" x2="'+(W-86)+'" y2="'+(yBase-16)+'" stroke="'+(bSig?'#f472b6':'rgba(100,116,139,.5)')+'" stroke-width="1.5"/>';
+      if(preview&&preview.barronKenny) svg+='<text x="'+(mx+10+(W-86))/2+'" y="'+(yBase/2)+'" font-size="8.5" fill="rgba(244,114,182,.7)">b='+preview.barronKenny.b+'</text>';
+    });
+  }
+  svg+='</svg>';
+  return svg;
+}
+
+// ── Core mediation computation ──────────────────────────────────────────
+function computeMediation(xName,mNames,yName,bootN){
+  var isV=function(v){return typeof v==='number'&&isFinite(v);};
+  if(!xName||!yName||!mNames||!mNames.length) throw new Error('Select X, Y, and at least 1 Mediator');
+  if(xName===yName) throw new Error('X and Y must be different variables');
+  mNames.forEach(function(m){if(m===xName||m===yName) throw new Error('Mediator cannot equal X or Y');});
+
+  // Build complete cases (listwise deletion)
+  var allVars=[xName,...mNames,yName];
+  var cases=data.filter(function(r){return allVars.every(function(v){return isV(r[v]);});});
+  if(cases.length<mNames.length+10) throw new Error('Need at least '+(mNames.length+10)+' complete cases (got '+cases.length+')');
+
+  var n=cases.length;
+  var xArr=cases.map(function(r){return r[xName];});
+  var yArr=cases.map(function(r){return r[yName];});
+
+  // Helper: simple OLS regression, return {b0,b1,...,coefs,se,t,p}
+  function ols1(x,y){
+    // Simple regression y ~ x
+    var r=SE.pearsonR(x,y);
+    var xm=SE.mean(x),ym=SE.mean(y),sdx=SE.std(x),sdy=SE.std(y);
+    var b1=parseFloat(r.r)*sdy/sdx;
+    var b0=ym-b1*xm;
+    var yhat=x.map(function(xi){return b0+b1*xi;});
+    var sse=y.reduce(function(s,yi,i){return s+(yi-yhat[i])*(yi-yhat[i]);},0);
+    var mse=sse/(n-2);
+    var ssx=x.reduce(function(s,xi){return s+(xi-xm)*(xi-xm);},0);
+    var se_b1=Math.sqrt(mse/ssx);
+    var t_b1=b1/se_b1;
+    var p_b1=SE.tP?SE.tP(Math.abs(t_b1),n-2):2*(1-SE.normCDF(Math.abs(t_b1)));
+    return{b0:SE.f4(b0),b1:SE.f4(b1),se:SE.f4(se_b1),t:SE.f4(t_b1),p:SE.f4(p_b1),r2:r.r2};
+  }
+
+  function olsMultiple(Xmat,y){
+    // Xmat: array of arrays (rows=obs, cols=predictors), y: array
+    // Returns coefs array (excluding intercept), and se, t, p for each
+    var nr=y.length,nc=Xmat[0].length;
+    // Add intercept column
+    var X=Xmat.map(function(row){return [1].concat(row);});
+    var p=nc+1;
+    // Xt X
+    var XtX=[];
+    for(var i=0;i<p;i++){XtX[i]=[];for(var j=0;j<p;j++){var s=0;for(var k=0;k<nr;k++)s+=X[k][i]*X[k][j];XtX[i][j]=s;}}
+    var XtXinv;
+    try{XtXinv=SE.matInv?SE.matInv(XtX):matInvLocal(XtX);}
+    catch(e){throw new Error('Singular matrix — possible collinearity');}
+    // Xt y
+    var Xty=[];
+    for(var i=0;i<p;i++){var s=0;for(var k=0;k<nr;k++)s+=X[k][i]*y[k];Xty[i]=s;}
+    // beta = XtXinv * Xty
+    var beta=[];
+    for(var i=0;i<p;i++){var s=0;for(var j=0;j<p;j++)s+=XtXinv[i][j]*Xty[j];beta[i]=s;}
+    // residuals
+    var yhat=X.map(function(row){return row.reduce(function(s,xi,i){return s+xi*beta[i];},0);});
+    var sse=y.reduce(function(s,yi,i){return s+(yi-yhat[i])*(yi-yhat[i]);},0);
+    var mse=sse/(nr-p);
+    var ses=beta.map(function(_,i){return Math.sqrt(Math.max(0,mse*XtXinv[i][i]));});
+    var ts=beta.map(function(b,i){return ses[i]>0?b/ses[i]:0;});
+    var ps=ts.map(function(t){return SE.tP?SE.tP(Math.abs(t),nr-p):2*(1-SE.normCDF(Math.abs(t)));});
+    var ym=SE.mean(y);
+    var sst=y.reduce(function(s,yi){return s+(yi-ym)*(yi-ym);},0);
+    var r2=sst>0?1-sse/sst:0;
+    return{beta:beta,ses:ses,ts:ts,ps:ps,r2:SE.f4(r2),mse:mse};
+  }
+
+  function matInvLocal(M){
+    var n2=M.length;
+    var aug=M.map(function(row,i){var r=row.slice();for(var j=0;j<n2;j++)r.push(i===j?1:0);return r;});
+    for(var col=0;col<n2;col++){
+      var pivRow=col;
+      for(var row=col+1;row<n2;row++) if(Math.abs(aug[row][col])>Math.abs(aug[pivRow][col])) pivRow=row;
+      var tmp=aug[col];aug[col]=aug[pivRow];aug[pivRow]=tmp;
+      var pivot=aug[col][col];
+      if(Math.abs(pivot)<1e-12) throw new Error('Singular');
+      for(var j=0;j<2*n2;j++) aug[col][j]/=pivot;
+      for(var row=0;row<n2;row++){
+        if(row===col) continue;
+        var factor=aug[row][col];
+        for(var j=0;j<2*n2;j++) aug[row][j]-=factor*aug[col][j];
+      }
+    }
+    return aug.map(function(row){return row.slice(n2);});
+  }
+
+  // Step 1: X → Y (total effect c)
+  var step1=ols1(xArr,yArr);
+  var c=parseFloat(step1.b1),p_c=parseFloat(step1.p);
+
+  // Step 2: X → M for each mediator (path a)
+  var step2Results=mNames.map(function(mName){
+    var mArr=cases.map(function(r){return r[mName];});
+    var res=ols1(xArr,mArr);
+    return{name:mName,arr:mArr,a:parseFloat(res.b1),se_a:parseFloat(res.se),p_a:parseFloat(res.p)};
+  });
+  var a_first=step2Results[0].a, p_a_first=step2Results[0].p_a;
+
+  // Step 3+4: M+X → Y (path b for each M, c' = direct effect)
+  var allMArr=mNames.map(function(mName){return cases.map(function(r){return r[mName];});});
+  var XMmat=cases.map(function(r,i){return [r[xName]].concat(mNames.map(function(m){return r[m];}));});
+  var step34=olsMultiple(XMmat,yArr);
+  // beta[0]=intercept, beta[1]=X coef (c'), beta[2..]=M coefs (b's)
+  var c_prime=step34.beta[1], p_c_prime=step34.ps[1];
+  var b_first=step34.beta[2], p_b_first=step34.ps[2];
+
+  // Sobel test for each mediator (assuming one active mediator)
+  var mediatorResults=step2Results.map(function(s2,i){
+    var a=s2.a,se_a=s2.se_a;
+    var b=step34.beta[2+i],se_b=Math.sqrt(Math.max(0,step34.mse*0.01)); // approx
+    // Better: compute b and se_b from separate regression M+X → Y holding other Ms
+    // For now use product method
+    var indirect=a*b;
+    // Sobel SE = sqrt(b²*se_a² + a²*se_b²)
+    // Estimate se_b from the multiple regression SE
+    var se_b_full=step34.ses[2+i];
+    var sobel_se=Math.sqrt(b*b*se_a*se_a+a*a*se_b_full*se_b_full);
+    var sobel_z=sobel_se>0?indirect/sobel_se:0;
+    var sobel_p=2*(1-SE.normCDF(Math.abs(sobel_z)));
+    return{
+      name:s2.name,
+      a:SE.f4(a),se_a:SE.f4(se_a),p_a:SE.f4(s2.p_a),
+      b:SE.f4(b),se_b:SE.f4(se_b_full),p_b:SE.f4(step34.ps[2+i]),
+      indirect:indirect,sobel_z:sobel_z,sobel_p:sobel_p,
+    };
+  });
+
+  // Bootstrap CI for each mediator's indirect effect
+  var bootResults=[];
+  if(bootN>0){
+    mediatorResults.forEach(function(med,mi){
+      var indirects=[];
+      for(var b=0;b<bootN;b++){
+        var idx=[];for(var k=0;k<n;k++)idx.push(Math.floor(Math.random()*n));
+        var bx=idx.map(function(i){return xArr[i];});
+        var bm=idx.map(function(i){return allMArr[mi][i];});
+        var by=idx.map(function(i){return yArr[i];});
+        try{
+          var ba=ols1(bx,bm);
+          var bXM=idx.map(function(i){return [xArr[i]].concat(mNames.map(function(_,j){return allMArr[j][i];}));});
+          var bstep34=olsMultiple(bXM,by);
+          indirects.push(parseFloat(ba.b1)*bstep34.beta[2+mi]);
+        }catch(e){}
+      }
+      indirects.sort(function(a,b){return a-b;});
+      var lo=indirects[Math.floor(indirects.length*0.025)]||0;
+      var hi=indirects[Math.floor(indirects.length*0.975)]||0;
+      bootResults.push({name:med.name,lo:SE.f4(lo),hi:SE.f4(hi),sig:lo*hi>0});
+    });
+  }
+
+  // Determine mediation type
+  var totalIndirect=mediatorResults.reduce(function(s,m){return s+m.indirect;},0);
+  var anyMSig=mediatorResults.some(function(m){return parseFloat(m.p_a)<0.05&&parseFloat(m.p_b)<0.05;});
+  var cSig=p_c<0.05, c_primeSig=p_c_prime<0.05;
+  var medType='No Mediation';
+  if(anyMSig){
+    if(cSig&&!c_primeSig) medType='Full Mediation';
+    else if(cSig&&c_primeSig) medType='Partial Mediation';
+    else if(!cSig) medType='Inconsistent/Suppression';
+  }
+
+  return{
+    n,xName,yName,mNames:mNames.slice(),
+    barronKenny:{
+      c:SE.f4(c),p_c:SE.f4(p_c),
+      a:SE.f4(a_first),p_a:SE.f4(p_a_first),
+      b:SE.f4(b_first),p_b:SE.f4(step34.ps[2]),
+      c_prime:SE.f4(c_prime),p_c_prime:SE.f4(p_c_prime),
+    },
+    mediators:mediatorResults,
+    bootResults:bootResults,
+    totalIndirect:SE.f4(totalIndirect),
+    medType,
+    r2_total:step34.r2,
+    r2_step1:step1.r2,
+  };
+}
+
+function toggleMedM(f,checked){
+  if(!aState.medM) aState.medM=[];
+  if(checked){if(!aState.medM.includes(f))aState.medM.push(f);}
+  else aState.medM=aState.medM.filter(function(x){return x!==f;});
+  renderASub();
+}
+
+function runMediation(){
+  runSafe(function(){
+    if(!aState.medX) throw new Error('Select Independent Variable (X)');
+    if(!aState.medY) throw new Error('Select Dependent Variable (Y)');
+    if(!aState.medM||!aState.medM.length) throw new Error('Select at least 1 Mediator (M)');
+    var res=computeMediation(aState.medX,aState.medM,aState.medY,aState.medBootN||5000);
+    var title='Mediation: '+aState.medX+' → ['+aState.medM.join(', ')+'] → '+aState.medY;
+    addOutput({type:'mediation',title:title,res:res,medX:aState.medX,medY:aState.medY,medM:aState.medM.slice()});
+  },'Mediation Analysis');
+}
+
 function toggleEfaVar(f,checked){
   if(!aState.efaVars) aState.efaVars=[];
   if(checked){if(!aState.efaVars.includes(f))aState.efaVars.push(f);}
@@ -5257,10 +5655,14 @@ function renderOutput(el){
   let html='';
   outputs.forEach(o=>{
     html+='<div class="card">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:6px">';
     html+='<div class="sec-hd" style="margin-bottom:0">'+o.title+'</div>';
-    html+='<div class="row" style="gap:5px"><span style="font-size:9.5px;color:#334155">'+new Date(o.id).toLocaleTimeString()+'</span>';
-    html+='<button class="btn btn-ghost btn-sm" style="padding:3px 8px" onclick="removeOutput('+o.id+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></div></div>';
+    html+='<div class="row" style="gap:5px;flex-wrap:wrap">';
+    html+='<span style="font-size:9.5px;color:#334155">'+new Date(o.id).toLocaleTimeString()+'</span>';
+    // APA Copy button
+    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA table — paste langsung ke Word">📋 Copy APA</button>';
+    html+='<button class="btn btn-ghost btn-sm" style="padding:3px 8px" onclick="removeOutput('+o.id+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    html+='</div></div>';
     if(o.type==='descriptive'){
       html+='<div class="stats-grid">';
       Object.entries(o.stats).filter(([,v])=>v!==undefined&&v!==null).forEach(([k,v])=>html+=stCard(k,v));
@@ -5543,10 +5945,467 @@ function renderOutput(el){
       // Interpretation hint
       html+='<div class="assump"><b style="color:#a5f3fc">N</b>='+r.n+' cases &nbsp;·&nbsp; <b style="color:#a5f3fc">p</b>='+r.p+' variables &nbsp;·&nbsp; '+r.nFactors+' factors extracted</div>';
     }
+    else if(o.type==='mediation'){
+      var r=o.res;
+      var medTypeColor={'Full Mediation':'#34d399','Partial Mediation':'#fbbf24','No Mediation':'#f87171','Inconsistent/Suppression':'#a78bfa'}[r.medType]||'#c084fc';
+      // Conclusion badge
+      html+='<div style="margin-bottom:12px;padding:10px 14px;border-radius:9px;border:1px solid '+medTypeColor+';background:rgba('+medTypeColor.replace('#','')+',0.06)">';
+      html+='<span style="font-size:13px;font-weight:800;color:'+medTypeColor+'">'+r.medType+'</span>';
+      html+='<span style="font-size:11.5px;color:rgba(232,222,255,.6);margin-left:10px">n='+r.n+' · X: '+r.xName+' → ['+r.mNames.join(', ')+'] → Y: '+r.yName+'</span>';
+      html+='</div>';
+
+      // Path diagram
+      html+='<div style="text-align:center;margin-bottom:12px">'+svgMediationPath(r.xName,r.mNames,r.yName,r)+'</div>';
+
+      // Baron-Kenny table
+      var bk=r.barronKenny;
+      html+='<div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:6px;text-transform:uppercase;letter-spacing:.7px">Baron-Kenny Causal Steps</div>';
+      html+=mkTable(
+        ['Step','Path','Coef','p','Sig'],
+        [
+          ['Step 1','X → Y (total c)', bk.c, SE.pFmt?SE.pFmt(parseFloat(bk.p_c)):parseFloat(bk.p_c).toFixed(3), parseFloat(bk.p_c)<0.05?'*':''],
+          ['Step 2','X → M (path a)', bk.a, SE.pFmt?SE.pFmt(parseFloat(bk.p_a)):parseFloat(bk.p_a).toFixed(3), parseFloat(bk.p_a)<0.05?'*':''],
+          ['Step 3','M → Y (path b)', bk.b, SE.pFmt?SE.pFmt(parseFloat(bk.p_b)):parseFloat(bk.p_b).toFixed(3), parseFloat(bk.p_b)<0.05?'*':''],
+          ["Step 4","X → Y (direct c')", bk.c_prime, SE.pFmt?SE.pFmt(parseFloat(bk.p_c_prime)):parseFloat(bk.p_c_prime).toFixed(3), parseFloat(bk.p_c_prime)<0.05?'*':'n.s.'],
+        ]
+      );
+
+      // Sobel + Bootstrap per mediator
+      html+='<div style="margin-top:12px;font-size:11px;font-weight:700;color:#c084fc;margin-bottom:6px;text-transform:uppercase;letter-spacing:.7px">Indirect Effect(s)</div>';
+      var bootRows=r.mediators.map(function(med,i){
+        var boot=r.bootResults&&r.bootResults[i];
+        var ci=boot?('['+boot.lo+', '+boot.hi+']'):'—';
+        var ciSig=boot?boot.sig:null;
+        return [
+          med.name,
+          SE.f4(med.indirect),
+          SE.f4(med.sobel_z),
+          parseFloat(med.sobel_p).toFixed(3),
+          parseFloat(med.sobel_p)<0.05?'*':'',
+          ci,
+          ciSig===null?'—':(ciSig?'<span style="color:#34d399">Sig (CI ≠ 0)</span>':'<span style="color:#f87171">n.s. (CI ∋ 0)</span>'),
+        ];
+      });
+      var bootHdr=['Mediator','Indirect (a×b)','Sobel z','p (Sobel)','Sig','Boot 95% CI','Boot Sig'];
+      html+='<div class="tbl-wrap"><table><thead><tr>'+bootHdr.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
+      bootRows.forEach(function(row){
+        html+='<tr>'+row.map(function(c,ci){
+          return '<td class="'+(ci===0?'td-label':'td-num')+'">'+c+'</td>';
+        }).join('')+'</tr>';
+      });
+      html+='</tbody></table></div>';
+
+      html+='<div style="margin-top:10px;font-size:11.5px;color:rgba(232,222,255,.45)">* p &lt; .05. Total indirect effect: '+r.totalIndirect+' · Model R² (M+X→Y): '+r.r2_total+'</div>';
+    }
     html+='</div>';
   });
   el.innerHTML=html;
 }
+// ════════════════════════════════════════════════════════════════════════
+// APA TABLE BUILDER — copy-paste ready untuk Word
+// ════════════════════════════════════════════════════════════════════════
+function sigStar(p){
+  var pf=parseFloat(p);
+  if(!isFinite(pf)) return '';
+  if(pf<.001) return '***';
+  if(pf<.01)  return '**';
+  if(pf<.05)  return '*';
+  return '';
+}
+function pFmt(p){
+  var pf=parseFloat(p);
+  if(!isFinite(pf)) return p;
+  if(pf<.001) return '< .001';
+  return '= '+p;
+}
+
+function buildAPATable(o){
+  // Returns plain-text APA table string siap paste ke Word
+  var lines=[];
+  var sep=function(len){return '-'.repeat(len||60);};
+  var col=function(val,w,align){
+    val=String(val??'—');
+    if(align==='right') return val.padStart(w);
+    if(align==='center'){var pad=Math.max(0,w-val.length);return ' '.repeat(Math.floor(pad/2))+val+' '.repeat(Math.ceil(pad/2));}
+    return val.padEnd(w);
+  };
+
+  // Helper: render plain-text table from headers + rows (array of arrays)
+  function txtTable(headers,rows){
+    var widths=headers.map(function(h,i){
+      return Math.max(h.length,Math.max.apply(null,rows.map(function(r){return String(r[i]??'—').length;})));
+    });
+    var line='  '+headers.map(function(h,i){return col(h,widths[i]);}).join('  ');
+    var rule='  '+widths.map(function(w){return '-'.repeat(w);}).join('  ');
+    var out=[line,rule];
+    rows.forEach(function(r){out.push('  '+r.map(function(c,i){return col(c,widths[i]);}).join('  '));});
+    return out.join('\n');
+  }
+
+  var title=o.title;
+  lines.push('');
+  lines.push('Table. '+title);
+  lines.push(sep(title.length+7));
+
+  if(o.type==='ttest'){
+    var r=o.res;
+    lines.push('Independent Samples T-Test');
+    lines.push('');
+    lines.push(txtTable(
+      ['','Group A ('+o.ga+')','Group B ('+o.gb+')'],
+      [['N',r.nA,r.nB],['M',r.meanA,r.meanB],['SD',r.sdA,r.sdB]]
+    ));
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [
+        ['t('+r.df+')',r.t+sigStar(r.p)],
+        ['p',pFmt(r.p)],
+        ["Cohen's d",r.cohensD+' ('+r.dInterp+')'],
+        ['95% CI',r.ci95],
+      ]
+    ));
+    lines.push('');
+    lines.push('  Note. '+sigStar(r.p)+' = significant. * p < .05. ** p < .01. *** p < .001.');
+    if(o.lev) lines.push('  Levene\'s test for equality of variances: F = '+o.lev.F+', p '+pFmt(o.lev.p_fmt)+'.');
+  }
+
+  else if(o.type==='paired'){
+    var r=o.res;
+    lines.push('Paired Samples T-Test');
+    lines.push('');
+    lines.push(txtTable(
+      ['Variable','M','SD','N'],
+      [[o.varA,'—','—',r.n],[o.varB,'—','—',r.n]]
+    ));
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [
+        ['Mean Difference',r.meanDiff],
+        ['SD Difference',r.sdDiff],
+        ['t('+r.df+')',r.t+sigStar(r.p)],
+        ['p',pFmt(r.p)],
+        ["Cohen's dz",r.cohensD+' ('+r.dInterp+')'],
+        ['95% CI',r.ci95],
+      ]
+    ));
+    lines.push('');
+    lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='onesamp'){
+    var r=o.res;
+    lines.push('One-Sample T-Test');
+    lines.push('');
+    lines.push(txtTable(
+      ['Parameter','Value'],
+      [
+        ['Variable',o.field],
+        ['Test Value (μ₀)',String(o.mu0)],
+        ['N',r.n],
+        ['M (x̄)',r.mean],
+        ['SD',r.sd],
+        ['SE',r.se],
+        ['Mean Difference',r.meanDiff],
+        ['95% CI of Diff',r.ciDiff],
+        ['t('+r.df+')',r.t+sigStar(r.p)],
+        ['p',pFmt(r.p)],
+        ["Cohen's d",r.cohensD+' ('+r.dInterp+')'],
+      ]
+    ));
+    lines.push('');
+    lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='anova'){
+    var r=o.res;
+    lines.push('One-Way ANOVA');
+    lines.push('');
+    lines.push(txtTable(
+      ['Source','df','SS','MS','F','p','η²'],
+      [
+        ['Between',r.dfB,r.ssB,r.msB,r.F+sigStar(r.p),pFmt(r.p),r.eta2],
+        ['Within',r.dfW,r.ssW,r.msW,'','',''],
+        ['Total',r.dfB+r.dfW,'','','','',''],
+      ]
+    ));
+    lines.push('');
+    // Group means table
+    if(r.groupStats&&r.groupStats.length){
+      lines.push(txtTable(
+        ['Group','N','M','SD'],
+        r.groupStats.map(function(g){return[g.label,g.n,g.mean,g.sd];})
+      ));
+    }
+    lines.push('');
+    lines.push('  Note. η² = '+r.eta2+' ('+r.eta2Interp+'). * p < .05. ** p < .01. *** p < .001.');
+    if(o.posthoc){
+      lines.push('');
+      var phLabel={'tukey':'Tukey HSD','bonferroni':'Bonferroni','lsd':'LSD Fisher'}[o.posthocMethod]||'Post-hoc';
+      lines.push('  '+phLabel+' Post-hoc Comparisons:');
+      o.posthoc.forEach(function(ph){
+        lines.push('    '+ph.a+' vs '+ph.b+': diff = '+ph.diff+', p '+pFmt(ph.p_fmt||ph.p)+' '+sigStar(ph.p_fmt||ph.p));
+      });
+    }
+  }
+
+  else if(o.type==='correlation'){
+    var r=o.res;
+    var ctype=o.crType==='spearman'?'Spearman':'Pearson';
+    lines.push(ctype+' Correlation');
+    lines.push('');
+    lines.push(txtTable(
+      ['Variables','r','r²','p','95% CI'],
+      [[o.crX+' × '+o.crY, r.r+sigStar(r.p), r.r2, pFmt(r.p), r.ci95]]
+    ));
+    lines.push('');
+    lines.push('  Note. '+r.strength+' '+r.direction+' relationship.');
+    lines.push('  * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='partialCorr'){
+    var r=o.res;
+    lines.push('Partial Correlation');
+    lines.push('');
+    lines.push(txtTable(
+      ['','r','r²','p','95% CI'],
+      [
+        [o.pcX+' × '+o.pcY+' (zero-order)',r.rxy,'—','—','—'],
+        [o.pcX+' × '+o.pcY+' (partial)',r.rp+sigStar(r.p),r.r2,pFmt(r.p),r.ci95],
+      ]
+    ));
+    lines.push('');
+    lines.push('  Note. Controlling for '+o.pcZ+'. * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='regression'){
+    var r=o.res;
+    lines.push('Simple Linear Regression');
+    lines.push('');
+    lines.push(txtTable(
+      ['','B','SE','t','p','Sig'],
+      [
+        ['Constant',r.b0,r.SEb0,r.tb0,pFmt(r.pb0_fmt),sigStar(r.pb0_fmt)],
+        [o.xF+' (b₁)',r.b1,r.SEb1,r.tb1,pFmt(r.pb1_fmt),sigStar(r.pb1_fmt)],
+      ]
+    ));
+    lines.push('');
+    lines.push(txtTable(
+      ['Model Fit','Value'],
+      [['R²',r.R2],['Adj R²',r.R2adj],['F',r.F],['p',pFmt(r.pF_fmt)],['RMSE',r.RMSE]]
+    ));
+    lines.push('');
+    lines.push('  Equation: Ŷ = '+r.b0+' + '+r.b1+' · '+o.xF);
+    lines.push('  * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='multipleReg'){
+    var r=o.res;
+    lines.push('Multiple Linear Regression');
+    lines.push('Dependent Variable: '+o.yName);
+    lines.push('');
+    var predRows=[['Constant',r.b0,r.SEb0||'—',r.t0||'—',pFmt(r.p0_fmt||'1'),sigStar(r.p0_fmt||'1')]];
+    if(r.predictors) r.predictors.forEach(function(pr){
+      predRows.push([pr.name,pr.b,pr.se,pr.t,pFmt(pr.p_fmt),sigStar(pr.p_fmt)]);
+    });
+    lines.push(txtTable(['Predictor','B','SE','t','p','Sig'],predRows));
+    lines.push('');
+    lines.push(txtTable(
+      ['Model Fit','Value'],
+      [['R²',r.R2],['Adj R²',r.R2adj],['F',r.F],['p',pFmt(r.pF_fmt)]]
+    ));
+    lines.push('');
+    lines.push('  * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='descriptive'){
+    var s=o.stats;
+    lines.push('Descriptive Statistics: '+o.field);
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [
+        ['N',s.n],['Mean',s.mean],['Median',s.median],['SD',s.sd],
+        ['Variance',s.variance],['Min',s.min],['Max',s.max],
+        ['Range',s.range],['Skewness',s.skewness],['Kurtosis',s.kurtosis],
+        ['SE Mean',s.seMean],['95% CI','['+s.ci95l+', '+s.ci95u+']'],
+        ['Shapiro-Wilk W',s.shapiroW],['Shapiro-Wilk p',pFmt(s.shapiroP)],
+      ].filter(function(row){return row[1]!==undefined&&row[1]!==null;})
+    ));
+  }
+
+  else if(o.type==='mannwhitney'){
+    var r=o.res;
+    lines.push('Mann-Whitney U Test');
+    lines.push('');
+    lines.push(txtTable(
+      ['','Group A ('+o.ga+')','Group B ('+o.gb+')'],
+      [['Median',r.medA,r.medB],['N',r.nA,r.nB]]
+    ));
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [['U',r.U],['z',r.z],['p',pFmt(r.p_fmt)],['r (effect)',r.r_eff]]
+    ));
+    lines.push('');
+    lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='kruskal'){
+    var r=o.res;
+    lines.push('Kruskal-Wallis H Test');
+    lines.push('');
+    lines.push(txtTable(
+      ['Group','N','Median','M'],
+      r.groupStats.map(function(g){return[g.label,g.n,g.median,g.mean];})
+    ));
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [['H',r.H],['df',r.df],['p',pFmt(r.p_fmt)]]
+    ));
+    lines.push('');
+    lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='alpha'){
+    var r=o.res;
+    lines.push('Reliability Analysis (Cronbach\'s Alpha)');
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [['Cronbach\'s α',r.alpha],['Items (k)',r.k],['Cases (n)',r.n],['Interpretation',r.interp]]
+    ));
+    lines.push('');
+    lines.push('  Items: '+o.vars.join(', '));
+  }
+
+  else if(o.type==='glm'){
+    var r=o.res;
+    lines.push('General Linear Model (Univariate)');
+    lines.push('Dependent Variable: '+o.depVar);
+    lines.push('');
+    if(r&&r.effects){
+      lines.push(txtTable(
+        ['Source','df','SS','MS','F','p','Partial η²'],
+        r.effects.map(function(e){
+          return[e.source+(e.isCov?' (cov)':''),e.df,e.SS||'—',e.MS||'—',
+            (e.F||'—')+sigStar(e.p_fmt),pFmt(e.p_fmt),e.partialEta2||'—'];
+        }).concat([['Error',r.dfError,r.ssError,r.msError,'','','']])
+      ));
+      lines.push('');
+      lines.push(txtTable(['Model Fit','Value'],[['R²',r.R2],['Adj R²',r.R2adj],['N',r.n]]));
+    }
+    lines.push('');
+    lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
+  }
+
+  else if(o.type==='efa'){
+    var r=o.res;
+    lines.push('Exploratory Factor Analysis');
+    lines.push('Rotation: '+r.rotation+' · Factors: '+r.nFactors+' · N = '+r.n);
+    lines.push('');
+    // KMO + Bartlett
+    lines.push(txtTable(
+      ['Adequacy Check','Value'],
+      [['KMO',r.kmo+' ('+r.kmoInterp+')'],['Bartlett χ²',r.chi2],['df',r.bartDf],['p',pFmt(r.bartP)]]
+    ));
+    lines.push('');
+    // Factor loadings
+    var fHeaders=['Variable'].concat(
+      Array.from({length:r.nFactors},function(_,i){return 'F'+(i+1);}),['h²']
+    );
+    var fRows=o.efaVars.map(function(v,i){
+      return [v].concat(r.loadings[i]).concat([r.communalities[i]]);
+    });
+    lines.push(txtTable(fHeaders,fRows));
+    lines.push('');
+    // Eigenvalues
+    lines.push(txtTable(
+      ['Factor','Eigenvalue','% Var','Cum %'],
+      r.eigenvalues.map(function(ev,i){
+        return['F'+(i+1),ev,r.varExp[i]+'%',r.cumVar[i]+'%'];
+      })
+    ));
+    lines.push('');
+    lines.push('  Note. Loadings |≥ .40| considered significant. h² = communality.');
+  }
+
+  else if(o.type==='mediation'){
+    var r=o.res;
+    var bk=r.barronKenny;
+    lines.push('Mediation Analysis');
+    lines.push('X: '+r.xName+' · M: ['+r.mNames.join(', ')+'] · Y: '+r.yName+' · N = '+r.n);
+    lines.push('');
+    lines.push(txtTable(
+      ['Step','Path','Coef (β)','p','Result'],
+      [
+        ['Step 1 (c)',r.xName+' → '+r.yName,bk.c,pFmt(parseFloat(bk.p_c)),parseFloat(bk.p_c)<0.05?'Sig*':'n.s.'],
+        ['Step 2 (a)',r.xName+' → '+r.mNames[0],bk.a,pFmt(parseFloat(bk.p_a)),parseFloat(bk.p_a)<0.05?'Sig*':'n.s.'],
+        ['Step 3 (b)',r.mNames[0]+' → '+r.yName,bk.b,pFmt(parseFloat(bk.p_b)),parseFloat(bk.p_b)<0.05?'Sig*':'n.s.'],
+        ["Step 4 (c')",r.xName+' → '+r.yName+' (direct)',bk.c_prime,pFmt(parseFloat(bk.p_c_prime)),parseFloat(bk.p_c_prime)<0.05?'Sig*':'n.s.'],
+      ]
+    ));
+    lines.push('');
+    lines.push('  Mediation Type: '+r.medType);
+    lines.push('');
+    lines.push('  Indirect Effect(s) — Sobel Test + Bootstrap 95% CI:');
+    r.mediators.forEach(function(med,i){
+      var boot=r.bootResults&&r.bootResults[i];
+      lines.push('    via '+med.name+': Indirect = '+SE.f4(med.indirect)+', Sobel z = '+SE.f4(med.sobel_z)+', p = '+parseFloat(med.sobel_p).toFixed(3)+(boot?', Bootstrap CI ['+boot.lo+', '+boot.hi+']':''));
+    });
+    lines.push('');
+    lines.push('  Note. * p < .05. Bootstrap 95% CI based on '+r.bootResults?.length+' samples.');
+    lines.push('  If Bootstrap CI does not include 0, indirect effect is significant.');
+  }
+
+  else {
+    // Fallback: generic key-value
+    lines.push('(No APA table template for this analysis type.)');
+    lines.push('Title: '+o.title);
+  }
+
+  lines.push('');
+  lines.push(sep(60));
+  lines.push('Generated by OSS — Orias Statistik System · '+new Date().toLocaleDateString());
+  lines.push('');
+  return lines.join('\n');
+}
+
+function copyAPA(id,btn){
+  var o=outputs.find(function(x){return x.id===id;});
+  if(!o){showToast('Output not found','error');return;}
+  var text=buildAPATable(o);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      btn.textContent='✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(function(){btn.textContent='📋 Copy APA';btn.classList.remove('copied');},2200);
+      showToast('APA table copied — paste ke Word ✓');
+    }).catch(function(){fallbackCopy(text,btn);});
+  } else {
+    fallbackCopy(text,btn);
+  }
+}
+
+function fallbackCopy(text,btn){
+  // Fallback for browsers without clipboard API
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();ta.select();
+  try{
+    document.execCommand('copy');
+    if(btn){btn.textContent='✓ Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='📋 Copy APA';btn.classList.remove('copied');},2200);}
+    showToast('APA table copied — paste ke Word ✓');
+  }catch(e){
+    showToast('Copy gagal — coba manual select teks','error');
+  }
+  document.body.removeChild(ta);
+}
+
 function removeOutput(id){outputs=outputs.filter(o=>o.id!==id);updateBadges();renderTab('output');}
 
 // ════════════════════════════════════════════════════════════════════════
@@ -5950,6 +6809,8 @@ var CMD_ACTIONS=[
   {label:' Reliability / Alpha',fn:function(){openAnalyze('reliability');}},
   {label:' Crosstab / Chi-Square',fn:function(){openAnalyze('crosstab');}},
   {label:' Correlation Matrix',fn:function(){openAnalyze('corrmatrix');}},
+  {label:' Factor Analysis (EFA)',fn:function(){openAnalyze('efa');}},
+  {label:'⚗ Mediation Analysis (Sobel/Bootstrap)',fn:function(){openAnalyze('mediation');}},
   {label:' Charts',fn:function(){openAnalyze('charts');}},
   {label:'Transform Variable',fn:function(){openAnalyze('transform');}},
   {label:'Recode Variable',fn:function(){openAnalyze('recode');}},
