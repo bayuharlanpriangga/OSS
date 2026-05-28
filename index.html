@@ -347,8 +347,23 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
 .s-act-import{background:rgba(52,211,153,.07);color:#6ee7b7;border-color:rgba(52,211,153,.25)}
 .s-act-import:hover{background:rgba(52,211,153,.18);color:#34d399;border-color:rgba(52,211,153,.5)}
 
-/* File status bar — shows current open file name */
-#oss-file-bar{
+/* Sidebar Install PWA button */
+#sidebar-install-btn{
+  width:100%;padding:8px 10px;border-radius:9px;border:1px solid rgba(124,58,237,.4);
+  background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(219,39,119,.15));
+  color:#c084fc;font-size:11px;font-family:'Inter',sans-serif;font-weight:600;
+  cursor:pointer;text-align:center;transition:all .18s;
+  box-shadow:0 0 14px rgba(124,58,237,.1);
+}
+#sidebar-install-btn:hover{
+  background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(219,39,119,.28));
+  color:#e0b4ff;border-color:rgba(192,132,252,.6);
+  box-shadow:0 0 18px rgba(124,58,237,.25);
+}
+#sidebar-install-btn:active{transform:scale(.97);}
+
+/* Fix pwa-icon when using img instead of emoji */
+#oss-pwa-banner .pwa-icon{font-size:0;line-height:0;}
   display:none;
   align-items:center;gap:6px;padding:4px 10px;
   background:rgba(124,58,237,.08);border-bottom:1px solid rgba(124,58,237,.14);
@@ -1332,13 +1347,13 @@ svg text{font-family:'Inter',system-ui,sans-serif}
         <span class="fbar-name" id="oss-file-bar-name">Untitled</span>
         <span class="fbar-unsaved" id="oss-file-bar-unsaved" style="display:none">● Unsaved</span>
       </div>
+      <!-- Install PWA button — only visible when browser fires beforeinstallprompt -->
+      <div id="sidebar-install-wrap" style="display:none;margin-bottom:6px">
+        <button id="sidebar-install-btn" onclick="installPWA()" title="Install OSS sebagai aplikasi">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>Install App
+        </button>
+      </div>
       <div class="s-acts">
-        <button class="s-act s-act-save" onclick="saveToFile()" title="Simpan ke file perangkat (.oss)">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="display:inline;vertical-align:-1px;margin-right:2px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Simpan
-        </button>
-        <button class="s-act s-act-import" onclick="importFromFile()" title="Buka file penelitian (.oss)">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="display:inline;vertical-align:-1px;margin-right:2px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Buka
-        </button>
         <button class="s-act" onclick="openCmd()" title="Search">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="7.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg>
         </button>
@@ -1362,7 +1377,7 @@ svg text{font-family:'Inter',system-ui,sans-serif}
 
 <!-- PWA Install Banner -->
 <div id="oss-pwa-banner">
-  <div class="pwa-icon">📊</div>
+  <div class="pwa-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJiZyIgY3g9IjQwJSIgY3k9IjM1JSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNmIxMjUwIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmEwNTIwIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9IndjMSIgY3g9IjIwJSIgY3k9IjIwJSIgcj0iNjUlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZjQ3MmI2IiBzdG9wLW9wYWNpdHk9IjAuNzUiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iI2VjNDg5OSIgc3RvcC1vcGFjaXR5PSIwLjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlYzQ4OTkiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJ3YzIiIGN4PSI4MCUiIGN5PSI4MCUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZiNzE4NSIgc3RvcC1vcGFjaXR5PSIwLjU1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmI3MTg1IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0id2MzIiBjeD0iODUlIiBjeT0iMTUlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNjMDg0ZmMiIHN0b3Atb3BhY2l0eT0iMC40NSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2MwODRmYyIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImJhckdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNmNDcyYjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkYjI3NzciLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0idHJlbmRHcmFkIiB4MT0iMCUiIHkxPSIxMDAlIiB4Mj0iMTAwJSIgeTI9IjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmJjZmU4Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJnbG93Ij48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjIiIHJlc3VsdD0iY29sb3JlZEJsdXIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImNvbG9yZWRCbHVyIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxjbGlwUGF0aCBpZD0iY2MiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMyIi8+PC9jbGlwUGF0aD48L2RlZnM+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjYmcpIi8+PGcgY2xpcC1wYXRoPSJ1cmwoI2NjKSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMTYiIHJ4PSIyOCIgcnk9IjI0IiBmaWxsPSJ1cmwoI3djMSkiLz48ZWxsaXBzZSBjeD0iNTAiIGN5PSI1MCIgcng9IjIyIiByeT0iMjIiIGZpbGw9InVybCgjd2MyKSIvPjxlbGxpcHNlIGN4PSI1NCIgY3k9IjEwIiByeD0iMTgiIHJ5PSIxNiIgZmlsbD0idXJsKCN3YzMpIi8+PHJlY3QgeD0iOSIgeT0iNDciIHdpZHRoPSI3IiBoZWlnaHQ9IjgiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxyZWN0IHg9IjE5IiB5PSIzOSIgd2lkdGg9IjciIGhlaWdodD0iMTYiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxyZWN0IHg9IjI5IiB5PSIzMCIgd2lkdGg9IjciIGhlaWdodD0iMjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxyZWN0IHg9IjM5IiB5PSIzNSIgd2lkdGg9IjciIGhlaWdodD0iMjAiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxwb2x5bGluZSBwb2ludHM9IjEyLDQ2IDIyLDM3IDMyLDI3IDQ2LDE4IiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjdHJlbmRHcmFkKSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgb3BhY2l0eT0iMC45NSIvPjxjaXJjbGUgY3g9IjQ2IiBjeT0iMTgiIHI9IjMuNSIgZmlsbD0iI2ZkYTRjZiIgb3BhY2l0eT0iMC45OCIgZmlsdGVyPSJ1cmwoI2dsb3cpIi8+PGNpcmNsZSBjeD0iNDYiIGN5PSIxOCIgcj0iMS41IiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjkiLz48L2c+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y0NzJiNiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=" width="36" height="36" style="border-radius:8px" alt="OSS"/></div>
   <div class="pwa-text">
     <div class="pwa-title">Install OSS sebagai App</div>
     <div class="pwa-sub">Akses offline, simpan ke file, & buka seperti aplikasi desktop/mobile</div>
@@ -18225,6 +18240,9 @@ var _pwaInstallEvent = null;
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault();
     _pwaInstallEvent = e;
+    // Show sidebar install button
+    var sib = document.getElementById('sidebar-install-wrap');
+    if(sib) sib.style.display = 'block';
     // Show banner if user hasn't dismissed it before
     if(!localStorage.getItem('oss_pwa_dismissed')){
       setTimeout(function(){
@@ -18239,6 +18257,9 @@ var _pwaInstallEvent = null;
     _pwaInstallEvent = null;
     var banner = document.getElementById('oss-pwa-banner');
     if(banner) banner.classList.remove('show');
+    // Hide sidebar install button — already installed
+    var sib = document.getElementById('sidebar-install-wrap');
+    if(sib) sib.style.display = 'none';
     showToast('✓ OSS berhasil diinstall sebagai aplikasi!');
   });
 })();
@@ -18261,18 +18282,7 @@ function dismissPWABanner(){
   localStorage.setItem('oss_pwa_dismissed', '1');
 }
 
-// ── Helper: generic OSS dialog (reuse existing ossDialog if present) ──
-function ossDialog(opts){
-  return new Promise(function(resolve){
-    // Try to use existing dialog system
-    if(typeof OSSDialog !== 'undefined' && OSSDialog.show){
-      OSSDialog.show(opts).then(resolve);
-      return;
-    }
-    // Fallback: native confirm
-    resolve(window.confirm(opts.msg || opts.title));
-  });
-}
+// ── [Duplikat ossDialog dihapus — gunakan ossDialog utama di atas] ──
 // Clear any previously saved demo/auto sessions so fresh installs start empty
 (function(){
   try{
