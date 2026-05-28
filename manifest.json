@@ -1,0 +1,35 @@
+{
+  "name": "OSS — Orias Statistik System",
+  "short_name": "OSS",
+  "description": "Aplikasi statistik lengkap — analisis, visualisasi, dan simpan hasil penelitian ke perangkat Anda.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e0618",
+  "theme_color": "#7c3aed",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNDAlIiBjeT0iMzUlIiByPSI3MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2YjEyNTAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyYTA1MjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjI1NiIgZmlsbD0idXJsKCNiZykiLz48cmVjdCB4PSI3MiIgeT0iMzc2IiB3aWR0aD0iNTYiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2Y0NzJiNiIvPjxyZWN0IHg9IjE1MiIgeT0iMzEyIiB3aWR0aD0iNTYiIGhlaWdodD0iMTI4IiByeD0iMTIiIGZpbGw9IiNmNDcyYjYiLz48cmVjdCB4PSIyMzIiIHk9IjI0MCIgd2lkdGg9IjU2IiBoZWlnaHQ9IjIwMCIgcng9IjEyIiBmaWxsPSIjZjQ3MmI2Ii8+PHJlY3QgeD0iMzEyIiB5PSIyODAiIHdpZHRoPSI1NiIgaGVpZ2h0PSIxNjAiIHJ4PSIxMiIgZmlsbD0iI2Y0NzJiNiIvPjxwb2x5bGluZSBwb2ludHM9Ijk2LDM2OCAxNzYsMzA0IDI1NiwyMzIgMzY4LDE0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmRhNGNmIiBzdHJva2Utd2lkdGg9IjIwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48Y2lyY2xlIGN4PSIzNjgiIGN5PSIxNDQiIHI9IjI4IiBmaWxsPSIjZmRhNGNmIi8+PC9zdmc+",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./index.html",
+      "accept": {
+        "application/json": [".oss"]
+      }
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Analisis Baru",
+      "short_name": "Baru",
+      "url": "./index.html",
+      "description": "Mulai sesi analisis baru"
+    }
+  ]
+}
