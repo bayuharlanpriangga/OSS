@@ -114,6 +114,98 @@
   border-radius:99px;
   transition:width .08s linear;
 }
+
+/* ═══════════════════════════════════════
+   ACTIVITY LOADING POPUP (OSS style)
+═══════════════════════════════════════ */
+#oss-loader{
+  position:fixed;inset:0;z-index:8888;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(14,6,24,.55);
+  backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s ease;
+}
+#oss-loader.show{opacity:1;pointer-events:all;}
+#oss-loader-box{
+  background:linear-gradient(145deg,rgba(26,10,46,.97),rgba(20,6,36,.98));
+  border:1px solid rgba(124,58,237,.28);
+  border-radius:20px;
+  padding:34px 40px 30px;
+  min-width:230px;max-width:320px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  box-shadow:0 8px 48px rgba(124,58,237,.22),0 2px 16px rgba(219,39,119,.1),0 0 0 1px rgba(124,58,237,.08);
+  transform:scale(.92) translateY(6px);
+  transition:transform .25s cubic-bezier(.16,1,.3,1);
+  position:relative;overflow:hidden;
+}
+#oss-loader.show #oss-loader-box{transform:scale(1) translateY(0);}
+/* Watercolor glow inside card */
+#oss-loader-box::before{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:20px;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%,rgba(124,58,237,.12),transparent),
+    radial-gradient(ellipse 50% 40% at 80% 80%,rgba(219,39,119,.08),transparent);
+}
+/* Spinning arc */
+.oss-spin-wrap{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;}
+.oss-arc{
+  position:absolute;inset:0;border-radius:50%;
+  border:2.5px solid transparent;
+  border-top-color:#7c3aed;
+  border-right-color:rgba(219,39,119,.45);
+  animation:ossSpinA 1s linear infinite;
+}
+.oss-arc2{
+  position:absolute;inset:7px;border-radius:50%;
+  border:2px solid transparent;
+  border-bottom-color:rgba(192,132,252,.5);
+  border-left-color:rgba(249,168,212,.25);
+  animation:ossSpinA 1.6s linear infinite reverse;
+}
+.oss-glow-dot{display:none;}
+@keyframes ossSpinA{to{transform:rotate(360deg)}}
+@keyframes ossGlowPulse{0%,100%{transform:scale(.85);opacity:.7}50%{transform:scale(1.15);opacity:1}}
+/* Title & subtitle */
+.oss-ldr-title{
+  font-family:'Inter',sans-serif;
+  font-weight:700;font-size:14px;
+  color:#e8deff;text-align:center;
+  letter-spacing:-.2px;
+  position:relative;z-index:1;
+}
+.oss-ldr-sub{
+  font-size:11px;color:rgba(192,132,252,.65);
+  text-align:center;font-family:'Inter',sans-serif;
+  position:relative;z-index:1;
+  min-height:14px;
+}
+/* Dot pulsers */
+.oss-dots{display:flex;gap:5px;align-items:center;justify-content:center;position:relative;z-index:1;}
+.oss-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(124,58,237,.35);
+  animation:ossDotPulse 1.4s ease-in-out infinite;
+}
+.oss-dot:nth-child(1){animation-delay:0s;}
+.oss-dot:nth-child(2){animation-delay:.2s;background:rgba(219,39,119,.45);}
+.oss-dot:nth-child(3){animation-delay:.4s;background:rgba(192,132,252,.35);}
+@keyframes ossDotPulse{
+  0%,100%{transform:scale(.7);opacity:.35}
+  50%{transform:scale(1.15);opacity:1}
+}
+/* Progress micro bar */
+.oss-ldr-bar-wrap{
+  width:160px;height:2.5px;border-radius:99px;
+  background:rgba(124,58,237,.12);overflow:hidden;
+  position:relative;z-index:1;
+}
+.oss-ldr-bar{
+  height:100%;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,#7c3aed,#db2777,#c084fc);
+  transition:width .12s linear;
+}
+
 html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:#0e0618;color:#e8deff;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-thumb{background:rgba(124,58,237,.35);border-radius:2px}
@@ -16245,6 +16337,281 @@ function _wordTable(headers, rows){
 function _escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ════════════════════════════════════════════════════════════
+// ACTIVITY LOADING POPUP SYSTEM
+// ════════════════════════════════════════════════════════════
+(function(){
+  // Inject HTML
+  var loaderHtml=
+    '<div id="oss-loader">'+
+      '<div id="oss-loader-box">'+
+        '<div class="oss-spin-wrap">'+
+          '<div class="oss-arc"></div>'+
+          '<div class="oss-arc2"></div>'+
+          '<div class="oss-glow-dot"></div>'+
+        '</div>'+
+        '<div class="oss-ldr-title" id="oss-ldr-title">Memproses...</div>'+
+        '<div class="oss-ldr-sub" id="oss-ldr-sub">Mohon tunggu sebentar</div>'+
+        '<div class="oss-ldr-bar-wrap"><div class="oss-ldr-bar" id="oss-ldr-bar"></div></div>'+
+        '<div class="oss-dots"><div class="oss-dot"></div><div class="oss-dot"></div><div class="oss-dot"></div></div>'+
+      '</div>'+
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', loaderHtml);
+
+  var loader    = null; // lazy ref
+  var barEl     = null;
+  var titleEl   = null;
+  var subEl     = null;
+  var _barPct   = 0;
+  var _barTarget = 0;
+  var _barAF    = null;
+  var _hideTimer = null;
+
+  function getEls(){
+    if(!loader){
+      loader  = document.getElementById('oss-loader');
+      barEl   = document.getElementById('oss-ldr-bar');
+      titleEl = document.getElementById('oss-ldr-title');
+      subEl   = document.getElementById('oss-ldr-sub');
+    }
+  }
+
+  // Animate progress bar smoothly
+  function animBar(){
+    if(_barPct < _barTarget){
+      var step = Math.max(1, Math.ceil((_barTarget - _barPct) * 0.12));
+      _barPct = Math.min(_barTarget, _barPct + step);
+      if(barEl) barEl.style.width = _barPct + '%';
+    }
+    if(_barPct < 100){
+      _barAF = requestAnimationFrame(animBar);
+    }
+  }
+
+  function setBar(v){
+    _barTarget = Math.min(100, Math.max(_barPct, v));
+    if(!_barAF) _barAF = requestAnimationFrame(animBar);
+  }
+
+  // Public: show loader
+  window.OSSLoader = {
+    show: function(title, sub){
+      getEls();
+      clearTimeout(_hideTimer);
+      _barPct = 0; _barTarget = 0;
+      cancelAnimationFrame(_barAF); _barAF = null;
+      if(barEl) barEl.style.width = '0%';
+      if(titleEl) titleEl.textContent = title || 'Memproses...';
+      if(subEl)   subEl.textContent   = sub   || 'Mohon tunggu sebentar';
+      loader.classList.add('show');
+      // Simulate smart progress based on perceived network
+      setTimeout(function(){ setBar(25); }, 0);
+      setTimeout(function(){ setBar(55); }, 120);
+      setTimeout(function(){ setBar(78); }, 280);
+    },
+    hide: function(delay){
+      getEls();
+      setBar(100);
+      _hideTimer = setTimeout(function(){
+        if(loader) loader.classList.remove('show');
+        _barPct = 0; _barTarget = 0;
+        cancelAnimationFrame(_barAF); _barAF = null;
+      }, delay != null ? delay : 260);
+    },
+    update: function(sub){ if(subEl) subEl.textContent = sub || ''; }
+  };
+
+  // ─── INTERCEPT USER ACTIVITIES ───────────────────────────────
+
+  // 1. Analysis runs — wrap runSafe
+  var _origRunSafe = window.runSafe;
+  window.runSafe = function(fn, label){
+    var messages = {
+      'Descriptives'     : ['Menghitung statistik deskriptif','Menganalisis distribusi data...'],
+      'Correlation'      : ['Menghitung korelasi','Menghitung matriks korelasi...'],
+      'Regression'       : ['Menjalankan regresi','Membangun model regresi...'],
+      'T-Test'           : ['Menjalankan uji t','Membandingkan kelompok...'],
+      'ANOVA'            : ['Menjalankan ANOVA','Menganalisis varians...'],
+      'Chi-Square'       : ['Menghitung Chi-Square','Menganalisis frekuensi...'],
+      'Factor Analysis'  : ['Analisis faktor','Mengekstrak faktor...'],
+      'Reliability'      : ['Uji reliabilitas','Menghitung Cronbach Alpha...'],
+      'Mann-Whitney'     : ['Uji Mann-Whitney','Membandingkan distribusi...'],
+      'Wilcoxon'         : ['Uji Wilcoxon','Menganalisis perbedaan...'],
+      'Kruskal-Wallis'   : ['Uji Kruskal-Wallis','Analisis nonparametrik...'],
+      'Logistic'         : ['Regresi logistik','Membangun model logistik...'],
+      'Hierarchical'     : ['Regresi hierarki','Membangun model bertahap...'],
+    };
+    var lbl = label || '';
+    var key = Object.keys(messages).find(function(k){ return lbl.indexOf(k) !== -1; });
+    var title = key ? messages[key][0] : 'Menjalankan analisis';
+    var sub   = key ? messages[key][1] : ('Memproses: ' + lbl + '...');
+    OSSLoader.show(title, sub);
+    setTimeout(function(){
+      try{
+        fn();
+        OSSLoader.update('Analisis selesai ✓');
+        OSSLoader.hide(340);
+        showToast(label + ' complete → Output');
+      }catch(e){
+        OSSLoader.hide(0);
+        showToast(e.message, 'error');
+      }
+    }, 60);
+  };
+
+  // 2. CSV import
+  var _origHandleCSV = window.handleCSV;
+  if(typeof _origHandleCSV === 'function'){
+    window.handleCSV = function(e){
+      var file = e.target.files[0];
+      var name = file ? file.name : 'file';
+      OSSLoader.show('Mengimpor data', 'Membaca: ' + name + '...');
+      var origOnLoad = null;
+      var origReader = window.FileReader;
+      // Wrap with a short delay so loader renders first
+      setTimeout(function(){
+        _origHandleCSV(e);
+        // Since handleCSV is async via FileReader, we patch the toast
+      }, 80);
+      // Hide loader after a realistic delay
+      var t0 = Date.now();
+      var checkDone = setInterval(function(){
+        if(Date.now() - t0 > 2000){
+          clearInterval(checkDone);
+          OSSLoader.hide(200);
+        }
+      }, 100);
+      // Also hook showToast to detect import finish
+      var _origToast = window.showToast;
+      window.showToast = function(msg, type){
+        if(typeof msg === 'string' && msg.indexOf('Imported') === 0){
+          clearInterval(checkDone);
+          OSSLoader.update('Import berhasil ✓');
+          OSSLoader.hide(350);
+        }
+        _origToast.apply(this, arguments);
+        window.showToast = _origToast;
+      };
+    };
+  }
+
+  // 3. Export functions — patch download triggers
+  function wrapExport(fnName, title, sub){
+    var orig = window[fnName];
+    if(typeof orig !== 'function') return;
+    window[fnName] = function(){
+      OSSLoader.show(title, sub);
+      setTimeout(function(){
+        try{ orig.apply(this, arguments); }catch(e){}
+        OSSLoader.update('File siap diunduh ✓');
+        OSSLoader.hide(600);
+      }, 120);
+    };
+  }
+  // Will run after page init so functions are defined
+  setTimeout(function(){
+    wrapExport('exportToWord',  'Mengekspor laporan', 'Membangun dokumen Word...');
+    wrapExport('exportToExcel', 'Mengekspor ke Excel', 'Menulis data ke spreadsheet...');
+    // detect CSV/APA export buttons via click delegation instead (handled below)
+  }, 500);
+
+  // 4. Hierarchical regression (async)
+  setTimeout(function(){
+    var _origHier = window.runHierarchicalReg;
+    if(typeof _origHier === 'function'){
+      window.runHierarchicalReg = function(){
+        OSSLoader.show('Regresi hierarki', 'Membangun model bertahap...');
+        setTimeout(function(){
+          try{
+            _origHier();
+            OSSLoader.update('Analisis selesai ✓');
+            OSSLoader.hide(320);
+          }catch(e){
+            OSSLoader.hide(0);
+            showToast(e.message,'error');
+          }
+        }, 60);
+      };
+    }
+  }, 300);
+
+  // 5. execSyntax (async run all)
+  setTimeout(function(){
+    var _origExec = window.execSyntax;
+    if(typeof _origExec === 'function'){
+      window.execSyntax = async function(){
+        OSSLoader.show('Menjalankan syntax', 'Mengeksekusi semua perintah...');
+        try{
+          await _origExec();
+          OSSLoader.update('Eksekusi selesai ✓');
+          OSSLoader.hide(320);
+        }catch(e){
+          OSSLoader.hide(0);
+        }
+      };
+    }
+  }, 400);
+
+  // 6. Navigation between main pages (Home ↔ App)
+  // Intercept via click delegation on nav items
+  document.addEventListener('click', function(e){
+    var item = e.target.closest('.s-item, .hero-cta, .s-logo');
+    if(!item) return;
+    // Only show brief loader for sidebar navigation switches
+    if(item.classList.contains('s-item')){
+      var text = item.textContent.trim().substring(0, 30);
+      OSSLoader.show('Membuka halaman', 'Navigasi ke: ' + text + '...');
+      OSSLoader.hide(420);
+    }
+  }, true);
+
+  // 7. Tab switching inside pages (sub-tabs)
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.sub-btn');
+    if(!btn || !btn.dataset.tab) return;
+    var tabName = btn.textContent.trim().substring(0, 24);
+    OSSLoader.show('Memuat tampilan', 'Membuka: ' + tabName + '...');
+    OSSLoader.hide(350);
+  }, true);
+
+  // 8. Impute / data processing
+  setTimeout(function(){
+    var _origImpute = window.runImpute;
+    if(typeof _origImpute === 'function'){
+      window.runImpute = function(){
+        OSSLoader.show('Mengimputasi data', 'Mengisi nilai yang hilang...');
+        try{ _origImpute(); OSSLoader.update('Imputasi selesai ✓'); OSSLoader.hide(300); }
+        catch(e){ OSSLoader.hide(0); }
+      };
+    }
+    var _origImputeAll = window.imputeAllVars;
+    if(typeof _origImputeAll === 'function'){
+      window.imputeAllVars = function(){
+        OSSLoader.show('Mengimputasi semua variabel', 'Memproses semua kolom...');
+        try{ _origImputeAll(); OSSLoader.update('Imputasi selesai ✓'); OSSLoader.hide(350); }
+        catch(e){ OSSLoader.hide(0); }
+      };
+    }
+  }, 500);
+
+  // 9. Session save/restore indicator
+  var _toastRef = window.showToast;
+  setTimeout(function(){
+    var _origSave;
+    ['saveSession'].forEach(function(fn){
+      if(typeof window[fn]==='function'){
+        var orig = window[fn];
+        window[fn] = function(){
+          OSSLoader.show('Menyimpan sesi', 'Menulis data ke storage...');
+          try{ orig.apply(this,arguments); OSSLoader.update('Tersimpan ✓'); OSSLoader.hide(280); }
+          catch(e){ OSSLoader.hide(0); }
+        };
+      }
+    });
+  }, 600);
+
+})();
 
 // ════════════════════════════════════════════════════════════
 // INIT
