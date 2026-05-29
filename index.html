@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OSS — Orias Statistik System</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#7c3aed"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="OSS"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJiZyIgY3g9IjQwJSIgY3k9IjM1JSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNmIxMjUwIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmEwNTIwIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9IndjMSIgY3g9IjIwJSIgY3k9IjIwJSIgcj0iNjUlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZjQ3MmI2IiBzdG9wLW9wYWNpdHk9IjAuNzUiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iI2VjNDg5OSIgc3RvcC1vcGFjaXR5PSIwLjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlYzQ4OTkiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJ3YzIiIGN4PSI4MCUiIGN5PSI4MCUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZiNzE4NSIgc3RvcC1vcGFjaXR5PSIwLjU1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmI3MTg1IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0id2MzIiBjeD0iODUlIiBjeT0iMTUlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNjMDg0ZmMiIHN0b3Atb3BhY2l0eT0iMC40NSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2MwODRmYyIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImJhckdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNmNDcyYjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkYjI3NzciLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0idHJlbmRHcmFkIiB4MT0iMCUiIHkxPSIxMDAlIiB4Mj0iMTAwJSIgeTI9IjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmJjZmU4Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJnbG93Ij48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjIiIHJlc3VsdD0iY29sb3JlZEJsdXIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImNvbG9yZWRCbHVyIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxjbGlwUGF0aCBpZD0iY2MiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMyIi8+PC9jbGlwUGF0aD48L2RlZnM+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjYmcpIi8+PGcgY2xpcC1wYXRoPSJ1cmwoI2NjKSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMTYiIHJ4PSIyOCIgcnk9IjI0IiBmaWxsPSJ1cmwoI3djMSkiLz48ZWxsaXBzZSBjeD0iNTAiIGN5PSI1MCIgcng9IjIyIiByeT0iMjIiIGZpbGw9InVybCgjd2MyKSIvPjxlbGxpcHNlIGN4PSI1NCIgY3k9IjEwIiByeD0iMTgiIHJ5PSIxNiIgZmlsbD0idXJsKCN3YzMpIi8+PHBhdGggZD0iTTgsMjQgUTQsMTggMTAsMTIgUTE0LDggMTgsMTQgUTEyLDE2IDgsMjRaIiBmaWxsPSIjZjQ3MmI2IiBvcGFjaXR5PSIwLjE4Ii8+PHBhdGggZD0iTTUwLDggUTU2LDE0IDU0LDIwIFE1MiwxMiA1MCw4WiIgZmlsbD0iI2MwODRmYyIgb3BhY2l0eT0iMC4yMiIvPjxyZWN0IHg9IjkiIHk9IjQ3IiB3aWR0aD0iNyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cmVjdCB4PSIxOSIgeT0iMzkiIHdpZHRoPSI3IiBoZWlnaHQ9IjE2IiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cmVjdCB4PSIyOSIgeT0iMzAiIHdpZHRoPSI3IiBoZWlnaHQ9IjI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cmVjdCB4PSIzOSIgeT0iMzUiIHdpZHRoPSI3IiBoZWlnaHQ9IjIwIiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cG9seWxpbmUgcG9pbnRzPSIxMiw0NiAyMiwzNyAzMiwyNyA0NiwxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI3RyZW5kR3JhZCkiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOTUiLz48Y2lyY2xlIGN4PSI0NiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiNmZGE0Y2YiIG9wYWNpdHk9IjAuOTgiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxjaXJjbGUgY3g9IjQ2IiBjeT0iMTgiIHI9IjEuNSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iMC45Ii8+PHRleHQgeD0iNTEiIHk9IjQyIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNmZGE0Y2YiIG9wYWNpdHk9IjAuNjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPiYjeDNBMzs8L3RleHQ+PC9nPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmNDcyYjYiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjI1Ii8+PC9zdmc+"/>
+<link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJiZyIgY3g9IjQwJSIgY3k9IjM1JSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNmIxMjUwIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmEwNTIwIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9IndjMSIgY3g9IjIwJSIgY3k9IjIwJSIgcj0iNjUlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZjQ3MmI2IiBzdG9wLW9wYWNpdHk9IjAuNzUiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iI2VjNDg5OSIgc3RvcC1vcGFjaXR5PSIwLjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlYzQ4OTkiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJ3YzIiIGN4PSI4MCUiIGN5PSI4MCUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZiNzE4NSIgc3RvcC1vcGFjaXR5PSIwLjU1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmI3MTg1IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0id2MzIiBjeD0iODUlIiBjeT0iMTUlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNjMDg0ZmMiIHN0b3Atb3BhY2l0eT0iMC40NSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2MwODRmYyIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImJhckdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNmNDcyYjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkYjI3NzciLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0idHJlbmRHcmFkIiB4MT0iMCUiIHkxPSIxMDAlIiB4Mj0iMTAwJSIgeTI9IjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmJjZmU4Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJnbG93Ij48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjIiIHJlc3VsdD0iY29sb3JlZEJsdXIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImNvbG9yZWRCbHVyIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxjbGlwUGF0aCBpZD0iY2MiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMyIi8+PC9jbGlwUGF0aD48L2RlZnM+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjYmcpIi8+PGcgY2xpcC1wYXRoPSJ1cmwoI2NjKSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMTYiIHJ4PSIyOCIgcnk9IjI0IiBmaWxsPSJ1cmwoI3djMSkiLz48ZWxsaXBzZSBjeD0iNTAiIGN5PSI1MCIgcng9IjIyIiByeT0iMjIiIGZpbGw9InVybCgjd2MyKSIvPjxlbGxpcHNlIGN4PSI1NCIgY3k9IjEwIiByeD0iMTgiIHJ5PSIxNiIgZmlsbD0idXJsKCN3YzMpIi8+PHBhdGggZD0iTTgsMjQgUTQsMTggMTAsMTIgUTE0LDggMTgsMTQgUTEyLDE2IDgsMjRaIiBmaWxsPSIjZjQ3MmI2IiBvcGFjaXR5PSIwLjE4Ii8+PHBhdGggZD0iTTUwLDggUTU2LDE0IDU0LDIwIFE1MiwxMiA1MCw4WiIgZmlsbD0iI2MwODRmYyIgb3BhY2l0eT0iMC4yMiIvPjxyZWN0IHg9IjkiIHk9IjQ3IiB3aWR0aD0iNyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cmVjdCB4PSIxOSIgeT0iMzkiIHdpZHRoPSI3IiBoZWlnaHQ9IjE2IiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cmVjdCB4PSIyOSIgeT0iMzAiIHdpZHRoPSI3IiBoZWlnaHQ9IjI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cmVjdCB4PSIzOSIgeT0iMzUiIHdpZHRoPSI3IiBoZWlnaHQ9IjIwIiByeD0iMS41IiBmaWxsPSJ1cmwoI2JhckdyYWQpIiBvcGFjaXR5PSIwLjk1IiBmaWx0ZXI9InVybCgjZ2xvdykiLz48cG9seWxpbmUgcG9pbnRzPSIxMiw0NiAyMiwzNyAzMiwyNyA0NiwxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI3RyZW5kR3JhZCkiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOTUiLz48Y2lyY2xlIGN4PSI0NiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiNmZGE0Y2YiIG9wYWNpdHk9IjAuOTgiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxjaXJjbGUgY3g9IjQ2IiBjeT0iMTgiIHI9IjEuNSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iMC45Ii8+PHRleHQgeD0iNTEiIHk9IjQyIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNmZGE0Y2YiIG9wYWNpdHk9IjAuNjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPiYjeDNBMzs8L3RleHQ+PC9nPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmNDcyYjYiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjI1Ii8+PC9zdmc+"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ═══════════ LOADING SCREEN ═══════════ -->
+<div id="loading-screen">
+  <div class="load-icon-wrap">
+    <div class="load-icon-glow"></div>
+    <div class="load-ring"></div>
+    <div class="load-ring2"></div>
+    <svg class="load-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      <defs>
+        <radialGradient id="ls-bg" cx="40%" cy="35%" r="70%">
+          <stop offset="0%" stop-color="#6b1250"/>
+          <stop offset="100%" stop-color="#2a0520"/>
+        </radialGradient>
+        <radialGradient id="ls-wc1" cx="20%" cy="20%" r="65%">
+          <stop offset="0%" stop-color="#f472b6" stop-opacity="0.75"/>
+          <stop offset="60%" stop-color="#ec4899" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="ls-wc2" cx="80%" cy="80%" r="60%">
+          <stop offset="0%" stop-color="#fb7185" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#fb7185" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="ls-wc3" cx="85%" cy="15%" r="50%">
+          <stop offset="0%" stop-color="#c084fc" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#c084fc" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="ls-barGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fda4cf"/>
+          <stop offset="50%" stop-color="#f472b6"/>
+          <stop offset="100%" stop-color="#db2777"/>
+        </linearGradient>
+        <linearGradient id="ls-trendGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#fda4cf"/>
+          <stop offset="100%" stop-color="#fbcfe8"/>
+        </linearGradient>
+        <filter id="ls-glow">
+          <feGaussianBlur stdDeviation="1.2" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- Clip ke lingkaran agar tidak ada yang keluar bulatan -->
+        <clipPath id="ls-circle-clip">
+          <circle cx="32" cy="32" r="32"/>
+        </clipPath>
+      </defs>
+      <!-- Background circle -->
+      <circle cx="32" cy="32" r="32" fill="url(#ls-bg)"/>
+      <!-- Semua konten di-clip ke lingkaran -->
+      <g clip-path="url(#ls-circle-clip)">
+        <ellipse cx="16" cy="16" rx="28" ry="24" fill="url(#ls-wc1)"/>
+        <ellipse cx="50" cy="50" rx="22" ry="22" fill="url(#ls-wc2)"/>
+        <ellipse cx="54" cy="10" rx="18" ry="16" fill="url(#ls-wc3)"/>
+        <path d="M8,24 Q4,18 10,12 Q14,8 18,14 Q12,16 8,24Z" fill="#f472b6" opacity="0.18"/>
+        <path d="M50,8 Q56,14 54,20 Q52,12 50,8Z" fill="#c084fc" opacity="0.22"/>
+        <rect x="9" y="47" width="7" height="8" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <rect x="19" y="39" width="7" height="16" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <rect x="29" y="30" width="7" height="25" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <rect x="39" y="35" width="7" height="20" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <polyline points="12,46 22,37 32,27 46,18" fill="none" stroke="url(#ls-trendGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+        <circle cx="46" cy="18" r="3.5" fill="#fda4cf" opacity="0.98" filter="url(#ls-glow)"/>
+        <circle cx="46" cy="18" r="1.5" fill="#fff" opacity="0.9"/>
+        <text x="51" y="42" font-family="serif" font-size="13" font-weight="900" fill="#fda4cf" opacity="0.65" text-anchor="middle">&#x3A3;</text>
+      </g>
+      <!-- Border ring di atas -->
+      <circle cx="32" cy="32" r="30" fill="none" stroke="#f472b6" stroke-width="1.5" opacity="0.25"/>
+    </svg>
+  </div>
+  <div style="text-align:center">
+    <div class="load-title">OSS</div>
+    <div class="load-sub">Orias Statistik System</div>
+  </div>
+  <div id="load-percent" class="load-percent">0%</div>
+  <div class="load-bar-wrap">
+    <div id="load-bar" class="load-bar"></div>
+  </div>
+</div>
+
+<!-- WATERCOLOR CANVAS — always on -->
+<canvas id="wc"></canvas>
+
+<!-- ═══════════ HOME PAGE ═══════════ -->
+<div id="ph" class="page on">
+  <div class="hstroke hs1"></div><div class="hstroke hs2"></div>
+  <div class="hstroke hs3"></div><div class="hstroke hs4"></div>
+  <div class="hstroke hs5"></div><div class="hstroke hs6"></div>
+  <div class="hero-wrap">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="hero-kicker">· Orias Statistik System</div>
+    <h1 class="hero-title">OSS</h1>
+    <p class="hero-sub">Welcome</p>
+    <button class="hero-cta" onclick="enterApp()"><span>OPEN →</span></button>
+  </div>
+</div>
+
+<!-- ═══════════ APP PAGE ═══════════ -->
+<div id="pa" class="page">
+
+  <!-- MOBILE TOP BAR -->
+  <div id="top-bar">
+    <button id="menu-btn" onclick="toggleSide()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect y="2" width="18" height="2" rx="1" fill="currentColor"/>
+        <rect y="8" width="18" height="2" rx="1" fill="currentColor"/>
+        <rect y="14" width="18" height="2" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+    <div class="tb-logo" onclick="exitApp()">
+      <div class="tb-logo-icon">O</div>
+      <span class="tb-logo-text">OSS</span>
+    </div>
+    <div class="tb-badges">
+      <span class="tb-badge" id="tb-cases">N=20</span>
+      <span class="tb-badge tb-miss" id="tb-miss" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+    </div>
+    <button class="tb-cmd" onclick="openCmd()" title="Search commands">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10.5" cy="10.5" r="7.5"/>
+        <line x1="21" y1="21" x2="15.8" y2="15.8"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- OVERLAY for mobile sidebar -->
+  <div id="mob-ov" onclick="closeSide()"></div>
+
+  <!-- SIDE NAV -->
+  <div id="side" onclick="event.stopPropagation()">
+    <div class="s-logo" onclick="exitApp()">
+      <div class="s-logo-icon">O</div>
+      <div><div class="s-logo-text">OSS</div><div class="s-logo-sub" style="display:flex;align-items:center;gap:2px"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Home</div></div>
+    </div>
+    <div class="s-body">
+
+      <div class="s-cat">Data</div>
+      <div class="s-item active" data-tab="data" onclick="switchTab('data')">
+        <span class="s-item-ic" style="color:#67e8f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Data View</div>
+      <div class="s-item" data-tab="variable" onclick="switchTab('variable')">
+        <span class="s-item-ic" style="color:#c084fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg></span>Variables</div>
+
+      <div class="s-cat">Analyze</div>
+      <div class="s-item" data-tab="analyze" data-sub="descriptive" onclick="openAnalyze('descriptive','descriptive')">
+        <span class="s-item-ic" style="color:#f472b6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Descriptive</div>
+      <div class="s-item" data-tab="analyze" data-sub="ttest" onclick="openAnalyze('ttest','ttest')">
+        <span class="s-item-ic" style="color:#a78bfa"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3h6m-3 0v7l-5 9a1 1 0 00.9 1.5h10.2a1 1 0 00.9-1.5L14 10V3"/></svg></span>T-Test</div>
+      <div class="s-item" data-tab="analyze" data-sub="rmanova" onclick="openAnalyze('rmanova','anova')">
+        <span class="s-item-ic" style="color:#34d399"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 12 6 8 10 14 14 6 18 10 22 4"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>ANOVA</div>
+      <div class="s-item" data-tab="analyze" data-sub="correlation" onclick="openAnalyze('correlation','correlation')">
+        <span class="s-item-ic" style="color:#f472b6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="8" r="2" fill="currentColor"/><circle cx="16" cy="6" r="2" fill="currentColor"/><circle cx="5" cy="17" r="2" fill="currentColor"/><circle cx="14" cy="15" r="2" fill="currentColor"/><circle cx="19" cy="18" r="2" fill="currentColor"/></svg></span>Correlation</div>
+      <div class="s-item" data-tab="analyze" data-sub="regression" onclick="openAnalyze('regression','regression')">
+        <span class="s-item-ic" style="color:#67e8f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>Regression</div>
+      <div class="s-item" data-tab="analyze" data-sub="nonparam" onclick="openAnalyze('nonparam','nonparam')">
+        <span class="s-item-ic" style="color:#c084fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></span>Nonparametric</div>
+      <div class="s-item" data-tab="analyze" data-sub="glm" onclick="openAnalyze('glm','glm')">
+        <span class="s-item-ic" style="color:#f9a8d4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3h18v4H3z"/><path d="M3 10h8v4H3z"/><path d="M14 10h7v4h-7z"/><path d="M3 17h5v4H3z"/><path d="M11 17h10v4H11z"/></svg></span>General Linear Model</div>
+      <div class="s-item" data-tab="analyze" data-sub="hlm" onclick="openAnalyze('hlm','hlm')">
+        <span class="s-item-ic" style="color:#a78bfa"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v5c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 10v5c0 1.66 3.58 3 8 3s8-1.34 8-3v-5"/><path d="M4 15v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4"/></svg></span>Hierarchical Linear Model</div>
+      <div class="s-item" data-tab="analyze" data-sub="reliability" onclick="openAnalyze('reliability','reliability')">
+        <span class="s-item-ic" style="color:#34d399"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>Reliability</div>
+      <div class="s-item" data-tab="analyze" data-sub="crosstab" onclick="openAnalyze('crosstab','crosstab')">
+        <span class="s-item-ic" style="color:#67e8f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg></span>Crosstab</div>
+      <div class="s-item" data-tab="analyze" data-sub="efa" onclick="openAnalyze('efa','factor')">
+        <span class="s-item-ic" style="color:#a5f3fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="12" rx="10" ry="5"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M2 12c3-4 7-6 10-6s7 2 10 6"/></svg></span>Factor Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="sem" onclick="openAnalyze('sem','sem')">
+        <span class="s-item-ic" style="color:#e879f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="5" cy="12" rx="3" ry="3"/><ellipse cx="19" cy="5" rx="3" ry="3"/><ellipse cx="19" cy="19" rx="3" ry="3"/><line x1="8" y1="11" x2="16" y2="6.5"/><line x1="8" y1="13" x2="16" y2="17.5"/><line x1="16" y1="8" x2="16" y2="16"/></svg></span>SEM</div>
+      <div class="s-item" data-tab="analyze" data-sub="mediation" onclick="openAnalyze('mediation','mediation')">
+        <span class="s-item-ic" style="color:#fb923c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="5" r="2" fill="currentColor"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="11" x2="10" y2="6"/><line x1="14" y1="6" x2="17" y2="11"/></svg></span>Mediation</div>
+      <div class="s-item" data-tab="analyze" data-sub="charts" onclick="openAnalyze('charts','charts')">
+        <span class="s-item-ic" style="color:#f472b6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="8" cy="14" r="1.5" fill="currentColor"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="14" r="1.5" fill="currentColor"/></svg></span>Charts</div>
+      <div class="s-item" data-tab="analyze" data-sub="discriminant" onclick="openAnalyze('discriminant','discriminant')">
+        <span class="s-item-ic" style="color:#38bdf8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="9" cy="12" rx="6" ry="9"/><ellipse cx="15" cy="12" rx="6" ry="9"/></svg></span>Discriminant</div>
+      <div class="s-item" data-tab="analyze" data-sub="cluster" onclick="openAnalyze('cluster','cluster')">
+        <span class="s-item-ic" style="color:#4ade80"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="6" r="2" fill="currentColor"/><circle cx="12" cy="4" r="2" fill="currentColor"/><circle cx="7" cy="13" r="2" fill="currentColor"/><circle cx="17" cy="8" r="2" fill="currentColor"/><circle cx="19" cy="17" r="2" fill="currentColor"/><circle cx="13" cy="18" r="2" fill="currentColor"/></svg></span>Cluster Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="missinganalysis" onclick="openAnalyze('missinganalysis','missinganalysis')">
+        <span class="s-item-ic" style="color:#f87171"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/><circle cx="6" cy="6" r="1" fill="currentColor" stroke="none"/><line x1="14" y1="12" x2="18" y2="12" stroke-dasharray="1.5 1.5"/><line x1="14" y1="18" x2="18" y2="18" stroke-dasharray="1.5 1.5"/></svg></span>Missing Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="roc" onclick="openAnalyze('roc','roc')">
+        <span class="s-item-ic" style="color:#67e8f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 6 14 10 17 15 8 20 4"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="2" y1="2" x2="2" y2="20"/></svg></span>ROC Curve</div>
+      <div class="s-item" data-tab="analyze" data-sub="survival" onclick="openAnalyze('survival','survival')">
+        <span class="s-item-ic" style="color:#4ade80"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 6 20 6 14 10 14 10 10 14 10 14 7 18 7 18 4 22 4"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>Survival Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="poweranalysis" onclick="openAnalyze('poweranalysis','poweranalysis')">
+        <span class="s-item-ic" style="color:#fbbf24"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>Power Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="moderation" onclick="openAnalyze('moderation','moderation')">
+        <span class="s-item-ic" style="color:#e879f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="4" r="2" fill="currentColor"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="11" x2="10" y2="6"/><line x1="14" y1="6" x2="17" y2="11"/><line x1="10" y1="6" x2="14" y2="6"/></svg></span>Moderation</div>
+      <div class="s-item" data-tab="analyze" data-sub="impute" onclick="openAnalyze('impute','imputation')">
+        <span class="s-item-ic" style="color:#a5f3fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="8" width="20" height="8" rx="4"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="18" y1="10" x2="18" y2="14"/></svg></span>Imputation</div>
+      <div class="s-item" data-tab="analyze" data-sub="bayesian" onclick="openAnalyze('bayesian','bayesian')">
+        <span class="s-item-ic" style="color:#f9a8d4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a9 9 0 019 9c0 3-1.5 5.5-3.5 7.2"/><path d="M12 2a9 9 0 00-9 9c0 3 1.5 5.5 3.5 7.2"/><circle cx="12" cy="11" r="3"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></span>Bayesian Analysis</div>
+      <div class="s-item" data-tab="analyze" data-sub="timeseries" onclick="openAnalyze('timeseries','timeseries')">
+        <span class="s-item-ic" style="color:#67e8f9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg></span>Time Series</div>
+      <div class="s-item" data-tab="analyze" data-sub="metaanalysis" onclick="openAnalyze('metaanalysis','metaanalysis')">
+        <span class="s-item-ic" style="color:#fb923c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="18" y2="6"/><line x1="8" y1="12" x2="18" y2="12"/><line x1="8" y1="18" x2="18" y2="18"/><circle cx="4" cy="6" r="2"/><circle cx="4" cy="12" r="2"/><circle cx="4" cy="18" r="2"/></svg></span>Meta-Analysis</div>
+
+      <div class="s-cat">Datasets</div>
+      <div id="ds-list-side" style="padding:0 2px"></div>
+      <div class="s-item" onclick="showAddDatasetModal()" style="border:1px dashed rgba(124,58,237,.3);margin:2px 2px 6px">
+        <span class="s-item-ic" style="color:#c084fc">+</span><span style="font-size:11px;color:rgba(232,222,255,.45)">New Dataset</span></div>
+
+      <div class="s-cat">Transform</div>
+      <div class="s-item" data-tab="analyze" data-sub="transform" onclick="openAnalyze('transform','transform')">
+        <span class="s-item-ic" style="color:#fbbf24"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Transform & Recode</div>
+      <div class="s-item" data-tab="analyze" data-sub="weightcases" onclick="openAnalyze('weightcases','weightcases')">
+        <span class="s-item-ic" style="color:#fb923c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.93 4.93l2.12 2.12m9.9 9.9l2.12 2.12M19.07 4.93l-2.12 2.12M7.05 16.95l-2.12 2.12"/></svg></span>Weight Cases<span id="wc-badge" style="display:none;margin-left:4px;background:linear-gradient(135deg,#fb923c,#f472b6);color:#fff;border-radius:999px;padding:0 5px;font-size:9px">ON</span></div>
+
+      <div class="s-cat">Tools</div>
+      <div class="s-item" data-tab="syntax" onclick="switchTab('syntax')">
+        <span class="s-item-ic" style="color:#a5f3fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>Syntax</div>
+      <div class="s-item" data-tab="pivot" onclick="switchTab('pivot')">
+        <span class="s-item-ic" style="color:#c084fc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>Pivot Table</div>
+      <div class="s-item" data-tab="ai" onclick="switchTab('ai')">
+        <span class="s-item-ic" style="color:#f472b6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M12 11V5"/><circle cx="12" cy="4" r="1.5"/><line x1="8" y1="16" x2="8.01" y2="16" stroke-width="3"/><line x1="16" y1="16" x2="16.01" y2="16" stroke-width="3"/></svg></span>AI Advisor</div>
+      <div class="s-item" data-tab="output" onclick="switchTab('output')">
+        <span class="s-item-ic" style="color:#fbbf24"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Output
+        <span id="out-badge" style="background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border-radius:999px;padding:0 5px;font-size:9px;display:none;margin-left:4px">0</span>
+      </div>
+    </div>
+
+    <div class="s-foot">
+      <div class="s-badges">
+        <div class="s-badge sb-cases" id="badge-cases">● N=20 cases</div>
+        <div class="s-badge sb-miss" id="badge-miss"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Missing</div>
+      </div>
+      <!-- File status bar: shows open file name -->
+      <div id="oss-file-bar">
+        <span class="fbar-dot"></span>
+        <span class="fbar-name" id="oss-file-bar-name">Untitled</span>
+        <span class="fbar-unsaved" id="oss-file-bar-unsaved" style="display:none">● Unsaved</span>
+      </div>
+      <!-- Install PWA button — always visible, state managed by JS -->
+      <div id="sidebar-install-wrap" style="margin-bottom:6px">
+        <button id="sidebar-install-btn" onclick="installPWA()" title="Install OSS sebagai aplikasi">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg><span id="sidebar-install-label">Install App</span>
+        </button>
+      </div>
+      <div class="s-acts">
+        <button class="s-act" onclick="openCmd()" title="Search">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="7.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg>
+        </button>
+        <button class="s-act" onclick="exportDataCSV()" title="Export data ke CSV">↓CSV</button>
+        <button class="s-act" onclick="document.getElementById('csv-input').click()" title="Import data CSV">↑CSV</button>
+        <button class="s-act" onclick="exportToExcel()" title="Export hasil ke Excel">↓XLS</button>
+        <button class="s-act" onclick="exportToWord()" title="Export hasil ke Word">↓DOC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="main">
+    <div id="app-content"></div>
+  </div>
+</div>
+
+<input type="file" id="csv-input" accept=".csv,.txt" style="display:none" onchange="handleCSV(event)"/>
+<!-- Hidden input for importing .oss files on browsers without File System Access API -->
+<input type="file" id="oss-import-input" accept=".oss,application/json" style="display:none" onchange="handleOSSImport(event)"/>
+
+<!-- PWA Install Banner -->
+<div id="oss-pwa-banner">
+  <div class="pwa-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJiZyIgY3g9IjQwJSIgY3k9IjM1JSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNmIxMjUwIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmEwNTIwIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9IndjMSIgY3g9IjIwJSIgY3k9IjIwJSIgcj0iNjUlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZjQ3MmI2IiBzdG9wLW9wYWNpdHk9IjAuNzUiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iI2VjNDg5OSIgc3RvcC1vcGFjaXR5PSIwLjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlYzQ4OTkiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJ3YzIiIGN4PSI4MCUiIGN5PSI4MCUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZiNzE4NSIgc3RvcC1vcGFjaXR5PSIwLjU1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmI3MTg1IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0id2MzIiBjeD0iODUlIiBjeT0iMTUlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNjMDg0ZmMiIHN0b3Atb3BhY2l0eT0iMC40NSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2MwODRmYyIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImJhckdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNmNDcyYjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkYjI3NzciLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0idHJlbmRHcmFkIiB4MT0iMCUiIHkxPSIxMDAlIiB4Mj0iMTAwJSIgeTI9IjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRhNGNmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmJjZmU4Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJnbG93Ij48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjIiIHJlc3VsdD0iY29sb3JlZEJsdXIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImNvbG9yZWRCbHVyIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxjbGlwUGF0aCBpZD0iY2MiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMyIi8+PC9jbGlwUGF0aD48L2RlZnM+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjYmcpIi8+PGcgY2xpcC1wYXRoPSJ1cmwoI2NjKSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMTYiIHJ4PSIyOCIgcnk9IjI0IiBmaWxsPSJ1cmwoI3djMSkiLz48ZWxsaXBzZSBjeD0iNTAiIGN5PSI1MCIgcng9IjIyIiByeT0iMjIiIGZpbGw9InVybCgjd2MyKSIvPjxlbGxpcHNlIGN4PSI1NCIgY3k9IjEwIiByeD0iMTgiIHJ5PSIxNiIgZmlsbD0idXJsKCN3YzMpIi8+PHJlY3QgeD0iOSIgeT0iNDciIHdpZHRoPSI3IiBoZWlnaHQ9IjgiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxyZWN0IHg9IjE5IiB5PSIzOSIgd2lkdGg9IjciIGhlaWdodD0iMTYiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxyZWN0IHg9IjI5IiB5PSIzMCIgd2lkdGg9IjciIGhlaWdodD0iMjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxyZWN0IHg9IjM5IiB5PSIzNSIgd2lkdGg9IjciIGhlaWdodD0iMjAiIHJ4PSIxLjUiIGZpbGw9InVybCgjYmFyR3JhZCkiIG9wYWNpdHk9IjAuOTUiIGZpbHRlcj0idXJsKCNnbG93KSIvPjxwb2x5bGluZSBwb2ludHM9IjEyLDQ2IDIyLDM3IDMyLDI3IDQ2LDE4IiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjdHJlbmRHcmFkKSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgb3BhY2l0eT0iMC45NSIvPjxjaXJjbGUgY3g9IjQ2IiBjeT0iMTgiIHI9IjMuNSIgZmlsbD0iI2ZkYTRjZiIgb3BhY2l0eT0iMC45OCIgZmlsdGVyPSJ1cmwoI2dsb3cpIi8+PGNpcmNsZSBjeD0iNDYiIGN5PSIxOCIgcj0iMS41IiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjkiLz48L2c+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y0NzJiNiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=" width="36" height="36" style="border-radius:8px" alt="OSS"/></div>
+  <div class="pwa-text">
+    <div class="pwa-title">Install OSS sebagai App</div>
+    <div class="pwa-sub">Akses offline, simpan ke file, & buka seperti aplikasi desktop/mobile</div>
+  </div>
+  <button class="pwa-btn" onclick="installPWA()">Install</button>
+  <button class="pwa-dismiss" onclick="dismissPWABanner()" title="Tutup">✕</button>
+</div>
+<div id="toast"></div>
+
+<!-- ── OSS CUSTOM DIALOG ── -->
+<div id="oss-dialog-overlay">
+  <div id="oss-dialog-box">
+    <div id="oss-dialog-icon"></div>
+    <div id="oss-dialog-title"></div>
+    <div id="oss-dialog-msg"></div>
+    <div id="oss-dialog-input-wrap">
+      <input id="oss-dialog-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false"/>
+    </div>
+    <div id="oss-dialog-btns">
+      <button class="dlg-btn-cancel" id="oss-dialog-cancel">Cancel</button>
+      <button class="dlg-btn-ok" id="oss-dialog-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="csel-modal" onclick="if(event.target===this)closeCsel()">
+  <div id="csel-box">
+    <div id="csel-hdr"><span id="csel-title">Select</span><button id="csel-close" onclick="closeCsel()">✕</button></div>
+    <div id="csel-srch" style="display:none"><input id="csel-inp" type="text" placeholder="Search…" autocomplete="off" oninput="filterCsel(this.value)"/></div>
+    <div id="csel-list"></div>
+  </div>
+</div>
+
+<div id="cmd-ov" onclick="if(event.target===this)closeCmd()">
+  <div id="cmd-box">
+    <div id="cmd-search-row">
+      <span id="cmd-search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <input id="cmd-inp" class="inp" style="flex:1;background:transparent;border:none;font-size:13.5px;padding:0;width:auto;color:#e8deff" placeholder="Search commands…" oninput="renderCmdResults(this.value)" onkeydown="cmdKeyNav(event)"/>
+    </div>
+    <div id="cmd-list" style="max-height:340px;overflow-y:auto;padding:6px;position:relative;z-index:1"></div>
+  </div>
+</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
