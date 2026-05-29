@@ -3,8 +3,8 @@
    Strategy: Cache-first for app shell, network-first for fonts
 ════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'oss-v1';
-const APP_SHELL = ['./index.html', './manifest.json'];
+const CACHE_NAME = 'oss-v2';
+const APP_SHELL = ['/OSS/', '/OSS/index.html', '/OSS/manifest.json', '/OSS/sw.js'];
 
 // ── Install: cache the app shell ──────────────────────────
 self.addEventListener('install', function(e) {
@@ -64,7 +64,7 @@ self.addEventListener('fetch', function(e) {
           return res;
         }).catch(function() {
           // Offline fallback: return cached index.html for navigation
-          if (e.request.mode === 'navigate') return caches.match('./index.html');
+          if (e.request.mode === 'navigate') return caches.match('/OSS/');
           return new Response('Offline', { status: 503 });
         });
       })
