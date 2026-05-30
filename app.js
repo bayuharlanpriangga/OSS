@@ -3645,14 +3645,21 @@ function _genSyntaxFromOutput(item){
   return lines.join('\n');
 }
 function addOutput(item){
-  outputs.unshift({id:Date.now(),...item});
+  var entry=Object.assign({id:Date.now()},item);
+  outputs.unshift(entry);
   updateBadges();
   var syn=_genSyntaxFromOutput(item);
   if(syn){
     _syntaxHistory.unshift({ts:Date.now(),title:item.title||item.type,syntax:syn});
     if(_syntaxHistory.length>30)_syntaxHistory.length=30;
   }
-  switchTab('output');
+  // Show a toast notification instead of auto-switching to Output tab
+  showToast('📊 '+( item.title||item.type)+' → Output');
+  // If user is already on output tab, refresh it live
+  if(typeof currentTab!=='undefined' && currentTab==='output'){
+    var _ocel=document.getElementById('app-content');
+    if(_ocel) renderOutput(_ocel);
+  }
 }
 function tryStats(fn){try{return fn();}catch(e){return{_err:true,msg:e.message};}}
 
@@ -4816,10 +4823,14 @@ function handleCSV(e){
 // ════════════════════════════════════════════════════════════════════════
 // VARIABLE VIEW
 // ════════════════════════════════════════════════════════════════════════
+var _varTableEditMode = false;
+var _varChecked = new Set();
+
 function renderVars(el){
   const MC={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
-  const RC={Target:'#fbbf24',Input:'#34d399'};
+  const RC={Target:'#fbbf24',Input:'#34d399',Both:'#fb923c',None:'#94a3b8'};
   const mc=missCount();
+  var em=_varTableEditMode;
   let html='';
 
   // ── Missing value summary ──────────────────────────────────
@@ -4840,61 +4851,124 @@ function renderVars(el){
 
   // ── Variable Definitions ────────────────────────────────────
   html+='<div class="card">';
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
   html+='<div class="sec-hd" style="margin-bottom:0">Variable Definitions</div>';
-  html+='<div style="display:flex;gap:6px">';
-  html+='<button class="btn btn-primary btn-sm" onclick="addVarModal()">+ Add Variable</button>';
+  html+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
+
+  // Add Variable button — now adds a raw blank row directly
+  html+='<button class="btn btn-primary btn-sm" onclick="addVarInline()">+ Add Variable</button>';
+
+  // Edit Table toggle
+  if(!em){
+    html+='<button class="btn btn-ghost btn-sm" onclick="_varTableEditMode=true;_varChecked=new Set();switchTab(\'variable\')" style="border-color:rgba(192,132,252,.35);color:#c084fc">✎ Edit Table</button>';
+  } else {
+    // In edit mode: show Delete Selected + Done
+    html+='<button class="btn btn-sm" onclick="_varDeleteSelected()" style="background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#f87171">🗑 Delete Selected</button>';
+    html+='<button class="btn btn-sm" onclick="_varSaveEditMode()" style="background:linear-gradient(135deg,#7c3aed,#059669);border:none;color:#fff;font-weight:700">✓ Done Editing</button>';
+  }
   html+='<button class="btn btn-ghost btn-sm" onclick="clearAllData()">Clear All Data</button>';
   html+='</div></div>';
 
-  // Variable table with inline edit
-  html+='<div class="tbl-wrap"><table><thead><tr>';
-  ['#','Name','Type','Label','Measure','Role','Decimals','Valid','Miss','Actions'].forEach(function(h){
+  // Variable table
+  html+='<div class="tbl-wrap"><table id="var-def-table"><thead><tr>';
+  if(em) html+='<th style="width:32px"><input type="checkbox" id="var-chk-all" onchange="_varCheckAll(this.checked)" style="accent-color:#c084fc;width:14px;height:14px;cursor:pointer"/></th>';
+  ['#','Name','Type','Label','Measure','Role','Decimals','Valid','Miss'].forEach(function(h){
     html+='<th>'+h+'</th>';
   });
-  html+='</tr></thead><tbody>';
-  
+  if(!em) html+='<th>Actions</th>';
+  html+='</tr></thead><tbody id="var-tbody">';
+
   vars.forEach(function(v,i){
     const m=mc.find(function(x){return x.name===v.name;})||{count:0};
     const nV=data.length-m.count;
-    html+='<tr>';
+    var chk=_varChecked.has(i);
+    html+='<tr id="var-row-'+i+'"'+(chk?' style="background:rgba(220,38,38,.07)"':'')+'>';
+
+    // Checkbox col (edit mode only)
+    if(em){
+      html+='<td style="text-align:center"><input type="checkbox" class="var-chk" data-i="'+i+'" '+(chk?'checked':'')+' onchange="_varToggleCheck('+i+',this.checked)" style="accent-color:#f87171;width:14px;height:14px;cursor:pointer"/></td>';
+    }
+
+    // Row number
     html+='<td style="color:rgba(232,222,255,.3);font-size:10.5px">'+(i+1)+'</td>';
+
     // Name
-    html+='<td><span style="font-weight:700;color:#c084fc;cursor:pointer" onclick="editVarField(this.dataset.i,this.dataset.fld)" data-fld="name" data-i="'+i+'">'+v.name+'</span></td>';
+    if(em){
+      html+='<td><input class="var-inline-inp" data-i="'+i+'" data-fld="name" value="'+v.name+'" onblur="_varInlineChange(this)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100px;font-weight:700;color:#c084fc"/></td>';
+    } else {
+      html+='<td><span style="font-weight:700;color:#c084fc">'+v.name+'</span></td>';
+    }
+
     // Type
-    html+='<td><span class="tag '+(v.type==='Numeric'?'tag-blue':'tag-pink')+'" style="cursor:pointer" onclick="cycleVarType(this.dataset.i)" data-i="'+i+'">'+v.type+'</span></td>';
+    if(em){
+      html+='<td><select class="var-inline-sel" data-i="'+i+'" data-fld="type" onchange="_varInlineChange(this)" style="color:'+(v.type==='Numeric'?'#60a5fa':'#f472b6')+'">';
+      ['Numeric','String'].forEach(function(t){html+='<option value="'+t+'"'+(v.type===t?' selected':'')+'>'+t+'</option>';});
+      html+='</select></td>';
+    } else {
+      html+='<td><span class="tag '+(v.type==='Numeric'?'tag-blue':'tag-pink')+'">'+v.type+'</span></td>';
+    }
+
     // Label
-    html+='<td style="cursor:pointer;min-width:120px" onclick="editVarField(this.dataset.i,this.dataset.fld)" data-fld="label" data-i="'+i+'">';
-    html+='<span style="color:rgba(232,222,255,.7);font-size:12px">'+(v.label||'<span style="color:rgba(232,222,255,.25);font-style:italic">click to add</span>')+'</span></td>';
+    if(em){
+      html+='<td><input class="var-inline-inp" data-i="'+i+'" data-fld="label" value="'+(v.label||'')+'" onblur="_varInlineChange(this)" onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="Label…" style="min-width:120px;color:rgba(232,222,255,.8)"/></td>';
+    } else {
+      html+='<td style="min-width:120px"><span style="color:rgba(232,222,255,.7);font-size:12px">'+(v.label||'<span style="color:rgba(232,222,255,.25);font-style:italic">—</span>')+'</span></td>';
+    }
+
     // Measure
-    html+='<td><span class="tag" style="background:'+(MC[v.measure]||'#60a5fa')+'22;color:'+(MC[v.measure]||'#60a5fa')+';border:1px solid '+(MC[v.measure]||'#60a5fa')+'35;cursor:pointer;min-width:62px;justify-content:center" onclick="cycleMeasure(this.dataset.i)" data-i="'+i+'">'+v.measure+'</span></td>';
+    if(em){
+      html+='<td><select class="var-inline-sel" data-i="'+i+'" data-fld="measure" onchange="_varInlineChange(this)" style="color:'+(MC[v.measure]||'#60a5fa')+'">';
+      ['Scale','Nominal','Ordinal'].forEach(function(ms){html+='<option value="'+ms+'"'+(v.measure===ms?' selected':'')+'>'+ms+'</option>';});
+      html+='</select></td>';
+    } else {
+      var mc2=MC[v.measure]||'#60a5fa';
+      html+='<td><span class="tag" style="background:'+mc2+'22;color:'+mc2+';border:1px solid '+mc2+'35;min-width:62px;justify-content:center">'+v.measure+'</span></td>';
+    }
+
     // Role
-    html+='<td><span class="tag" style="background:'+(RC[v.role]||'#34d399')+'22;color:'+(RC[v.role]||'#34d399')+';border:1px solid '+(RC[v.role]||'#34d399')+'35;cursor:pointer" onclick="cycleRole(this.dataset.i)" data-i="'+i+'">'+v.role+'</span></td>';
-    // Decimals (only for Numeric)
-    html+='<td>'+(v.type==='Numeric'?'<span style="cursor:pointer;color:rgba(232,222,255,.6)" onclick="editVarField(this.dataset.i,this.dataset.fld)" data-fld="dec" data-i="'+i+'">'+v.dec+'</span>':'—')+'</td>';
-    // Valid
+    if(em){
+      html+='<td><select class="var-inline-sel" data-i="'+i+'" data-fld="role" onchange="_varInlineChange(this)" style="color:'+(RC[v.role]||'#34d399')+'">';
+      ['Input','Target','Both','None'].forEach(function(r){html+='<option value="'+r+'"'+(v.role===r?' selected':'')+'>'+r+'</option>';});
+      html+='</select></td>';
+    } else {
+      var rc2=RC[v.role]||'#34d399';
+      html+='<td><span class="tag" style="background:'+rc2+'22;color:'+rc2+';border:1px solid '+rc2+'35">'+v.role+'</span></td>';
+    }
+
+    // Decimals
+    if(em && v.type==='Numeric'){
+      html+='<td><input class="var-inline-inp" data-i="'+i+'" data-fld="dec" type="number" min="0" max="10" value="'+v.dec+'" onblur="_varInlineChange(this)" style="width:52px;color:rgba(232,222,255,.7)"/></td>';
+    } else {
+      html+='<td style="color:rgba(232,222,255,.6)">'+(v.type==='Numeric'?v.dec:'—')+'</td>';
+    }
+
+    // Valid / Miss
     html+='<td style="color:#34d399;text-align:center">'+nV+'</td>';
-    // Miss
     html+='<td style="text-align:center">'+(m.count>0?'<span style="color:#f87171;font-weight:700">'+m.count+'</span>':'<span style="color:#34d399">0</span>')+'</td>';
-    // Actions
-    html+='<td>';
-    html+='<div style="display:flex;gap:4px;align-items:center">';
-    if(i>0){
-      html+='<button onclick="moveVar(this.dataset.i,-1)" data-i="'+i+'" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:5px;color:#c084fc;cursor:pointer;padding:3px 6px;font-size:11px" title="Move up">↑</button>';
+
+    // Actions column (non-edit mode only)
+    if(!em){
+      html+='<td>';
+      html+='<div style="display:flex;gap:4px;align-items:center">';
+      if(i>0) html+='<button onclick="moveVar('+i+',-1)" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:5px;color:#c084fc;cursor:pointer;padding:3px 6px;font-size:11px" title="Move up">↑</button>';
+      if(i<vars.length-1) html+='<button onclick="moveVar('+i+',1)" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:5px;color:#c084fc;cursor:pointer;padding:3px 6px;font-size:11px" title="Move down">↓</button>';
+      html+='<button onclick="deleteVar('+i+')" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);border-radius:5px;color:#f87171;cursor:pointer;padding:3px 6px;font-size:11px" title="Delete">✕</button>';
+      html+='</div></td>';
     }
-    if(i<vars.length-1){
-      html+='<button onclick="moveVar(this.dataset.i,1)" data-i="'+i+'" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:5px;color:#c084fc;cursor:pointer;padding:3px 6px;font-size:11px" title="Move down">↓</button>';
-    }
-    html+='<button onclick="deleteVar(this.dataset.i)" data-i="'+i+'" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);border-radius:5px;color:#f87171;cursor:pointer;padding:3px 6px;font-size:11px" title="Delete variable">✕</button>';
-    html+='</div></td>';
+
     html+='</tr>';
   });
+
+  // If in edit mode, show a "new blank row" hint at the bottom
+  if(em){
+    html+='<tr style="opacity:.45"><td></td><td colspan="8" style="font-size:11px;color:rgba(232,222,255,.35);font-style:italic;padding:8px 6px">Use "+ Add Variable" to add more rows</td></tr>';
+  }
+
   html+='</tbody></table></div>';
-  
+
   // Suggestions
   const typeWarnings=vars.map(function(v){
     if(v.name==='id'&&v.measure!=='Scale') return 'ID variable should be Scale';
-    if(v.name==='id'&&v.role!=='Input') return null;
     return null;
   }).filter(Boolean);
   if(typeWarnings.length){
@@ -4904,7 +4978,117 @@ function renderVars(el){
     html+='</div>';
   }
   html+='</div>';
+
+  // Inject CSS for inline inputs/selects once
+  if(!document.getElementById('var-inline-style')){
+    var s=document.createElement('style');s.id='var-inline-style';
+    s.textContent='.var-inline-inp{background:rgba(124,58,237,.10);border:1px solid rgba(192,132,252,.25);border-radius:5px;padding:3px 7px;font-size:12px;font-family:Inter,sans-serif;outline:none;transition:border-color .15s}.var-inline-inp:focus{border-color:#c084fc;background:rgba(124,58,237,.18)}.var-inline-sel{background:rgba(14,6,24,.85);border:1px solid rgba(192,132,252,.28);border-radius:5px;padding:3px 6px;font-size:12px;font-family:Inter,sans-serif;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;transition:border-color .15s;min-width:80px}.var-inline-sel:focus{border-color:#c084fc}.var-inline-sel option{background:#1a0835;color:#e8deff}';
+    document.head.appendChild(s);
+  }
+
   el.innerHTML=html;
+}
+
+// ── Inline add var (raw blank row) ──────────────────────────
+function addVarInline(){
+  // Generate unique name
+  var base='var',n=1;
+  while(vars.some(function(v){return v.name===base+n;})) n++;
+  var name=base+n;
+  vars.push({name:name,type:'Numeric',width:8,dec:2,label:name,measure:'Scale',role:'Input'});
+  data.forEach(function(r){r[name]=null;});
+  updateBadges();
+  // Enter edit mode so user can immediately edit the new row
+  _varTableEditMode=true;
+  switchTab('variable');
+  // Focus the name cell of the new row
+  setTimeout(function(){
+    var inputs=document.querySelectorAll('.var-inline-inp[data-fld="name"]');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  },80);
+  showToast('Variable "'+name+'" added — edit the row now');
+}
+
+// ── Inline change handler ─────────────────────────────────────
+function _varInlineChange(el){
+  var i=parseInt(el.dataset.i);
+  var fld=el.dataset.fld;
+  var val=el.value.trim();
+  var v=vars[i];
+  if(fld==='name'){
+    var newName=val.replace(/[^a-zA-Z0-9_]/g,'_').toLowerCase();
+    if(!newName){el.value=v.name;showToast('Name cannot be empty','error');return;}
+    if(vars.some(function(vv,ii){return ii!==i&&vv.name===newName;})){el.value=v.name;showToast('Name already exists','error');return;}
+    data.forEach(function(r){r[newName]=r[v.name];delete r[v.name];});
+    v.name=newName;el.value=newName;
+  } else if(fld==='dec'){
+    var d=parseInt(val);if(!isNaN(d)&&d>=0&&d<=10) v.dec=d;
+  } else if(fld==='type'){
+    v.type=val;
+    if(val==='String'){v.measure='Nominal';v.dec=0;}
+    else v.measure='Scale';
+    // Re-render to update decimals cell and colors
+    var mc2={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
+    var mSel=document.querySelector('.var-inline-sel[data-i="'+i+'"][data-fld="measure"]');
+    if(mSel){mSel.value=v.measure;mSel.style.color=mc2[v.measure]||'#60a5fa';}
+    var decInp=document.querySelector('.var-inline-inp[data-i="'+i+'"][data-fld="dec"]');
+    if(decInp) decInp.style.display=val==='Numeric'?'':'none';
+    el.style.color=val==='Numeric'?'#60a5fa':'#f472b6';
+  } else if(fld==='measure'){
+    v.measure=val;
+    var mc3={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
+    el.style.color=mc3[val]||'#60a5fa';
+  } else if(fld==='role'){
+    v.role=val;
+    var rc3={Target:'#fbbf24',Input:'#34d399',Both:'#fb923c',None:'#94a3b8'};
+    el.style.color=rc3[val]||'#34d399';
+  } else if(fld==='label'){
+    v.label=val;
+  }
+  updateBadges();
+}
+
+// ── Checkbox helpers ──────────────────────────────────────────
+function _varCheckAll(checked){
+  _varChecked=new Set();
+  if(checked) vars.forEach(function(_,i){_varChecked.add(i);});
+  document.querySelectorAll('.var-chk').forEach(function(cb){cb.checked=checked;});
+  document.querySelectorAll('#var-tbody tr').forEach(function(tr){
+    tr.style.background=checked?'rgba(220,38,38,.07)':'';
+  });
+}
+
+function _varToggleCheck(i,checked){
+  if(checked) _varChecked.add(i);
+  else _varChecked.delete(i);
+  var row=document.getElementById('var-row-'+i);
+  if(row) row.style.background=checked?'rgba(220,38,38,.07)':'';
+}
+
+// ── Delete selected variables ─────────────────────────────────
+function _varDeleteSelected(){
+  if(_varChecked.size===0){showToast('No variables selected','error');return;}
+  var indices=Array.from(_varChecked).sort(function(a,b){return b-a;});
+  var names=indices.map(function(i){return vars[i].name;});
+  if(!confirm('Delete '+indices.length+' variable(s): '+names.join(', ')+'?\nAll data in these columns will be removed.')) return;
+  indices.forEach(function(i){
+    var vname=vars[i].name;
+    vars.splice(i,1);
+    data.forEach(function(r){delete r[vname];});
+  });
+  _varChecked=new Set();
+  updateBadges();
+  switchTab('variable');
+  showToast('Deleted '+indices.length+' variable(s)');
+}
+
+// ── Save / exit edit mode ────────────────────────────────────
+function _varSaveEditMode(){
+  _varTableEditMode=false;
+  _varChecked=new Set();
+  updateBadges();
+  switchTab('variable');
+  showToast('Table saved ✓');
 }
 
 // ── Variable editing functions ──────────────────────────────────
@@ -4917,7 +5101,6 @@ function editVarField(i, field){
   inp=inp.trim();
   if(inp==='') return;
   if(field==='name'){
-    // Rename in data too
     var newName=inp.replace(/[^a-zA-Z0-9_]/g,'_').toLowerCase();
     if(vars.some(function(vv,ii){return ii!==i&&vv.name===newName;})){
       showToast('Name already exists','error');return;
@@ -13507,18 +13690,178 @@ function renderPivot(el){
 // ════════════════════════════════════════════════════════════════════════
 // OUTPUT VIEW
 // ════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════
+// OUTPUT VIEW — Tab Group System
+// ════════════════════════════════════════════════════════════════════════
+
+// Output tab group state
+var _outMode = 'all';       // 'all' | 'group'
+var _outActiveGroup = null; // active group key when in group mode
+
+// Map output type → canonical group key & label
+function _outGroup(o){
+  var map={
+    ttest:'T-Test', onesamp:'T-Test', paired:'T-Test',
+    anova:'ANOVA', anova2:'ANOVA', anova3:'ANOVA', rmanova:'ANOVA', glm:'ANOVA', manova:'ANOVA', repeated:'ANOVA',
+    correlation:'Correlation', partialCorr:'Correlation', canonicalCorr:'Correlation', corrmatrix:'Correlation',
+    regression:'Regression', multipleReg:'Regression', hierarchicalReg:'Regression', logistic:'Regression', poisson:'Regression', negbin:'Regression',
+    nonparam:'Non-Parametric', mannwhitney:'Non-Parametric', kruskal:'Non-Parametric', wilcoxon:'Non-Parametric', chiSquare:'Non-Parametric',
+    descriptive:'Descriptives',
+    alpha:'Reliability', kappa:'Reliability',
+    efa:'Factor Analysis', cfa:'Factor Analysis',
+    cluster:'Cluster',
+    discriminant:'Discriminant',
+    bayes_ttest:'Bayesian', bayes_corr:'Bayesian', bayes_posterior:'Bayesian', bayesian:'Bayesian',
+    timeseries:'Time Series',
+    survival:'Survival', cox:'Survival',
+    roc:'ROC',
+    moderation:'Moderation',
+    mediation:'Mediation',
+    mi:'Missing Analysis', missinganalysis:'Missing Analysis',
+    poweranalysis:'Power Analysis',
+    metaanalysis:'Meta-Analysis',
+    sem:'SEM',
+    hlm:'HLM'
+  };
+  return map[o.type] || (o.type ? (o.type.charAt(0).toUpperCase()+o.type.slice(1)) : 'Other');
+}
+
+function _outGroupColor(key){
+  var colors={
+    'T-Test':'#60a5fa','ANOVA':'#fb923c','Correlation':'#34d399','Regression':'#a78bfa',
+    'Descriptives':'#fbbf24','Factor Analysis':'#67e8f9','Cluster':'#4ade80',
+    'Non-Parametric':'#f87171','Reliability':'#e879f9','Bayesian':'#f9a8d4',
+    'Time Series':'#a5f3fc','Survival':'#86efac','ROC':'#fde68a','Moderation':'#c4b5fd',
+    'Mediation':'#f0abfc','Missing Analysis':'#fca5a5','Power Analysis':'#fdba74',
+    'Meta-Analysis':'#fb923c','SEM':'#818cf8','HLM':'#6ee7b7','Discriminant':'#93c5fd'
+  };
+  return colors[key]||'#c084fc';
+}
+
+function _outGroupIcon(key){
+  var icons={
+    'T-Test':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3h6m-3 0v7l-5 9a1 1 0 00.9 1.5h10.2a1 1 0 00.9-1.5L14 10V3"/></svg>',
+    'ANOVA':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="10" width="5" height="10" rx="1"/><rect x="9.5" y="6" width="5" height="14" rx="1"/><rect x="17" y="2" width="5" height="18" rx="1"/></svg>',
+    'Correlation':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="8" r="2" fill="currentColor"/><circle cx="16" cy="6" r="2" fill="currentColor"/><circle cx="5" cy="17" r="2" fill="currentColor"/><circle cx="14" cy="15" r="2" fill="currentColor"/><circle cx="19" cy="18" r="2" fill="currentColor"/></svg>',
+    'Regression':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>',
+    'Descriptives':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    'Factor Analysis':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>',
+    'Cluster':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="6" r="2" fill="currentColor"/><circle cx="12" cy="4" r="2" fill="currentColor"/><circle cx="7" cy="13" r="2" fill="currentColor"/><circle cx="17" cy="8" r="2" fill="currentColor"/><circle cx="19" cy="17" r="2" fill="currentColor"/></svg>',
+    'Bayesian':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="11" r="3"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>',
+    'Non-Parametric':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 20 Q6 4 12 12 Q18 20 22 4"/></svg>',
+    'Reliability':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    'Time Series':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>',
+    'Survival':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 6 20 6 14 10 14 10 10 14 10 14 7 18 7 18 4 22 4"/></svg>'
+  };
+  return icons[key]||'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>';
+}
+
+function _outGroups(){
+  var seen=[], map={};
+  outputs.forEach(function(o){
+    var g=_outGroup(o);
+    if(!map[g]){map[g]={key:g,count:0,latest:o.id};seen.push(g);}
+    map[g].count++;
+  });
+  return seen.map(function(k){return map[k];});
+}
+
 function renderOutput(el){
-  if(!outputs.length){el.innerHTML='<div class="card" style="text-align:center;padding:48px"><div style="font-size:34px;margin-bottom:9px"></div><div style="color:#475569">No outputs yet. Run an analysis first.</div></div>';return;}
-  let html='';
-  outputs.forEach(o=>{
-    html+='<div class="card">';
+  if(!outputs.length){
+    el.innerHTML='<div class="card" style="text-align:center;padding:48px"><div style="font-size:40px;margin-bottom:12px">📊</div><div style="color:rgba(232,222,255,.4);font-size:14px">No outputs yet.<br><span style="font-size:12px;opacity:.6">Run an analysis and results will appear here.</span></div></div>';
+    return;
+  }
+
+  var groups=_outGroups();
+  var em=_outMode;
+  var ag=_outActiveGroup;
+  var html='';
+
+  // ── Top toolbar ──────────────────────────────────────────────────────
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">';
+  html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+  // Mode toggle pills
+  html+='<div style="display:flex;background:rgba(14,6,24,.7);border:1px solid rgba(124,58,237,.22);border-radius:8px;padding:2px;gap:2px">';
+  html+='<button onclick="_outMode=\'all\';_outActiveGroup=null;renderTab(\'output\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-family:Inter,sans-serif;font-weight:600;transition:.15s;'+(em==='all'?'background:rgba(124,58,237,.45);color:#e8deff':'background:transparent;color:rgba(232,222,255,.4)')+'">☰ All</button>';
+  html+='<button onclick="_outMode=\'group\';_outActiveGroup=null;renderTab(\'output\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-family:Inter,sans-serif;font-weight:600;transition:.15s;'+(em==='group'&&!ag?'background:rgba(124,58,237,.45);color:#e8deff':'background:transparent;color:rgba(232,222,255,.4)')+'">▤ Groups</button>';
+  html+='</div>';
+  // Breadcrumb when inside a group
+  if(em==='group'&&ag){
+    var crCol=_outGroupColor(ag);
+    html+='<div style="display:flex;align-items:center;gap:6px">';
+    html+='<button onclick="_outActiveGroup=null;renderTab(\'output\')" style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.22);border-radius:6px;padding:4px 9px;color:#c084fc;font-size:11px;cursor:pointer">← All Groups</button>';
+    html+='<span style="font-size:12px;font-weight:700;color:'+crCol+';display:flex;align-items:center;gap:5px">'+_outGroupIcon(ag)+' '+ag+'</span>';
+    html+='</div>';
+  }
+  html+='</div>';
+  // Right: count + clear
+  html+='<div style="display:flex;align-items:center;gap:6px">';
+  html+='<span style="font-size:10.5px;color:rgba(232,222,255,.3)">'+outputs.length+' result'+(outputs.length>1?'s':'')+'</span>';
+  html+='<button onclick="if(confirm(\'Clear all outputs?\'))outputs.length=0,updateBadges(),renderTab(\'output\')" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.22);border-radius:6px;padding:4px 9px;color:#f87171;font-size:11px;cursor:pointer">🗑 Clear All</button>';
+  html+='</div>';
+  html+='</div>';
+
+  // ── GROUP VIEW: preview grid ─────────────────────────────────────────
+  if(em==='group' && !ag){
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">';
+    groups.forEach(function(g){
+      var col=_outGroupColor(g.key);
+      var grpOuts=outputs.filter(function(o){return _outGroup(o)===g.key;});
+      html+='<div onclick="_outActiveGroup=\'' + g.key.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\';renderTab(\'output\')" ';
+      html+='style="cursor:pointer;background:rgba(14,6,24,.75);border:1px solid '+col+'28;border-top:2px solid '+col+';border-radius:12px;padding:14px 16px;transition:.18s;position:relative">';
+      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">';
+      html+='<span style="color:'+col+';display:flex">'+_outGroupIcon(g.key)+'</span>';
+      html+='<span style="font-size:13px;font-weight:700;color:#e8deff">'+g.key+'</span>';
+      html+='<span style="margin-left:auto;background:'+col+'22;color:'+col+';border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700">'+g.count+'</span>';
+      html+='</div>';
+      grpOuts.slice(0,2).forEach(function(o){
+        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+o.title+'</div>';
+      });
+      if(g.count>2) html+='<div style="font-size:10px;color:rgba(232,222,255,.25);margin-top:2px">+'+(g.count-2)+' more…</div>';
+      html+='<div style="font-size:9.5px;color:rgba(232,222,255,.2);margin-top:8px">Latest: '+new Date(grpOuts[0].id).toLocaleTimeString()+'</div>';
+      html+='<div style="position:absolute;bottom:10px;right:12px;font-size:10.5px;color:'+col+';opacity:.6">View →</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+    el.innerHTML=html;
+    return;
+  }
+
+  // ── ALL VIEW or GROUP DETAIL VIEW: render cards ──────────────────────
+  var toShow=outputs;
+  if(em==='group'&&ag){
+    toShow=outputs.filter(function(o){return _outGroup(o)===ag;});
+    // Sub-label chips
+    var subTitles=[];
+    toShow.forEach(function(o){if(subTitles.indexOf(o.title)===-1)subTitles.push(o.title);});
+    if(subTitles.length>1){
+      var col2=_outGroupColor(ag);
+      html+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;padding:10px;background:rgba(14,6,24,.5);border-radius:8px;border:1px solid '+col2+'18">';
+      html+='<span style="font-size:10px;color:rgba(232,222,255,.3);align-self:center;margin-right:4px">Tests:</span>';
+      subTitles.forEach(function(sub){
+        var cnt=toShow.filter(function(o){return o.title===sub;}).length;
+        html+='<div style="background:rgba(14,6,24,.7);border:1px solid '+col2+'25;border-radius:6px;padding:4px 10px;font-size:10.5px;color:rgba(232,222,255,.65);display:flex;align-items:center;gap:5px">';
+        html+=sub;
+        if(cnt>1) html+='<span style="background:'+col2+'22;color:'+col2+';border-radius:999px;padding:0 6px;font-size:9.5px;font-weight:700">×'+cnt+'</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+  }
+
+  toShow.forEach(function(o){
+    var grpColor=_outGroupColor(_outGroup(o));
+    html+='<div class="card" style="border-top:2px solid '+grpColor+'35;margin-bottom:10px">';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:6px">';
+    html+='<div style="display:flex;align-items:center;gap:7px">';
+    html+='<span style="background:'+grpColor+'18;color:'+grpColor+';border:1px solid '+grpColor+'30;border-radius:5px;padding:1px 7px;font-size:9.5px;font-weight:700">'+_outGroup(o)+'</span>';
     html+='<div class="sec-hd" style="margin-bottom:0">'+o.title+'</div>';
+    html+='</div>';
     html+='<div class="row" style="gap:5px;flex-wrap:wrap">';
     html+='<span style="font-size:9.5px;color:#334155">'+new Date(o.id).toLocaleTimeString()+'</span>';
-    // APA Copy button
-    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA table — paste langsung ke Word">📋 Copy APA</button>';
+    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA">📋 Copy APA</button>';
     html+='<button class="btn btn-ghost btn-sm" style="padding:3px 8px" onclick="removeOutput('+o.id+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    html+='</div></div>';
     html+='</div></div>';
     if(o.type==='descriptive'){
       html+='<div class="stats-grid">';
