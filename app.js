@@ -4140,18 +4140,21 @@ function renderData(el){
   html+='<div class="data-toolbar">';
   html+='<div class="dt-search"><span class="dt-search-ic">'+IC.search+'</span><input class="inp" id="srch-inp" placeholder="Search…" value="'+searchQ+'" oninput="searchData(this.value)" autocomplete="off"/></div>';
   html+='<div class="dt-actions">';
-  html+='<button class="dt-btn dt-btn-add" onclick="addDataRow()">'+IC.plus+' Add</button>';
+  // + Add: always inline blank row, no popup
+  html+='<button class="dt-btn dt-btn-add" onclick="addDataRowInline()">'+IC.plus+' Add</button>';
   if(sprMode){
-    html+='<button class="dt-btn dt-btn-add" onclick="addMultipleRows()" style="background:rgba(5,150,105,.18);border-color:rgba(5,150,105,.3);color:#34d399">+ Rows</button>';
+    // In combined edit mode: Save All + Cancel only
     html+='<button class="dt-btn dt-btn-done" onclick="saveSprMode()" style="background:linear-gradient(135deg,#059669,#0891b2)">✓ Save All</button>';
     html+='<button class="dt-btn dt-btn-edit" onclick="exitSprMode()">✕ Cancel</button>';
   } else if(editMode){
-    html+='<button class="dt-btn dt-btn-del" id="del-btn" onclick="deleteSelected()" disabled>'+IC.trash+' Del('+selRows.size+')</button>';
+    // Delete only visible when rows are selected
+    if(selRows.size>0){
+      html+='<button class="dt-btn dt-btn-del" id="del-btn" onclick="deleteSelected()">'+IC.trash+' Del('+selRows.size+')</button>';
+    }
     html+='<button class="dt-btn dt-btn-done" onclick="toggleEditMode()">'+IC.check+' Done</button>';
-    html+='<button class="dt-btn dt-btn-spr" onclick="enterSprMode()" title="Edit entire table at once like a spreadsheet — fill per column">⊞ Bulk Edit</button>';
   } else {
-    html+='<button class="dt-btn dt-btn-edit" onclick="toggleEditMode()">'+IC.edit+' Edit</button>';
-    html+='<button class="dt-btn dt-btn-spr" onclick="enterSprMode()" title="Edit entire table at once like a spreadsheet — fill per column">⊞ Bulk Edit</button>';
+    // Single Edit button: enters combined mode (checkbox + inline editing)
+    html+='<button class="dt-btn dt-btn-edit" onclick="enterCombinedEditMode()">'+IC.edit+' Edit</button>';
   }
   var csvBtn='<button class="dt-btn dt-btn-csv" onclick="document.getElementById(&quot;csv-input&quot;).click()">'+IC.upload+' CSV</button>';
   html+=csvBtn;
@@ -4163,9 +4166,9 @@ function renderData(el){
   if(sortCol&&!sprMode) d.sort(function(a,b){var av=a[sortCol]??'',bv=b[sortCol]??'';return sortDir==='asc'?(av>bv?1:-1):(av<bv?1:-1);});
 
   html+='<div class="card" style="padding:0;overflow:hidden"><div class="tbl-wrap"><table class="data-tbl"><thead><tr>';
-  if(editMode&&!sprMode){
+  // Checkbox header col shown in editMode (includes sprMode since combined)
+  if(editMode||sprMode){
     html+='<th style="width:26px"><input type="checkbox" id="chk-all" onchange="toggleAllRows(this)" style="accent-color:#7c3aed;width:14px;height:14px"/></th>';
-    html+='<th style="width:30px;color:rgba(232,222,255,.3)">Ed</th>';
   }
   html+='<th style="width:32px;color:rgba(232,222,255,.2)">#</th>';
   vars.forEach(function(v){
@@ -4176,10 +4179,10 @@ function renderData(el){
     var wBadge=(aState.wcActive&&aState.wcVar===v.name)
       ?'<span style="margin-left:4px;background:linear-gradient(135deg,#fb923c,#f472b6);color:#fff;border-radius:999px;padding:0 5px;font-size:8px">⚖</span>':'';
     if(sprMode){
-      // Column fill button in header
-      html+='<th>'+dot+v.label+wBadge+'<button class="col-fill-btn" onclick="colFillModal(\''+v.name+'\')" title="Fill entire column">⬇ Fill</button></th>';
+      // Column fill button in header (combined edit mode)
+      html+='<th>'+dot+v.name+wBadge+'<button class="col-fill-btn" onclick="colFillModal(\''+v.name+'\')" title="Fill entire column">⬇ Fill</button></th>';
     } else {
-      html+='<th onclick="toggleSort(this.dataset.col)" data-col="'+v.name+'" style="cursor:pointer">'+dot+v.label+wBadge+sc+'</th>';
+      html+='<th onclick="toggleSort(this.dataset.col)" data-col="'+v.name+'" style="cursor:pointer">'+dot+v.name+wBadge+sc+'</th>';
     }
   });
   html+='</tr></thead><tbody>';
@@ -4187,25 +4190,22 @@ function renderData(el){
   d.forEach(function(row,ri){
     var sel=selRows.has(row.id);
     html+='<tr class="'+(sel?'selected':ri%2===0?'alt':'')+'">';
-    if(editMode&&!sprMode){
+    // Checkbox col — visible in both editMode and sprMode (combined)
+    if(editMode||sprMode){
       html+='<td style="min-width:26px;width:26px">';
       html+='<input type="checkbox" data-rowcb="'+row.id+'" '+(sel?'checked':'')+' onchange="toggleRow('+row.id+',this)" style="accent-color:#7c3aed;width:14px;height:14px"/>';
       html+='</td>';
-      html+='<td style="min-width:30px;width:30px;padding:4px">';
-      html+='<button onclick="editRowModal('+row.id+')" style="background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);border-radius:5px;color:#c084fc;cursor:pointer;padding:3px 5px;display:flex;align-items:center;justify-content:center;width:24px;height:24px">';
-      html+='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-      html+='</button></td>';
     }
     html+='<td style="color:rgba(232,222,255,.2);font-size:10.5px">'+(ri+1)+'</td>';
     vars.forEach(function(v){
       var val=row[v.name];var iM=isMiss(val);
       if(sprMode){
-        // Spreadsheet: direct inline input
+        // Combined edit mode: direct inline editable cells
         var dispVal=(iM?'':String(val??''));
         html+='<td style="padding:3px 4px">';
         html+='<input class="spr-cell'+(iM?' missing-cell':'')+'" ';
         html+='data-rowid="'+row.id+'" data-field="'+v.name+'" ';
-        html+='type="'+(v.type==='Numeric'?'text':'text')+'" ';
+        html+='type="text" ';
         html+='value="'+escHtmlAttr(dispVal)+'" ';
         html+='placeholder="'+(iM?'. (missing)':'.')+'" ';
         html+='onkeydown="sprKeyNav(event,'+row.id+',\''+v.name+'\')" ';
@@ -4228,17 +4228,14 @@ function renderData(el){
   html+='<div style="padding:5px 11px;border-top:1px solid rgba(124,58,237,.08);color:rgba(232,222,255,.25);font-size:11px;display:flex;gap:12px;align-items:center">';
   html+='<span>'+d.length+'/'+data.length+' rows'+(aState.wcActive?' <span style="color:#fb923c;font-size:10px">⚖ N efektif = '+getNEff()+'</span>':'')+'</span>';
   if(sprMode){
-    html+='<span style="color:#34d399;font-weight:600">⊞ Bulk Edit — type directly in cells · Tab/Enter to navigate · "." = missing · Fill column with ⬇ Fill button</span>';
+    html+='<span style="color:#34d399;font-weight:600">✎ Edit mode — type in cells · Tab/Enter navigate · "." = missing · ⬇ Fill to fill column</span>';
   } else if(editMode){
-    html+='<span style="color:#c084fc">Edit mode — double-click cell to edit · "." = missing</span>';
+    html+='<span style="color:#c084fc">Select rows with checkboxes · "." = missing</span>';
   }
   html+='</div></div>';
   el.innerHTML=html;
 
-  // Re-sync del btn
-  var db=document.getElementById('del-btn');
-  if(db){db.disabled=!selRows.size;db.textContent=''; db.innerHTML=IC.trash+' Del('+selRows.size+')';}
-
+  // Re-sync del btn (now only rendered when selRows.size>0, no re-sync needed)
   // If sprMode, restore sprBuffer into inputs
   if(sprMode&&Object.keys(sprBuffer).length){
     Object.keys(sprBuffer).forEach(function(rowId){
@@ -4249,7 +4246,6 @@ function renderData(el){
     });
   }
 }
-
 // ── SPREADSHEET (BULK EDIT) MODE ──────────────────────────────────────
 var sprBuffer={}; // {rowId: {field: value}} — pending changes
 
@@ -4267,12 +4263,25 @@ function enterSprMode(){
 }
 
 function exitSprMode(){
-  if(Object.keys(sprBuffer).length>0){
-    if(!confirm('Discard unsaved changes?')) return;
+  function _doExit(){
+    sprMode=false;sprBuffer={};editMode=false;selRows.clear();switchTab('data');
   }
-  sprMode=false;
-  sprBuffer={};
-  switchTab('data');
+  if(Object.keys(sprBuffer).length>0){
+    var modal=document.createElement('div');
+    modal.style.cssText='position:fixed;inset:0;z-index:9900;background:rgba(8,3,16,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px';
+    var box=document.createElement('div');
+    box.style.cssText='background:rgba(20,8,40,.98);border:1px solid rgba(250,204,21,.3);border-top:2px solid #fbbf24;border-radius:14px;padding:22px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.6)';
+    box.innerHTML='<div style="font-size:14px;font-weight:700;color:#fbbf24;margin-bottom:8px;font-family:Playfair Display,serif;font-style:italic">Buang perubahan?</div><div style="font-size:12.5px;color:rgba(232,222,255,.6);margin-bottom:18px;line-height:1.6">Ada '+Object.keys(sprBuffer).length+' baris yang belum disimpan. Yakin ingin keluar tanpa menyimpan?</div><div style="display:flex;gap:8px"></div>';
+    var btns=box.querySelector('div:last-child');
+    var cb=document.createElement('button');cb.textContent='Batal';cb.style.cssText='flex:1;padding:10px;border-radius:8px;border:1px solid rgba(124,58,237,.25);background:transparent;color:rgba(232,222,255,.55);font-size:13px;cursor:pointer;font-family:Inter,sans-serif';cb.onclick=function(){modal.remove();};
+    var xb=document.createElement('button');xb.textContent='Buang & Keluar';xb.style.cssText='flex:1;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif';xb.onclick=function(){modal.remove();_doExit();};
+    btns.appendChild(cb);btns.appendChild(xb);
+    modal.appendChild(box);
+    modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+    document.body.appendChild(modal);
+  } else {
+    _doExit();
+  }
 }
 
 function saveSprMode(){
@@ -4552,14 +4561,59 @@ function toggleEditMode(){
   switchTab('data');
 }
 
+// Combined Edit Mode: merges old editMode + sprMode into one button
+function enterCombinedEditMode(){
+  editMode=true;
+  sprMode=true;
+  sprBuffer={};
+  selRows.clear();
+  switchTab('data');
+  showToast('✎ Edit mode — type in cells, check to select rows');
+}
+
+// Inline Add Row (no popup)
+function addDataRowInline(){
+  var maxId=Math.max.apply(null,data.map(function(r){return r.id;}).concat([0]))+1;
+  var row={id:maxId};
+  vars.forEach(function(v){row[v.name]=v.name==='id'?maxId:null;});
+  data.push(row);
+  updateBadges();
+  renderTab('data');
+  // Scroll to bottom and focus first cell of new row
+  setTimeout(function(){
+    var cells=document.querySelectorAll('.spr-cell[data-rowid="'+maxId+'"]');
+    if(cells.length) cells[0].focus();
+    else{var tbl=document.querySelector('.data-tbl');if(tbl)tbl.scrollIntoView({behavior:'smooth',block:'end'});}
+  },80);
+}
+
+
 
 function searchData(q){searchQ=q;renderTab('data');}
 function toggleSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}renderTab('data');}
 function toggleRow(id,cb){
   if(cb.checked)selRows.add(id);else selRows.delete(id);
-  // Sync del button
-  var btn=document.getElementById('del-btn');
-  if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del('+selRows.size+')';}
+  // Re-render toolbar if needed to show/hide del button
+  var toolbar=document.querySelector('.dt-actions');
+  if(toolbar){
+    var existing=document.getElementById('del-btn');
+    if(selRows.size>0){
+      if(!existing){
+        // Create & inject del btn before done btn
+        var doneBtn=toolbar.querySelector('.dt-btn-done');
+        var newDel=document.createElement('button');
+        newDel.id='del-btn';newDel.className='dt-btn dt-btn-del';
+        newDel.onclick=function(){deleteSelected();};
+        newDel.innerHTML=IC.trash+' Del('+selRows.size+')';
+        if(doneBtn) toolbar.insertBefore(newDel,doneBtn);
+        else toolbar.appendChild(newDel);
+      } else {
+        existing.innerHTML=IC.trash+' Del('+selRows.size+')';
+      }
+    } else {
+      if(existing) existing.remove();
+    }
+  }
   // Sync header checkbox
   syncHeaderCheckbox();
 }
@@ -4862,9 +4916,11 @@ function renderVars(el){
   if(!em){
     html+='<button class="btn btn-ghost btn-sm" onclick="_varTableEditMode=true;_varChecked=new Set();switchTab(\'variable\')" style="border-color:rgba(192,132,252,.35);color:#c084fc">✎ Edit Table</button>';
   } else {
-    // In edit mode: show Delete Selected + Done
-    html+='<button class="btn btn-sm" onclick="_varDeleteSelected()" style="background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#f87171">🗑 Delete Selected</button>';
-    html+='<button class="btn btn-sm" onclick="_varSaveEditMode()" style="background:linear-gradient(135deg,#7c3aed,#059669);border:none;color:#fff;font-weight:700">✓ Done Editing</button>';
+    // In edit mode: show Done (delete only when checkboxes are checked)
+    if(_varChecked.size>0){
+      html+='<button class="btn btn-sm" onclick="_varDeleteSelected()" style="background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#f87171">🗑 Delete Selected ('+_varChecked.size+')</button>';
+    }
+    html+='<button id="var-done-btn" class="btn btn-sm" onclick="_varSaveEditMode()" style="background:linear-gradient(135deg,#7c3aed,#059669);border:none;color:#fff;font-weight:700">✓ Done Editing</button>';
   }
   html+='<button class="btn btn-ghost btn-sm" onclick="clearAllData()">Clear All Data</button>';
   html+='</div></div>';
@@ -4872,7 +4928,7 @@ function renderVars(el){
   // Variable table
   html+='<div class="tbl-wrap"><table id="var-def-table"><thead><tr>';
   if(em) html+='<th style="width:32px"><input type="checkbox" id="var-chk-all" onchange="_varCheckAll(this.checked)" style="accent-color:#c084fc;width:14px;height:14px;cursor:pointer"/></th>';
-  ['#','Name','Type','Label','Measure','Role','Decimals','Valid','Miss'].forEach(function(h){
+  ['#','Name','Type','Measure','Role','Decimals','Valid','Miss'].forEach(function(h){
     html+='<th>'+h+'</th>';
   });
   if(!em) html+='<th>Actions</th>';
@@ -4886,7 +4942,7 @@ function renderVars(el){
 
     // Checkbox col (edit mode only)
     if(em){
-      html+='<td style="text-align:center"><input type="checkbox" class="var-chk" data-i="'+i+'" '+(chk?'checked':'')+' onchange="_varToggleCheck('+i+',this.checked)" style="accent-color:#f87171;width:14px;height:14px;cursor:pointer"/></td>';
+      html+='<td style="text-align:center"><input type="checkbox" class="var-chk" data-i="'+i+'" '+(chk?'checked':'')+' onchange="_varToggleCheck('+i+',this.checked)" style="accent-color:#7c3aed;width:14px;height:14px;cursor:pointer"/></td>';
     }
 
     // Row number
@@ -4899,37 +4955,27 @@ function renderVars(el){
       html+='<td><span style="font-weight:700;color:#c084fc">'+v.name+'</span></td>';
     }
 
-    // Type
+    // Type — clickable badge opens in-web picker popup (no native dropdown)
     if(em){
-      html+='<td><select class="var-inline-sel" data-i="'+i+'" data-fld="type" onchange="_varInlineChange(this)" style="color:'+(v.type==='Numeric'?'#60a5fa':'#f472b6')+'">';
-      ['Numeric','String'].forEach(function(t){html+='<option value="'+t+'"'+(v.type===t?' selected':'')+'>'+t+'</option>';});
-      html+='</select></td>';
+      var tCol=v.type==='Numeric'?'#60a5fa':'#f472b6';
+      html+='<td><span class="var-pick-badge" data-i="'+i+'" data-fld="type" onclick="_varPickerOpen(this,'+i+',\'type\')" style="background:'+tCol+'18;color:'+tCol+';border:1px solid '+tCol+'35;border-radius:6px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">'+v.type+' <svg width="9" height="9" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>';
     } else {
       html+='<td><span class="tag '+(v.type==='Numeric'?'tag-blue':'tag-pink')+'">'+v.type+'</span></td>';
     }
 
-    // Label
+    // Measure — clickable badge
     if(em){
-      html+='<td><input class="var-inline-inp" data-i="'+i+'" data-fld="label" value="'+(v.label||'')+'" onblur="_varInlineChange(this)" onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="Label…" style="min-width:120px;color:rgba(232,222,255,.8)"/></td>';
-    } else {
-      html+='<td style="min-width:120px"><span style="color:rgba(232,222,255,.7);font-size:12px">'+(v.label||'<span style="color:rgba(232,222,255,.25);font-style:italic">—</span>')+'</span></td>';
-    }
-
-    // Measure
-    if(em){
-      html+='<td><select class="var-inline-sel" data-i="'+i+'" data-fld="measure" onchange="_varInlineChange(this)" style="color:'+(MC[v.measure]||'#60a5fa')+'">';
-      ['Scale','Nominal','Ordinal'].forEach(function(ms){html+='<option value="'+ms+'"'+(v.measure===ms?' selected':'')+'>'+ms+'</option>';});
-      html+='</select></td>';
+      var mCol=MC[v.measure]||'#60a5fa';
+      html+='<td><span class="var-pick-badge" data-i="'+i+'" data-fld="measure" onclick="_varPickerOpen(this,'+i+',\'measure\')" style="background:'+mCol+'18;color:'+mCol+';border:1px solid '+mCol+'35;border-radius:6px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;min-width:68px;justify-content:space-between">'+v.measure+' <svg width="9" height="9" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>';
     } else {
       var mc2=MC[v.measure]||'#60a5fa';
       html+='<td><span class="tag" style="background:'+mc2+'22;color:'+mc2+';border:1px solid '+mc2+'35;min-width:62px;justify-content:center">'+v.measure+'</span></td>';
     }
 
-    // Role
+    // Role — clickable badge
     if(em){
-      html+='<td><select class="var-inline-sel" data-i="'+i+'" data-fld="role" onchange="_varInlineChange(this)" style="color:'+(RC[v.role]||'#34d399')+'">';
-      ['Input','Target','Both','None'].forEach(function(r){html+='<option value="'+r+'"'+(v.role===r?' selected':'')+'>'+r+'</option>';});
-      html+='</select></td>';
+      var rCol=RC[v.role]||'#34d399';
+      html+='<td><span class="var-pick-badge" data-i="'+i+'" data-fld="role" onclick="_varPickerOpen(this,'+i+',\'role\')" style="background:'+rCol+'18;color:'+rCol+';border:1px solid '+rCol+'35;border-radius:6px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">'+v.role+' <svg width="9" height="9" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>';
     } else {
       var rc2=RC[v.role]||'#34d399';
       html+='<td><span class="tag" style="background:'+rc2+'22;color:'+rc2+';border:1px solid '+rc2+'35">'+v.role+'</span></td>';
@@ -4998,15 +5044,9 @@ function addVarInline(){
   vars.push({name:name,type:'Numeric',width:8,dec:2,label:name,measure:'Scale',role:'Input'});
   data.forEach(function(r){r[name]=null;});
   updateBadges();
-  // Enter edit mode so user can immediately edit the new row
-  _varTableEditMode=true;
+  // Just refresh — don't enter edit mode automatically
   switchTab('variable');
-  // Focus the name cell of the new row
-  setTimeout(function(){
-    var inputs=document.querySelectorAll('.var-inline-inp[data-fld="name"]');
-    if(inputs.length) inputs[inputs.length-1].focus();
-  },80);
-  showToast('Variable "'+name+'" added — edit the row now');
+  showToast('Variable "'+name+'" added ✓');
 }
 
 // ── Inline change handler ─────────────────────────────────────
@@ -5027,21 +5067,22 @@ function _varInlineChange(el){
     v.type=val;
     if(val==='String'){v.measure='Nominal';v.dec=0;}
     else v.measure='Scale';
-    // Re-render to update decimals cell and colors
+    // Update measure select jika ada (native select, bukan badge)
     var mc2={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
     var mSel=document.querySelector('.var-inline-sel[data-i="'+i+'"][data-fld="measure"]');
     if(mSel){mSel.value=v.measure;mSel.style.color=mc2[v.measure]||'#60a5fa';}
     var decInp=document.querySelector('.var-inline-inp[data-i="'+i+'"][data-fld="dec"]');
     if(decInp) decInp.style.display=val==='Numeric'?'':'none';
-    el.style.color=val==='Numeric'?'#60a5fa':'#f472b6';
+    // Hanya update style jika el adalah elemen DOM nyata (bukan fakeEl dari picker)
+    if(el.style) el.style.color=val==='Numeric'?'#60a5fa':'#f472b6';
   } else if(fld==='measure'){
     v.measure=val;
     var mc3={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
-    el.style.color=mc3[val]||'#60a5fa';
+    if(el.style) el.style.color=mc3[val]||'#60a5fa';
   } else if(fld==='role'){
     v.role=val;
     var rc3={Target:'#fbbf24',Input:'#34d399',Both:'#fb923c',None:'#94a3b8'};
-    el.style.color=rc3[val]||'#34d399';
+    if(el.style) el.style.color=rc3[val]||'#34d399';
   } else if(fld==='label'){
     v.label=val;
   }
@@ -5054,32 +5095,178 @@ function _varCheckAll(checked){
   if(checked) vars.forEach(function(_,i){_varChecked.add(i);});
   document.querySelectorAll('.var-chk').forEach(function(cb){cb.checked=checked;});
   document.querySelectorAll('#var-tbody tr').forEach(function(tr){
-    tr.style.background=checked?'rgba(220,38,38,.07)':'';
+    tr.style.background=checked?'rgba(124,58,237,.07)':'';
   });
+  _varUpdateHeaderChk();
+  _varSyncDeleteBtn();
+}
+
+function _varUpdateHeaderChk(){
+  var hdr=document.getElementById('var-chk-all');
+  if(!hdr) return;
+  var total=vars.length;
+  var sel=_varChecked.size;
+  if(sel===0){hdr.checked=false;hdr.indeterminate=false;}
+  else if(sel===total){hdr.checked=true;hdr.indeterminate=false;}
+  else{hdr.checked=false;hdr.indeterminate=true;}
 }
 
 function _varToggleCheck(i,checked){
   if(checked) _varChecked.add(i);
   else _varChecked.delete(i);
   var row=document.getElementById('var-row-'+i);
-  if(row) row.style.background=checked?'rgba(220,38,38,.07)':'';
+  if(row) row.style.background=checked?'rgba(124,58,237,.07)':'';
+  _varUpdateHeaderChk();
+  _varSyncDeleteBtn();
+}
+
+function _varSyncDeleteBtn(){
+  var doneBtn=document.getElementById('var-done-btn');
+  if(!doneBtn) return;
+  var parent=doneBtn.parentNode;
+  // Remove ALL existing delete buttons to avoid duplicates
+  parent.querySelectorAll('.var-del-btn').forEach(function(b){b.remove();});
+  if(_varChecked.size>0){
+    var nb=document.createElement('button');
+    nb.className='btn btn-sm var-del-btn';
+    nb.style.cssText='background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#f87171';
+    nb.textContent='🗑 Delete Selected ('+_varChecked.size+')';
+    nb.onclick=function(){_varDeleteSelected();};
+    parent.insertBefore(nb,doneBtn);
+  }
 }
 
 // ── Delete selected variables ─────────────────────────────────
+// ── In-web picker popup for TYPE / MEASURE / ROLE ──────────────────
+function _varPickerOpen(triggerEl, idx, field){
+  // Remove any existing picker
+  var existing=document.getElementById('_var-picker-pop');
+  if(existing){existing.remove();if(existing.dataset.field===field&&parseInt(existing.dataset.idx)===idx)return;}
+
+  var options=[];
+  var MC={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
+  var RC={Target:'#fbbf24',Input:'#34d399',Both:'#fb923c',None:'#94a3b8'};
+
+  if(field==='type') options=[{v:'Numeric',c:'#60a5fa'},{v:'String',c:'#f472b6'}];
+  else if(field==='measure') options=[{v:'Scale',c:MC.Scale},{v:'Nominal',c:MC.Nominal},{v:'Ordinal',c:MC.Ordinal}];
+  else if(field==='role') options=[{v:'Input',c:RC.Input},{v:'Target',c:RC.Target},{v:'Both',c:RC.Both},{v:'None',c:RC.None}];
+
+  var pop=document.createElement('div');
+  pop.id='_var-picker-pop';
+  pop.dataset.field=field;
+  pop.dataset.idx=idx;
+  pop.style.cssText='position:fixed;z-index:9800;background:linear-gradient(135deg,rgba(20,8,40,.97),rgba(14,6,24,.99));border:1px solid rgba(192,132,252,.3);border-radius:12px;padding:6px;box-shadow:0 8px 32px rgba(0,0,0,.7);min-width:140px;animation:cselPop .15s cubic-bezier(.16,1,.3,1)';
+
+  // Position near trigger
+  var rect=triggerEl.getBoundingClientRect();
+  var top=rect.bottom+6;
+  var left=rect.left;
+  if(left+160>window.innerWidth) left=window.innerWidth-170;
+  if(top+options.length*44+12>window.innerHeight) top=rect.top-options.length*44-16;
+  pop.style.top=top+'px';
+  pop.style.left=left+'px';
+
+  // Header
+  var hdr=document.createElement('div');
+  hdr.style.cssText='font-size:9.5px;color:rgba(232,222,255,.3);text-transform:uppercase;font-weight:700;padding:4px 8px 6px;letter-spacing:.8px';
+  hdr.textContent=field==='type'?'Variable Type':field==='measure'?'Measurement Level':'Role';
+  pop.appendChild(hdr);
+
+  var curVal=vars[idx][field];
+
+  options.forEach(function(opt){
+    var btn=document.createElement('button');
+    var isActive=curVal===opt.v;
+    btn.style.cssText='display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;margin-bottom:2px;transition:.12s;'
+      +(isActive?'background:'+opt.c+'22;color:'+opt.c+';outline:1.5px solid '+opt.c+'45':'background:transparent;color:rgba(232,222,255,.6)');
+    var dot=document.createElement('span');
+    dot.style.cssText='width:10px;height:10px;border-radius:50%;background:'+opt.c+';flex-shrink:0;'+(isActive?'':'opacity:.4');
+    var label=document.createElement('span');
+    label.textContent=opt.v;
+    var check=document.createElement('span');
+    check.style.cssText='margin-left:auto;color:'+opt.c+';font-size:13px';
+    check.textContent=isActive?'✓':'';
+    btn.appendChild(dot);
+    btn.appendChild(label);
+    btn.appendChild(check);
+    btn.onmouseover=function(){if(!isActive)this.style.background='rgba(124,58,237,.15)';};
+    btn.onmouseout=function(){if(!isActive)this.style.background='transparent';};
+    btn.onclick=function(){
+      var MC2={Scale:'#60a5fa',Nominal:'#f472b6',Ordinal:'#a78bfa'};
+      var RC2={Target:'#fbbf24',Input:'#34d399',Both:'#fb923c',None:'#94a3b8'};
+
+      // Helper: update a badge element's text and color instantly
+      function updateBadgeEl(badge, text, color){
+        if(!badge) return;
+        badge.innerHTML=text+' <svg width="9" height="9" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+        badge.style.background=color+'18';
+        badge.style.color=color;
+        badge.style.borderColor=color+'35';
+      }
+
+      // 1. Update badge di DOM SEBELUM pop.remove() agar querySelector masih valid
+      var badge=document.querySelector('.var-pick-badge[data-i="'+idx+'"][data-fld="'+field+'"]');
+      var newC=field==='type'?(opt.v==='Numeric'?'#60a5fa':'#f472b6'):field==='measure'?(MC2[opt.v]||'#60a5fa'):(RC2[opt.v]||'#34d399');
+      updateBadgeEl(badge, opt.v, newC);
+
+      // 2. Apply change to data model (setelah DOM diupdate)
+      var fakeEl={dataset:{i:String(idx),fld:field},value:opt.v};
+      _varInlineChange(fakeEl);
+
+      // 3. Tutup popup
+      pop.remove();
+
+      // 4. Jika type berubah, juga update measure badge dan decimals
+      if(field==='type'){
+        var newMeasure=vars[idx].measure;
+        var mBadge=document.querySelector('.var-pick-badge[data-i="'+idx+'"][data-fld="measure"]');
+        updateBadgeEl(mBadge, newMeasure, MC2[newMeasure]||'#60a5fa');
+        var decCell=document.querySelector('.var-inline-inp[data-i="'+idx+'"][data-fld="dec"]');
+        var decTd=decCell?decCell.parentElement:null;
+        if(decCell) decCell.style.display=opt.v==='Numeric'?'':'none';
+        // Jika String, ganti cell decimals jadi teks "—"
+        if(decTd && opt.v==='String'){
+          decTd.innerHTML='<span style="color:rgba(232,222,255,.3)">—</span>';
+        } else if(decTd && opt.v==='Numeric' && !decCell){
+          // Jika sebelumnya String, perlu re-render cell decimals
+          decTd.innerHTML='<input class="var-inline-inp" data-i="'+idx+'" data-fld="dec" type="number" min="0" max="10" value="'+vars[idx].dec+'" onblur="_varInlineChange(this)" style="width:52px;color:rgba(232,222,255,.7)"/>';
+        }
+      }
+    };
+    pop.appendChild(btn);
+  });
+
+  document.body.appendChild(pop);
+
+  // Close on outside click
+  setTimeout(function(){
+    document.addEventListener('click',function _closePicker(e){
+      if(!pop.contains(e.target)&&e.target!==triggerEl){pop.remove();document.removeEventListener('click',_closePicker);}
+    });
+  },0);
+}
+
 function _varDeleteSelected(){
   if(_varChecked.size===0){showToast('No variables selected','error');return;}
   var indices=Array.from(_varChecked).sort(function(a,b){return b-a;});
   var names=indices.map(function(i){return vars[i].name;});
-  if(!confirm('Delete '+indices.length+' variable(s): '+names.join(', ')+'?\nAll data in these columns will be removed.')) return;
-  indices.forEach(function(i){
-    var vname=vars[i].name;
-    vars.splice(i,1);
-    data.forEach(function(r){delete r[vname];});
+  ossDialog({
+    type:'delete',
+    title:'Delete Variable'+(indices.length>1?'s':''),
+    msg:'Hapus <b style="color:#c084fc">'+indices.length+' variable</b>: <span style="color:rgba(232,222,255,.5);font-size:11.5px">'+names.map(function(n){return'"'+n+'"';}).join(', ')+'</span><br><br><span style="color:#fbbf24;font-size:11.5px">⚠ Semua data di kolom ini akan ikut terhapus.</span>',
+    okLabel:'Hapus '+indices.length+' variable',
+    onOk:function(){
+      indices.forEach(function(i){
+        var vname=vars[i].name;
+        vars.splice(i,1);
+        data.forEach(function(r){delete r[vname];});
+      });
+      _varChecked=new Set();
+      updateBadges();
+      switchTab('variable');
+      showToast('Deleted '+indices.length+' variable(s)');
+    }
   });
-  _varChecked=new Set();
-  updateBadges();
-  switchTab('variable');
-  showToast('Deleted '+indices.length+' variable(s)');
 }
 
 // ── Save / exit edit mode ────────────────────────────────────
@@ -5150,40 +5337,29 @@ function deleteVar(i){
   i=parseInt(i);
   if(i<0||i>=vars.length) return;
   var vname=vars[i].name;
-  var modal=document.createElement('div');
-  modal.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(8,3,16,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px';
-  var box=document.createElement('div');
-  box.style.cssText='background:#150b2e;border:1px solid rgba(220,38,38,.3);border-radius:16px;padding:22px;width:100%;max-width:340px';
-  box.innerHTML='<div style="font-size:15px;font-weight:700;color:#f87171;margin-bottom:8px;font-family:Playfair Display,serif;font-style:italic">Delete Variable</div>'
-    +'<div style="font-size:13px;color:rgba(232,222,255,.7);margin-bottom:20px;line-height:1.6">Delete <b style="color:#c084fc">"'+vname+'"</b>?<br>This removes it from all '+data.length+' rows.</div>'
-    +'<div style="display:flex;gap:8px">';
-  var cancelBtn=document.createElement('button');
-  cancelBtn.textContent='Cancel';
-  cancelBtn.style.cssText='flex:1;padding:10px;border-radius:8px;border:1px solid rgba(124,58,237,.25);background:transparent;color:rgba(232,222,255,.6);font-size:13px;cursor:pointer;font-family:Inter,sans-serif';
-  cancelBtn.onclick=function(){modal.remove();};
-  var delBtn=document.createElement('button');
-  delBtn.textContent='Delete';
-  delBtn.style.cssText='flex:1;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#dc2626,#db2777);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif';
-  delBtn.onclick=function(){
-    vars.splice(i,1);
-    data.forEach(function(r){delete r[vname];});
-    modal.remove();
-    updateBadges();
-    switchTab('variable');
-    showToast('Variable "'+vname+'" deleted');
-  };
-  var btnRow=box.querySelector('div:last-child');
-  btnRow.appendChild(cancelBtn);
-  btnRow.appendChild(delBtn);
-  box.querySelector('div:last-child');
-  modal.appendChild(box);
-  modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
-  document.body.appendChild(modal);
+  ossDialog({
+    type:'delete',
+    title:'Delete Variable',
+    msg:'Delete <b style="color:#c084fc">"'+vname+'"</b>?<br><span style="color:rgba(232,222,255,.55);font-size:11.5px">This removes it from all '+data.length+' rows.</span>',
+    okLabel:'Delete',
+    onOk:function(){
+      vars.splice(i,1);
+      data.forEach(function(r){delete r[vname];});
+      updateBadges();
+      switchTab('variable');
+      showToast('Variable "'+vname+'" deleted');
+    }
+  });
 }
 
 function clearAllData(){
-  if(!confirm('Clear ALL data rows? Variable definitions will be kept.')) return;
-  data=[];updateBadges();switchTab('data');showToast('Data cleared');
+  ossDialog({
+    type:'delete',
+    title:'Clear All Data',
+    msg:'Hapus semua baris data? <br><span style="color:rgba(232,222,255,.5);font-size:11.5px">Definisi variable akan tetap ada.</span>',
+    okLabel:'Clear All Data',
+    onOk:function(){data=[];updateBadges();switchTab('data');showToast('Data cleared');}
+  });
 }
 
 function addVarModal(){
@@ -13697,6 +13873,7 @@ function renderPivot(el){
 // Output tab group state
 var _outMode = 'all';       // 'all' | 'group'
 var _outActiveGroup = null; // active group key when in group mode
+var _outGrid = 1;           // layout cols: 1=1×1, 2=1×2, 3=2×2, 4=2×3, 5=2×4, 6=3×3, 7=3×4, 8=4×4
 
 // Map output type → canonical group key & label
 function _outGroup(o){
@@ -13768,7 +13945,7 @@ function _outGroups(){
 
 function renderOutput(el){
   if(!outputs.length){
-    el.innerHTML='<div class="card" style="text-align:center;padding:48px"><div style="font-size:40px;margin-bottom:12px">📊</div><div style="color:rgba(232,222,255,.4);font-size:14px">No outputs yet.<br><span style="font-size:12px;opacity:.6">Run an analysis and results will appear here.</span></div></div>';
+    el.innerHTML='<div class="card" style="text-align:center;padding:48px"><div style="color:rgba(232,222,255,.4);font-size:14px">No outputs yet.<br><span style="font-size:12px;opacity:.6">Run an analysis and results will appear here.</span></div></div>';
     return;
   }
 
@@ -13785,6 +13962,15 @@ function renderOutput(el){
   html+='<button onclick="_outMode=\'all\';_outActiveGroup=null;renderTab(\'output\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-family:Inter,sans-serif;font-weight:600;transition:.15s;'+(em==='all'?'background:rgba(124,58,237,.45);color:#e8deff':'background:transparent;color:rgba(232,222,255,.4)')+'">☰ All</button>';
   html+='<button onclick="_outMode=\'group\';_outActiveGroup=null;renderTab(\'output\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-family:Inter,sans-serif;font-weight:600;transition:.15s;'+(em==='group'&&!ag?'background:rgba(124,58,237,.45);color:#e8deff':'background:transparent;color:rgba(232,222,255,.4)')+'">▤ Groups</button>';
   html+='</div>';
+  // Grid layout picker
+  var gridOpts=[{c:1,lbl:'1×1'},{c:2,lbl:'1×2'},{c:3,lbl:'2×2'},{c:4,lbl:'2×3'},{c:5,lbl:'2×4'},{c:6,lbl:'3×3'},{c:7,lbl:'3×4'},{c:8,lbl:'4×4'}];
+  html+='<div style="display:flex;background:rgba(14,6,24,.7);border:1px solid rgba(124,58,237,.18);border-radius:8px;padding:2px;gap:1px;align-items:center">';
+  html+='<span style="font-size:9px;color:rgba(232,222,255,.28);padding:0 5px 0 6px;white-space:nowrap;letter-spacing:.4px;font-weight:600;text-transform:uppercase">Grid</span>';
+  gridOpts.forEach(function(g){
+    var active=_outGrid===g.c;
+    html+='<button onclick="_outGrid='+g.c+';renderTab(\'output\')" style="padding:4px 7px;border-radius:5px;border:none;cursor:pointer;font-size:10px;font-family:Inter,sans-serif;font-weight:700;white-space:nowrap;transition:.12s;'+(active?'background:rgba(124,58,237,.5);color:#e8deff':'background:transparent;color:rgba(232,222,255,.3)')+'" title="'+g.lbl+' grid">'+g.lbl+'</button>';
+  });
+  html+='</div>';
   // Breadcrumb when inside a group
   if(em==='group'&&ag){
     var crCol=_outGroupColor(ag);
@@ -13797,7 +13983,7 @@ function renderOutput(el){
   // Right: count + clear
   html+='<div style="display:flex;align-items:center;gap:6px">';
   html+='<span style="font-size:10.5px;color:rgba(232,222,255,.3)">'+outputs.length+' result'+(outputs.length>1?'s':'')+'</span>';
-  html+='<button onclick="if(confirm(\'Clear all outputs?\'))outputs.length=0,updateBadges(),renderTab(\'output\')" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.22);border-radius:6px;padding:4px 9px;color:#f87171;font-size:11px;cursor:pointer">🗑 Clear All</button>';
+  html+='<button onclick="ossDialog({type:\'delete\',title:\'Clear All Outputs\',msg:\'Hapus semua hasil analisis?\',okLabel:\'Clear All\',onOk:function(){outputs.length=0;updateBadges();renderTab(\'output\');}})" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.22);border-radius:6px;padding:4px 9px;color:#f87171;font-size:11px;cursor:pointer">Clear All</button>';
   html+='</div>';
   html+='</div>';
 
@@ -13849,33 +14035,43 @@ function renderOutput(el){
     }
   }
 
+  // Grid wrapper — cols based on _outGrid
+  var _gridColsMap=[1,2,2,2,2,3,3,4];
+  var _cols=_gridColsMap[(_outGrid-1)%8]||1;
+  var _gridStyle=_cols===1
+    ?'display:flex;flex-direction:column;gap:10px'
+    :'display:grid;grid-template-columns:repeat('+_cols+',1fr);gap:10px;align-items:start';
+  html+='<div style="'+_gridStyle+'">';
+
   toShow.forEach(function(o){
     var grpColor=_outGroupColor(_outGroup(o));
-    html+='<div class="card" style="border-top:2px solid '+grpColor+'35;margin-bottom:10px">';
+    var _isCompact=_cols>1;
+    html+='<div class="card" style="border-top:2px solid '+grpColor+'35;margin-bottom:0;overflow:hidden'+ (_isCompact?';min-width:0':'')+'">';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:6px">';
-    html+='<div style="display:flex;align-items:center;gap:7px">';
-    html+='<span style="background:'+grpColor+'18;color:'+grpColor+';border:1px solid '+grpColor+'30;border-radius:5px;padding:1px 7px;font-size:9.5px;font-weight:700">'+_outGroup(o)+'</span>';
-    html+='<div class="sec-hd" style="margin-bottom:0">'+o.title+'</div>';
+    html+='<div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1">';
+    html+='<span style="background:'+grpColor+'18;color:'+grpColor+';border:1px solid '+grpColor+'30;border-radius:5px;padding:1px 7px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0">'+_outGroup(o)+'</span>';
+    html+='<div class="sec-hd" style="margin-bottom:0;overflow:hidden;text-overflow:ellipsis;white-space:'+ (_isCompact?'nowrap':'normal')+'">'+o.title+'</div>';
     html+='</div>';
-    html+='<div class="row" style="gap:5px;flex-wrap:wrap">';
+    html+='<div class="row" style="gap:5px;flex-wrap:wrap;flex-shrink:0">';
     html+='<span style="font-size:9.5px;color:#334155">'+new Date(o.id).toLocaleTimeString()+'</span>';
-    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA">📋 Copy APA</button>';
+    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA">Copy APA</button>';
+    html+='<button class="btn btn-ghost btn-sm" style="padding:3px 9px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:#c084fc;font-size:11px;font-weight:600" onclick="_exportOutputDialog('+o.id+')">⬇ Export</button>';
     html+='<button class="btn btn-ghost btn-sm" style="padding:3px 8px" onclick="removeOutput('+o.id+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
-    html+='</div></div>';
-    html+='</div></div>';
+    html+='</div>';
+    html+='</div>';
     if(o.type==='descriptive'){
       html+='<div class="stats-grid">';
       Object.entries(o.stats).filter(([,v])=>v!==undefined&&v!==null).forEach(([k,v])=>html+=stCard(k,v));
       html+='</div>';
       const swp=parseFloat(o.stats.shapiroP),ksp=parseFloat(o.stats.ksP),sk=parseFloat(o.stats.skewness);
       html+='<div style="margin:10px 0;padding:9px 12px;background:rgba(255,255,255,.018);border-radius:8px;border:1px solid rgba(255,255,255,.042)">';
-      html+='<div style="font-size:11px;font-weight:700;color:#818cf8;margin-bottom:6px"> Normality Summary</div><div class="row" style="gap:6px;flex-wrap:wrap">';
+      html+='<div style="font-size:11px;font-weight:700;color:#818cf8;margin-bottom:6px">Normality Summary</div><div class="row" style="gap:6px;flex-wrap:wrap">';
       html+='<span class="tag '+(swp>.05?'tag-green':'tag-red')+'">'+(swp>.05?'✓ Normal':'✗ Non-normal')+' (SW p='+o.stats.shapiroP+')</span>';
       if(o.stats.ksP&&o.stats.ksP!=='N/A')
         html+='<span class="tag '+(ksp>.05?'tag-green':'tag-red')+'">'+(ksp>.05?'✓ Normal':'✗ Non-normal')+' (KS p='+o.stats.ksP+')</span>';
       const skTag=Math.abs(sk)<1?'tag-green':Math.abs(sk)<2?'tag-yellow':'tag-red';
-      html+='<span class="tag '+skTag+'">'+(Math.abs(sk)<1?'✓ Low skew':' Skewed')+'</span>';
-      if(o.stats.outlierCount>0)html+='<span class="tag tag-yellow"> '+o.stats.outlierCount+' outlier(s)</span>';
+      html+='<span class="tag '+skTag+'">'+(Math.abs(sk)<1?'Low skew':'Skewed')+'</span>';
+      if(o.stats.outlierCount>0)html+='<span class="tag tag-yellow">'+o.stats.outlierCount+' outlier(s)</span>';
       html+='</div></div>';
       html+='<div class="chart-stack">'+svgHistogram(data,o.field)+'<div style="font-size:10px;color:#64748b;margin:3px 0">Normal Q-Q Plot</div>'+svgQQ(data,o.field)+'</div>';
     }
@@ -15229,6 +15425,7 @@ function renderOutput(el){
 
     html+='</div>';
   });
+  html+='</div>'; // end grid wrapper
   el.innerHTML=html;
 }
 // ════════════════════════════════════════════════════════════════════════
@@ -15830,9 +16027,9 @@ function copyAPA(id,btn){
   var text=buildAPATable(o);
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(function(){
-      btn.textContent='✓ Copied!';
+      btn.textContent='Copied!';
       btn.classList.add('copied');
-      setTimeout(function(){btn.textContent='📋 Copy APA';btn.classList.remove('copied');},2200);
+      setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);
       showToast('APA table copied — paste ke Word ✓');
     }).catch(function(){fallbackCopy(text,btn);});
   } else {
@@ -15849,7 +16046,7 @@ function fallbackCopy(text,btn){
   ta.focus();ta.select();
   try{
     document.execCommand('copy');
-    if(btn){btn.textContent='✓ Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='📋 Copy APA';btn.classList.remove('copied');},2200);}
+    if(btn){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);}
     showToast('APA table copied — paste ke Word ✓');
   }catch(e){
     showToast('Copy gagal — coba manual select teks','error');
@@ -16219,7 +16416,7 @@ var CMD_ACTIONS=[
   {label:'Import CSV',fn:function(){document.getElementById('csv-input').click();}},
   {label:'Export CSV',fn:function(){exportDataCSV();}},
   {label:'Export to Excel (.xlsx)',fn:function(){exportToExcel();}},
-  {label:'Export to Word (.doc)',fn:function(){exportToWord();}},
+  {label:'Export to Word (.doc)',fn:function(){exportWordDialog();}},
   {label:'APA Report (text)',fn:function(){generateAPAReport();}},
   {label:'New Dataset',fn:function(){showAddDatasetModal();}},
   {label:'Back to Home',fn:function(){exitApp();}},
@@ -16495,6 +16692,561 @@ function _doExportExcel(){
 }
 
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// PER-OUTPUT EXPORT DIALOG
+// ════════════════════════════════════════════════════════════
+function _exportOutputDialog(id){
+  var o=outputs.find(function(x){return x.id===id;});
+  if(!o) return;
+
+  // Detect if this output has chart(s)
+  var hasChart=false;
+  var chartTypes=[];
+  if(o.type==='descriptive'){hasChart=true;chartTypes=['Histogram','Normal Q-Q Plot'];}
+  else if(o.type==='ttest'||o.type==='anova'||o.type==='nonparametric'){hasChart=true;chartTypes=['Boxplot'];}
+  else if(o.type==='paired'||o.type==='correlation'||o.type==='regression'||o.type==='multipleReg'){hasChart=true;chartTypes=['Scatter Plot'];}
+  else if(o.type==='rmanova'){hasChart=true;chartTypes=['Profile Plot'];}
+  else if(o.type==='timeseries'){hasChart=true;chartTypes=['Time Series Plot'];}
+
+  // Remove any existing dialog
+  var ex=document.getElementById('_exp-dialog');
+  if(ex) ex.remove();
+
+  // Build dialog
+  var overlay=document.createElement('div');
+  overlay.id='_exp-dialog';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9900;background:rgba(5,1,14,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px';
+
+  var box=document.createElement('div');
+  box.style.cssText='background:linear-gradient(135deg,rgba(20,8,40,.98),rgba(14,6,24,.99));border:1px solid rgba(192,132,252,.3);border-radius:18px;padding:24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.8)';
+
+  // Header
+  box.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+    +'<span style="font-size:18px">⬇</span>'
+    +'<div style="font-size:15px;font-weight:700;color:#e8deff;font-family:Playfair Display,serif;font-style:italic">Export to Word</div>'
+    +'</div>'
+    +'<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:18px;padding-left:28px">'+o.title+'</div>';
+
+  // Option cards
+  var opts=[
+    {
+      mode:'table',
+      icon:'📋',
+      label:'Text & Table Only',
+      desc:'Ringkasan statistik + tabel hasil — tanpa diagram',
+      always:true
+    },
+    {
+      mode:'chart',
+      icon:'📊',
+      label:'Diagram/Chart Only',
+      desc:'Hanya diagram grafis — tanpa tabel statistik',
+      always:false
+    },
+    {
+      mode:'both',
+      icon:'📄',
+      label:'Text, Table & Chart',
+      desc:'Lengkap: ringkasan + tabel + diagram',
+      always:false
+    }
+  ];
+
+  var optWrap=document.createElement('div');
+  optWrap.style.cssText='display:flex;flex-direction:column;gap:8px;margin-bottom:20px';
+
+  opts.forEach(function(opt){
+    var available=opt.always||hasChart;
+    var btn=document.createElement('div');
+    btn.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;border:1px solid '
+      +(available?'rgba(192,132,252,.22)':'rgba(255,255,255,.06)')+';cursor:'
+      +(available?'pointer':'not-allowed')+';background:'
+      +(available?'rgba(124,58,237,.06)':'rgba(255,255,255,.02)')+';transition:.15s;opacity:'+(available?'1':'.38');
+    if(available){
+      btn.onmouseover=function(){this.style.background='rgba(124,58,237,.15)';this.style.borderColor='rgba(192,132,252,.45)';};
+      btn.onmouseout=function(){this.style.background='rgba(124,58,237,.06)';this.style.borderColor='rgba(192,132,252,.22)';};
+      btn.onclick=function(){overlay.remove();_exportSingleOutput(id,opt.mode);};
+    }
+    btn.innerHTML='<div style="font-size:22px;flex-shrink:0">'+opt.icon+'</div>'
+      +'<div><div style="font-size:12.5px;font-weight:700;color:'+(available?'#e8deff':'rgba(232,222,255,.3)')+'">'+opt.label+'</div>'
+      +'<div style="font-size:10.5px;color:'+(available?'rgba(232,222,255,.45)':'rgba(232,222,255,.2)')+'">'+opt.desc+'</div>'
+      +((!available)?' <div style="font-size:9.5px;color:#fbbf24;margin-top:3px">⚠ Analisis ini tidak memiliki diagram</div>':'')
+      +(available&&opt.mode!=='table'&&hasChart?' <div style="font-size:9.5px;color:#a78bfa;margin-top:2px">Chart: '+chartTypes.join(', ')+'</div>':'')
+      +'</div>';
+    optWrap.appendChild(btn);
+  });
+
+  box.appendChild(optWrap);
+
+  // Export All button
+  var allRow=document.createElement('div');
+  allRow.style.cssText='display:flex;gap:8px;border-top:1px solid rgba(192,132,252,.1);padding-top:14px';
+
+  var cancelBtn=document.createElement('button');
+  cancelBtn.textContent='Batal';
+  cancelBtn.style.cssText='flex:1;padding:9px;border-radius:8px;border:1px solid rgba(124,58,237,.25);background:transparent;color:rgba(232,222,255,.55);font-size:12.5px;cursor:pointer;font-family:Inter,sans-serif;font-weight:600';
+  cancelBtn.onclick=function(){overlay.remove();};
+
+  var exportAllBtn=document.createElement('button');
+  exportAllBtn.textContent='⬇ Export Semua Output';
+  exportAllBtn.style.cssText='flex:2;padding:9px;border-radius:8px;border:none;background:rgba(124,58,237,.18);color:#c084fc;font-size:12px;cursor:pointer;font-family:Inter,sans-serif;font-weight:600;border:1px solid rgba(124,58,237,.3)';
+  exportAllBtn.onmouseover=function(){this.style.background='rgba(124,58,237,.3)';};
+  exportAllBtn.onmouseout=function(){this.style.background='rgba(124,58,237,.18)';};
+  exportAllBtn.onclick=function(){overlay.remove();exportWordDialog();};
+
+  allRow.appendChild(cancelBtn);
+  allRow.appendChild(exportAllBtn);
+  box.appendChild(allRow);
+
+  overlay.appendChild(box);
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+}
+
+// ── Build & download a single output as .doc ─────────────────
+function _exportSingleOutput(id, mode){
+  var o=outputs.find(function(x){return x.id===id;});
+  if(!o){showToast('Output not found','error');return;}
+
+  var html='';
+  html+='<h1>OSS Analysis Report</h1>';
+  html+='<p class="meta">Generated: '+new Date().toLocaleString()+'&nbsp;&nbsp;|&nbsp;&nbsp;N = '+data.length+' cases&nbsp;&nbsp;|&nbsp;&nbsp;Variables: '+vars.length+'</p>';
+  html+='<hr style="border:none;border-top:1px solid #d4d4d4;margin:10pt 0"/>';
+  html+=_buildSingleOutputHTML(o, mode);
+
+  var preHtml="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='UTF-8'><title>OSS Report</title><style>"+_wordCSS()+"</style></head><body>";
+  var postHtml="</body></html>";
+  var fullHtml=preHtml+html+postHtml;
+  var blob=new Blob([fullHtml],{type:'application/msword'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  var safeName=o.title.replace(/[^a-zA-Z0-9_]/g,'_').slice(0,40);
+  a.download='OSS_'+safeName+'_'+new Date().toISOString().slice(0,10)+'.doc';
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+  showToast('Exported: '+o.title+' ✓ (.doc)');
+}
+
+// ── Build HTML for one output (mode: 'table'|'chart'|'both') ──
+function _buildSingleOutputHTML(o, mode){
+  var showTable=(mode==='table'||mode==='both');
+  var showChart=(mode==='chart'||mode==='both');
+  var html='';
+  html+='<h2>'+_escHtml(o.title)+'</h2>';
+  html+='<p class="meta">'+new Date(o.id).toLocaleString()+'</p>';
+
+  if(showTable){
+    if(o.type==='descriptive'&&o.stats){
+      html+='<div class="section"><p><b>'+_escHtml(o.field)+'</b> &mdash; N='+o.stats.n+', Mean='+o.stats.mean+', SD='+o.stats.sd+'</p></div>';
+      html+=_wordTable(['Statistic','Value'],Object.entries(o.stats).map(function(kv){return[kv[0],String(kv[1])];}));
+    }
+    else if(o.type==='ttest'&&o.res){
+      html+='<div class="section"><p><b>t('+o.res.df+') = '+o.res.t+'</b>, p = '+o.res.p_fmt+", Cohen's d = "+o.res.cohensD+' ('+o.res.dInterp+')</p></div>';
+      html+=_wordTable(['','Group A ('+_escHtml(o.ga||'')+')', 'Group B ('+_escHtml(o.gb||'')+')'],
+        [['N',o.res.nA,o.res.nB],['Mean',o.res.meanA,o.res.meanB],['SD',o.res.sdA,o.res.sdB]]);
+      html+=_wordTable(['Statistic','Value'],[['t',o.res.t],['df',o.res.df],['p',o.res.p_fmt],["Cohen's d",o.res.cohensD+' ('+o.res.dInterp+')'],['95% CI',o.res.ci95]]);
+    }
+    else if(o.type==='correlation'&&o.res){
+      html+='<div class="section"><p><b>r = '+o.res.r+'</b>, p = '+o.res.p_fmt+' &mdash; '+o.res.strength+' '+o.res.direction+'</p></div>';
+      html+=_wordTable(['r','r²','p','Strength','95% CI'],[[o.res.r,o.res.r2,o.res.p_fmt,o.res.strength,o.res.ci95]]);
+    }
+    else if((o.type==='regression'||o.type==='multipleReg')&&o.res){
+      html+='<h3>Model Fit</h3>';
+      html+=_wordTable(['R²','Adj R²','F','p (F)','RMSE'],[[o.res.R2,o.res.R2adj,o.res.F,o.res.pF_fmt,o.res.RMSE||'—']]);
+      html+='<h3>Coefficients</h3>';
+      html+=_wordTable(['Variable','B','SE','β','t','p','VIF'],
+        (o.res.coefs||[]).map(function(c,ci){return[c.name,c.B,c.SE,ci===0?'—':c.beta,c.t,c.p_fmt,ci===0?'—':(o.res.vif?o.res.vif[ci-1]:'—')];}));
+    }
+    else if(o.type==='hierarchicalReg'&&o.res){
+      html+='<p><b>Dependent Variable:</b> '+_escHtml(o.res.depVar)+'</p>';
+      html+='<h3>Model Summary & ΔR²</h3>';
+      html+=_wordTable(['Block','Predictors','R²','Adj R²','ΔR²','F-change','df1','df2','p ΔR²'],
+        (o.res.blocks||[]).map(function(b){return['Block '+b.block,b.predictors.join(', '),b.R2,b.R2adj,b.dR2,b.Fchange,b.dfNum,b.dfDen,b.pFchange];}));
+      (o.res.blocks||[]).forEach(function(b){
+        html+='<h3>Block '+b.block+' Coefficients</h3>';
+        html+=_wordTable(['Variable','B','SE','β','t','p','VIF'],
+          (b.coefs||[]).map(function(c,ci){return[c.name,c.B,c.SE,ci===0?'—':c.beta,c.t,c.p_fmt,ci===0?'—':(b.vif?b.vif[ci-1]:'—')];}));
+      });
+    }
+    else if(o.type==='anova'&&o.res){
+      html+='<div class="section"><p><b>F('+o.res.dfB+', '+o.res.dfW+') = '+o.res.F+'</b>, p = '+o.res.p_fmt+', η² = '+o.res.eta2+'</p></div>';
+      html+=_wordTable(['Source','df','SS','MS','F','p','η²'],[
+        ['Between Groups',o.res.dfB,o.res.SSB,o.res.MSB,o.res.F,o.res.p_fmt,o.res.eta2],
+        ['Within Groups',o.res.dfW,o.res.SSW,o.res.MSW,'','','']
+      ]);
+    }
+    else if(o.type==='logistic'&&o.res){
+      html+='<div class="section"><p>−2LL = '+o.res.m2ll+' &nbsp;&bull;&nbsp; Nagelkerke R² = '+o.res.nagelkerke+' &nbsp;&bull;&nbsp; Accuracy = '+o.res.accuracy+'%</p></div>';
+      html+=_wordTable(['Variable','B','SE','Wald','p','OR','95% CI OR'],
+        (o.res.coefs||[]).map(function(c){return[c.name,c.B,c.SE,c.wald,c.p_fmt,c.OR,c.ci_or];}));
+    }
+    else if(o.type==='paired'&&o.res){
+      html+=_wordTable(['Statistic','Value'],[['N',o.res.n],['Mean Diff',o.res.meanDiff],['SD Diff',o.res.sdDiff],['t',o.res.t],['df',o.res.df],['p',o.res.p_fmt],["Cohen's dz",o.res.cohensD+' ('+o.res.dInterp+')'],['95% CI',o.res.ci95]]);
+    }
+    else if(o.type==='reliability'&&o.res){
+      html+='<div class="section"><p><b>Cronbach α = '+o.res.alpha+'</b> ('+o.res.interp+')</p></div>';
+      if(o.res.items&&o.res.items.length){
+        html+=_wordTable(['Item','r item-total','Alpha if deleted'],o.res.items.map(function(it){return[it.name,it.rit,it.alphaIfDel];}));
+      }
+    }
+    else if(o.type==='crosstab'&&o.res){
+      html+='<div class="section"><p>χ²('+o.res.df+') = '+o.res.chi2+', p = '+o.res.p_fmt+', Cramer\'s V = '+o.res.cramersV+'</p></div>';
+    }
+    else if(o.type==='rmanova'&&o.res){
+      var r=o.res;
+      html+='<div class="section"><p><b>F('+r.dfB+','+r.dfE+') = '+r.F+'</b>, p = '+r.p_fmt+', η²p = '+r.etaSq+'</p></div>';
+      html+=_wordTable(['Source','df','SS','MS','F','p','η²p'],[
+        ['Between (Time)',r.dfB,r.SSB,r.MSB,r.F,r.p_fmt,r.etaSq],
+        ['Subjects',r.dfS,r.SSS,'—','—','—','—'],
+        ['Error',r.dfE,r.SSE,r.MSE,'—','—','—']
+      ]);
+    }
+  }
+
+  if(showChart){
+    // Get chart SVG inline for Word export
+    var chartHtml=_getChartSVGForExport(o);
+    if(chartHtml){
+      html+='<div style="margin:12pt 0">';
+      html+='<div style="font-size:9pt;font-weight:bold;color:#5b21b6;margin-bottom:4pt">Chart: '+_escHtml(o.title)+'</div>';
+      // Wrap SVG in a div with light background for better Word rendering
+      html+='<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:10px;display:inline-block;width:100%">'+chartHtml+'</div>';
+      html+='</div>';
+    } else if(mode==='chart'){
+      html+='<p style="color:#6b7280;font-style:italic">Analisis ini tidak memiliki diagram yang dapat diekspor.</p>';
+    }
+  }
+
+  html+='<br/>';
+  return html;
+}
+
+// ── Get chart SVG string for a given output ──────────────────
+function _getChartSVGForExport(o){
+  try{
+    if(o.type==='descriptive'&&o.field){
+      return svgHistogram(data,o.field,520,200)+'<div style="font-size:9pt;color:#64748b;margin:6px 0 4px">Normal Q-Q Plot</div>'+svgQQ(data,o.field,520,200);
+    }
+    else if((o.type==='ttest'||o.type==='anova')&&o.depV&&o.grpV){
+      return svgBoxplot(data,o.depV,o.grpV,520,200);
+    }
+    else if(o.type==='anova'&&o.avV&&o.avG){
+      return svgBoxplot(data,o.avV,o.avG,520,200);
+    }
+    else if(o.type==='correlation'&&(o.crX||o.varX)&&(o.crY||o.varY)){
+      return svgScatter(data,o.crX||o.varX,o.crY||o.varY,520,220);
+    }
+    else if((o.type==='regression'||o.type==='multipleReg')&&o.xF&&o.yF){
+      return svgScatter(data,o.xF,o.yF,520,220);
+    }
+    else if(o.type==='paired'&&o.varA&&o.varB){
+      return svgScatter(data,o.varA,o.varB,520,220);
+    }
+    else if(o.type==='rmanova'&&o.res&&o.res.tMeans){
+      var r=o.res;
+      var rMns=r.tMeans.map(parseFloat);
+      var rmx=Math.max.apply(null,rMns),rmn=Math.min.apply(null,rMns),rng=rmx-rmn||1;
+      var svgW=400,svgH=160,pL=42,pB=28,pT=16,pR=16;
+      var pW=svgW-pL-pR,pH=svgH-pB-pT;
+      var rmPts=rMns.map(function(m,i){return{x:pL+i/(Math.max(rMns.length-1,1))*pW,y:pT+pH-(((m-rmn)/(rng||1))*(pH*0.85)+0.075*pH),m:m,lb:r.labels[i]};});
+      var poly=rmPts.map(function(p){return p.x+','+p.y;}).join(' ');
+      var svg='<svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;max-width:480px;height:auto">';
+      svg+='<rect x="0" y="0" width="'+svgW+'" height="'+svgH+'" fill="#faf5ff" rx="6"/>';
+      svg+='<polyline points="'+poly+'" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      rmPts.forEach(function(p){
+        svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="5" fill="#7c3aed" opacity="0.85"/>';
+        svg+='<text x="'+p.x+'" y="'+(svgH-6)+'" text-anchor="middle" font-size="9" fill="#475569">'+p.lb+'</text>';
+        svg+='<text x="'+p.x+'" y="'+(p.y-10)+'" text-anchor="middle" font-size="8.5" fill="#5b21b6">'+p.m+'</text>';
+      });
+      svg+='<line x1="'+pL+'" y1="'+pT+'" x2="'+pL+'" y2="'+(svgH-pB)+'" stroke="#94a3b8"/>';
+      svg+='<line x1="'+pL+'" y1="'+(svgH-pB)+'" x2="'+(svgW-pR)+'" y2="'+(svgH-pB)+'" stroke="#94a3b8"/>';
+      svg+='</svg>';
+      return svg;
+    }
+  }catch(e){}
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════
+// EXPORT WORD DIALOG — pilih group/sub-type yang mau diekspor
+// ════════════════════════════════════════════════════════════
+function exportWordDialog(){
+  if(!outputs.length){showToast('No outputs yet. Run an analysis first.','error');return;}
+
+  // ── Map type → human-readable sub-label ──────────────────
+  var SUB_LABEL={
+    ttest:'Independent T-Test', onesamp:'One-Sample T-Test', paired:'Paired T-Test',
+    anova:'One-Way ANOVA', anova2:'Two-Way ANOVA', anova3:'Three-Way ANOVA',
+    rmanova:'Repeated Measures ANOVA', glm:'General Linear Model', manova:'MANOVA', repeated:'Repeated Mixed ANOVA',
+    correlation:'Pearson Correlation', partialCorr:'Partial Correlation', canonicalCorr:'Canonical Correlation', corrmatrix:'Correlation Matrix',
+    regression:'Simple Regression', multipleReg:'Multiple Regression', hierarchicalReg:'Hierarchical Regression',
+    logistic:'Logistic Regression', poisson:'Poisson Regression', negbin:'Negative Binomial',
+    nonparam:'Non-Parametric', mannwhitney:'Mann-Whitney U', kruskal:'Kruskal-Wallis', wilcoxon:'Wilcoxon Signed-Rank', chiSquare:'Chi-Square',
+    descriptive:'Descriptive Statistics',
+    alpha:'Cronbach Alpha', kappa:'Cohen Kappa',
+    efa:'Exploratory Factor Analysis', cfa:'Confirmatory Factor Analysis',
+    cluster:'Cluster Analysis', discriminant:'Discriminant Analysis',
+    bayes_ttest:'Bayesian T-Test', bayes_corr:'Bayesian Correlation', bayes_posterior:'Bayesian Posterior', bayesian:'Bayesian Analysis',
+    timeseries:'Time Series / ARIMA',
+    survival:'Kaplan-Meier Survival', cox:'Cox Regression',
+    roc:'ROC Analysis', moderation:'Moderation Analysis', mediation:'Mediation Analysis',
+    mi:'Missing Data Analysis', missinganalysis:'Missing Data Analysis',
+    poweranalysis:'Power Analysis', metaanalysis:'Meta-Analysis',
+    sem:'Structural Equation Modeling', hlm:'Hierarchical Linear Model',
+    crosstab:'Crosstab / Chi-Square', reliability:'Reliability'
+  };
+
+  function subLabel(o){ return SUB_LABEL[o.type]||o.title||o.type; }
+
+  // ── Build tree: group → {subType → [output ids]} ─────────
+  var groups={};   // { groupName: { subType: [ids] } }
+  var groupOrder=[];
+  outputs.forEach(function(o){
+    var grp=_outGroup(o);
+    var sub=subLabel(o);
+    if(!groups[grp]){groups[grp]={};groupOrder.push(grp);}
+    if(!groups[grp][sub]) groups[grp][sub]=[];
+    groups[grp][sub].push(o.id);
+  });
+
+  // ── State: selected IDs set ───────────────────────────────
+  var selIds=new Set(outputs.map(function(o){return o.id;})); // all selected by default
+
+  // ── Remove any existing dialog ────────────────────────────
+  var ex=document.getElementById('_exp-bulk-dialog');
+  if(ex) ex.remove();
+
+  // ── Build overlay ─────────────────────────────────────────
+  var overlay=document.createElement('div');
+  overlay.id='_exp-bulk-dialog';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9900;background:rgba(5,1,14,.85);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:16px';
+
+  var box=document.createElement('div');
+  box.style.cssText='background:linear-gradient(160deg,rgba(22,10,44,.99),rgba(14,6,24,.99));border:1px solid rgba(192,132,252,.28);border-radius:20px;width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.85)';
+
+  // Header
+  var hdr=document.createElement('div');
+  hdr.style.cssText='padding:20px 22px 14px;border-bottom:1px solid rgba(192,132,252,.12);flex-shrink:0';
+  hdr.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between">'
+    +'<div style="display:flex;align-items:center;gap:10px">'
+    +'<div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#db2777);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⬇</div>'
+    +'<div><div style="font-size:15px;font-weight:800;color:#e8deff;font-family:Playfair Display,serif;font-style:italic">Export ke Word</div>'
+    +'<div style="font-size:10.5px;color:rgba(232,222,255,.38);margin-top:1px">Pilih analisis yang ingin diekspor</div></div></div>'
+    +'<button id="_exp-bulk-close" style="background:rgba(255,255,255,.06);border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;color:rgba(232,222,255,.5);font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>'
+    +'</div>';
+
+  // Select All / None bar
+  var selBar=document.createElement('div');
+  selBar.style.cssText='padding:8px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(192,132,252,.08);flex-shrink:0;background:rgba(124,58,237,.04)';
+  selBar.innerHTML='<div id="_exp-sel-count" style="font-size:11px;font-weight:600;color:rgba(232,222,255,.45)"></div>'
+    +'<div style="display:flex;gap:6px">'
+    +'<button id="_exp-sel-all" style="font-size:10.5px;padding:3px 10px;border-radius:6px;border:1px solid rgba(124,58,237,.3);background:rgba(124,58,237,.1);color:#c084fc;cursor:pointer;font-family:Inter,sans-serif;font-weight:600">Pilih Semua</button>'
+    +'<button id="_exp-sel-none" style="font-size:10.5px;padding:3px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(232,222,255,.4);cursor:pointer;font-family:Inter,sans-serif;font-weight:600">Batalkan Semua</button>'
+    +'</div>';
+
+  // Scrollable list
+  var listWrap=document.createElement('div');
+  listWrap.id='_exp-list-wrap';
+  listWrap.style.cssText='overflow-y:auto;flex:1;padding:12px 22px 8px';
+
+  // Footer
+  var footer=document.createElement('div');
+  footer.style.cssText='padding:14px 22px;border-top:1px solid rgba(192,132,252,.12);flex-shrink:0;display:flex;gap:8px;align-items:center';
+  footer.innerHTML='<button id="_exp-bulk-cancel" style="flex:1;padding:10px;border-radius:9px;border:1px solid rgba(124,58,237,.2);background:transparent;color:rgba(232,222,255,.5);font-size:12.5px;cursor:pointer;font-family:Inter,sans-serif;font-weight:600">Batal</button>'
+    +'<div style="flex:2;display:flex;flex-direction:column;gap:5px">'
+    +'<div style="display:flex;gap:5px">'
+    +'<button id="_exp-bulk-table" style="flex:1;padding:8px 6px;border-radius:8px;border:none;background:rgba(124,58,237,.18);color:#c084fc;font-size:11px;cursor:pointer;font-family:Inter,sans-serif;font-weight:700;border:1px solid rgba(124,58,237,.3)">📋 Teks &amp; Tabel</button>'
+    +'<button id="_exp-bulk-chart" style="flex:1;padding:8px 6px;border-radius:8px;border:none;background:rgba(52,211,153,.1);color:#34d399;font-size:11px;cursor:pointer;font-family:Inter,sans-serif;font-weight:700;border:1px solid rgba(52,211,153,.25)">📊 + Chart</button>'
+    +'</div>'
+    +'<div id="_exp-bulk-hint" style="font-size:9.5px;color:rgba(232,222,255,.28);text-align:center"></div>'
+    +'</div>';
+
+  box.appendChild(hdr);
+  box.appendChild(selBar);
+  box.appendChild(listWrap);
+  box.appendChild(footer);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  // ── Render checkbox list ──────────────────────────────────
+  function renderList(){
+    listWrap.innerHTML='';
+    groupOrder.forEach(function(grp){
+      var subMap=groups[grp];
+      var subTypes=Object.keys(subMap);
+      var grpColor=_outGroupColor(grp);
+      var grpIcon=_outGroupIcon(grp);
+
+      // All IDs in this group
+      var grpIds=[];
+      subTypes.forEach(function(s){ subMap[s].forEach(function(id){grpIds.push(id);}); });
+      var grpAllSel=grpIds.every(function(id){return selIds.has(id);});
+      var grpNoneSel=grpIds.every(function(id){return !selIds.has(id);});
+      var grpPartial=!grpAllSel&&!grpNoneSel;
+
+      // Group header row
+      var grpRow=document.createElement('div');
+      grpRow.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 0 5px;border-bottom:1px solid '+grpColor+'18;margin-bottom:4px;cursor:pointer;user-select:none';
+      grpRow.innerHTML='<input type="checkbox" id="grp-chk-'+encodeURIComponent(grp)+'" '+(grpAllSel?'checked':'')+' '+(grpPartial?'': '')+' style="accent-color:'+grpColor+';width:14px;height:14px;cursor:pointer;flex-shrink:0"/>'
+        +'<span style="color:'+grpColor+';display:flex;align-items:center;flex-shrink:0">'+grpIcon+'</span>'
+        +'<span style="font-size:12.5px;font-weight:800;color:'+grpColor+';letter-spacing:.3px">'+grp+'</span>'
+        +'<span style="background:'+grpColor+'22;color:'+grpColor+';border-radius:999px;padding:1px 7px;font-size:9.5px;font-weight:700;margin-left:auto">'+grpIds.length+' hasil</span>';
+      var grpChk=grpRow.querySelector('input');
+      if(grpPartial) grpChk.indeterminate=true;
+      grpChk.addEventListener('change',function(e){
+        e.stopPropagation();
+        grpIds.forEach(function(id){if(this.checked)selIds.add(id);else selIds.delete(id);},this);
+        renderList(); updateFooter();
+      });
+      grpRow.addEventListener('click',function(e){
+        if(e.target.tagName==='INPUT') return;
+        grpChk.checked=!grpChk.checked;
+        grpIds.forEach(function(id){if(grpChk.checked)selIds.add(id);else selIds.delete(id);});
+        renderList(); updateFooter();
+      });
+      listWrap.appendChild(grpRow);
+
+      // Sub-type rows (only show if group has multiple sub-types OR always show)
+      subTypes.forEach(function(sub){
+        var ids=subMap[sub];
+        var allSel=ids.every(function(id){return selIds.has(id);});
+        var noneSel=ids.every(function(id){return !selIds.has(id);});
+        var partial=!allSel&&!noneSel;
+
+        var subRow=document.createElement('div');
+        subRow.style.cssText='display:flex;align-items:center;gap:10px;padding:6px 6px 6px 24px;border-radius:8px;cursor:pointer;user-select:none;margin-bottom:2px;transition:.1s;'+(allSel?'background:'+grpColor+'0d':'');
+        subRow.innerHTML='<input type="checkbox" '+(allSel?'checked':'')+' style="accent-color:'+grpColor+';width:13px;height:13px;cursor:pointer;flex-shrink:0"/>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:11.5px;font-weight:700;color:'+(allSel?'#e8deff':'rgba(232,222,255,.6)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sub+'</div>'
+          +'<div style="font-size:9.5px;color:rgba(232,222,255,.3);margin-top:1px">'+ids.length+' output'+( ids.length>1?'s':'')+' tersimpan</div>'
+          +'</div>'
+          +'<span style="background:'+(allSel?grpColor+'25':'rgba(255,255,255,.05)')+';color:'+(allSel?grpColor:'rgba(232,222,255,.25)')+';border:1px solid '+(allSel?grpColor+'35':'rgba(255,255,255,.08)')+';border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;flex-shrink:0">'+ids.length+'</span>';
+        var subChk=subRow.querySelector('input');
+        if(partial) subChk.indeterminate=true;
+        subChk.addEventListener('change',function(e){
+          e.stopPropagation();
+          ids.forEach(function(id){if(this.checked)selIds.add(id);else selIds.delete(id);},this);
+          renderList(); updateFooter();
+        });
+        subRow.addEventListener('click',function(e){
+          if(e.target.tagName==='INPUT') return;
+          subChk.checked=!subChk.checked;
+          ids.forEach(function(id){if(subChk.checked)selIds.add(id);else selIds.delete(id);});
+          renderList(); updateFooter();
+        });
+        subRow.onmouseover=function(){if(!subRow.style.background||subRow.style.background==='')subRow.style.background='rgba(124,58,237,.05)';};
+        subRow.onmouseout=function(){var a=ids.every(function(id){return selIds.has(id);});subRow.style.background=a?grpColor+'0d':'';};
+        listWrap.appendChild(subRow);
+      });
+
+      // Spacer
+      var sp=document.createElement('div');
+      sp.style.height='10px';
+      listWrap.appendChild(sp);
+    });
+  }
+
+  function updateFooter(){
+    var n=selIds.size;
+    document.getElementById('_exp-sel-count').textContent=n+' output dipilih dari '+outputs.length;
+    document.getElementById('_exp-bulk-hint').textContent=n===0?'Pilih minimal 1 output untuk mengekspor':n+' output akan diekspor ke .doc';
+    var tableBtn=document.getElementById('_exp-bulk-table');
+    var chartBtn=document.getElementById('_exp-bulk-chart');
+    if(tableBtn){tableBtn.disabled=n===0;tableBtn.style.opacity=n===0?'.35':'1';}
+    if(chartBtn){chartBtn.disabled=n===0;chartBtn.style.opacity=n===0?'.35':'1';}
+  }
+
+  renderList();
+  updateFooter();
+
+  // Event: Select All / None
+  document.getElementById('_exp-sel-all').onclick=function(){
+    outputs.forEach(function(o){selIds.add(o.id);});
+    renderList(); updateFooter();
+  };
+  document.getElementById('_exp-sel-none').onclick=function(){
+    selIds.clear();
+    renderList(); updateFooter();
+  };
+
+  // Event: Close
+  document.getElementById('_exp-bulk-close').onclick=function(){overlay.remove();};
+  document.getElementById('_exp-bulk-cancel').onclick=function(){overlay.remove();};
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+
+  // Event: Export buttons
+  document.getElementById('_exp-bulk-table').onclick=function(){
+    if(!selIds.size){showToast('Pilih minimal 1 output','error');return;}
+    overlay.remove();
+    _exportBulkWord(Array.from(selIds),'table');
+  };
+  document.getElementById('_exp-bulk-chart').onclick=function(){
+    if(!selIds.size){showToast('Pilih minimal 1 output','error');return;}
+    overlay.remove();
+    _exportBulkWord(Array.from(selIds),'both');
+  };
+}
+
+// ── Build & download selected outputs as .doc ─────────────────
+function _exportBulkWord(ids, mode){
+  var selected=outputs.filter(function(o){return ids.indexOf(o.id)!==-1;});
+  if(!selected.length){showToast('Tidak ada output yang dipilih','error');return;}
+
+  // Group selected for nice document structure
+  var groups={}, groupOrder=[];
+  var SUB_LABEL_MAP={
+    ttest:'Independent T-Test', onesamp:'One-Sample T-Test', paired:'Paired T-Test',
+    anova:'One-Way ANOVA', anova2:'Two-Way ANOVA', anova3:'Three-Way ANOVA',
+    rmanova:'Repeated Measures ANOVA', glm:'General Linear Model', manova:'MANOVA', repeated:'Repeated Mixed ANOVA',
+    correlation:'Pearson Correlation', partialCorr:'Partial Correlation', canonicalCorr:'Canonical Correlation', corrmatrix:'Correlation Matrix',
+    regression:'Simple Regression', multipleReg:'Multiple Regression', hierarchicalReg:'Hierarchical Regression',
+    logistic:'Logistic Regression', poisson:'Poisson Regression', negbin:'Negative Binomial',
+    nonparam:'Non-Parametric Test', mannwhitney:'Mann-Whitney U', kruskal:'Kruskal-Wallis', wilcoxon:'Wilcoxon Signed-Rank', chiSquare:'Chi-Square',
+    descriptive:'Descriptive Statistics',
+    alpha:'Cronbach Alpha', kappa:'Cohen Kappa',
+    efa:'Exploratory Factor Analysis', cfa:'Confirmatory Factor Analysis',
+    cluster:'Cluster Analysis', discriminant:'Discriminant Analysis',
+    timeseries:'Time Series / ARIMA', survival:'Kaplan-Meier Survival', cox:'Cox Regression',
+    roc:'ROC Analysis', moderation:'Moderation', mediation:'Mediation',
+    mi:'Missing Data Analysis', poweranalysis:'Power Analysis', metaanalysis:'Meta-Analysis',
+    sem:'SEM', hlm:'HLM', crosstab:'Crosstab', reliability:'Reliability'
+  };
+
+  selected.forEach(function(o){
+    var grp=_outGroup(o);
+    if(!groups[grp]){groups[grp]=[];groupOrder.push(grp);}
+    groups[grp].push(o);
+  });
+
+  var html='';
+  html+='<h1>OSS Analysis Report</h1>';
+  html+='<p class="meta">Generated: '+new Date().toLocaleString()+'&nbsp;&nbsp;|&nbsp;&nbsp;N = '+data.length+' cases&nbsp;&nbsp;|&nbsp;&nbsp;'+selected.length+' outputs selected</p>';
+  html+='<hr style="border:none;border-top:1px solid #d4d4d4;margin:10pt 0"/>';
+
+  groupOrder.forEach(function(grp){
+    var outs=groups[grp];
+    // Group heading
+    html+='<h1 style="font-size:14pt;color:#4a0072;border-bottom:2px solid #7c3aed;padding-bottom:4pt;margin-top:20pt;margin-bottom:6pt">'+_escHtml(grp)+'</h1>';
+
+    outs.forEach(function(o,i){
+      html+=_buildSingleOutputHTML(o, mode);
+    });
+  });
+
+  var preHtml="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='UTF-8'><title>OSS Report</title><style>"+_wordCSS()+"</style></head><body>";
+  var postHtml="</body></html>";
+  var fullHtml=preHtml+html+postHtml;
+  var blob=new Blob([fullHtml],{type:'application/msword'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='OSS_Report_'+new Date().toISOString().slice(0,10)+'.doc';
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+  showToast('✓ Exported '+selected.length+' output(s) ke .doc');
+}
+
 // EXPORT TO WORD (.docx via HTML→Blob)
 // ════════════════════════════════════════════════════════════
 function exportToWord(){
@@ -16530,7 +17282,9 @@ function _wordCSS(){
     '.badge-ns{color:#6b7280;}',
     '.section{background:#faf5ff;border-left:3px solid #7c3aed;padding:6pt 10pt;margin:8pt 0;}',
     '.meta{font-size:9pt;color:#6b7280;margin-bottom:3pt;}',
-    'p{margin:3pt 0;line-height:1.5;}'
+    'p{margin:3pt 0;line-height:1.5;}',
+    'svg{max-width:100%;height:auto;display:block;background:#fff;}',
+    '.chart-empty{color:#6b7280;font-style:italic;font-size:10pt;padding:8pt;}'
   ].join('\n');
 }
 
