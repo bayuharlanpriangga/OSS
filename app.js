@@ -176,7 +176,7 @@ var IC = {
   plus:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
   trash:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>',
   edit:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
-  check:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  check:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   x:      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   upload: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>',
   download:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.11"/></svg>',
@@ -3284,7 +3284,7 @@ function switchDataset(id){
   updateBadges();
   renderDsSidebar();
   switchTab('data');
-  showToast('Switched to "'+getActiveDs().name+'" ✓');
+  showToast('Dataset berhasil diganti');
 }
 
 function addDataset(name){
@@ -3296,7 +3296,7 @@ function addDataset(name){
   updateBadges();
   renderDsSidebar();
   switchTab('data');
-  showToast('Dataset "'+getActiveDs().name+'" created ✓');
+  showToast('Dataset berhasil dibuat');
 }
 
 function deleteDataset(id){
@@ -3315,7 +3315,7 @@ function deleteDataset(id){
       updateBadges();
       renderDsSidebar();
       switchTab('data');
-      showToast('Dataset "'+dsName+'" deleted');
+      showToast('Dataset berhasil dihapus');
     }
   });
 }
@@ -3334,7 +3334,7 @@ function renameDataset(id){
       if(!val||!val.trim()) return;
       ds.name=val.trim();
       renderDsSidebar();
-      showToast('Renamed ✓');
+      showToast('Rename berhasil');
     }
   });
 }
@@ -3577,10 +3577,13 @@ var missCount=()=>vars.map(v=>({name:v.name,count:data.filter(r=>isMiss(r[v.name
 
 function showToast(msg,type='success'){
   const t=document.getElementById('toast');
-  t.innerHTML=(type==='error'?' ':'✓ ')+msg;
+  var icon=type==='error'
+    ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+    :'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  t.innerHTML=icon+' '+msg;
   t.className=type;t.style.display='flex';
   clearTimeout(window._toastTimer);
-  window._toastTimer=setTimeout(()=>t.style.display='none',3200);
+  window._toastTimer=setTimeout(()=>t.style.display='none',2600);
 }
 function updateBadges(){
   const mc=missCount().reduce((s,v)=>s+v.count,0);
@@ -3599,7 +3602,7 @@ function updateBadges(){
   var wcb=document.getElementById('wc-badge');
   if(wcb)wcb.style.display=aState.wcActive?'inline':'none';
 }
-function runSafe(fn,label){try{fn();showToast(label+' complete → Output');}catch(e){showToast(e.message,'error');}}
+function runSafe(fn,label){try{fn();showToast(label+' berhasil');}catch(e){showToast(e.message,'error');}}
 var _syntaxHistory=[];
 function _genSyntaxFromOutput(item){
   if(!item)return null;
@@ -3654,7 +3657,7 @@ function addOutput(item){
     if(_syntaxHistory.length>30)_syntaxHistory.length=30;
   }
   // Show a toast notification instead of auto-switching to Output tab
-  showToast('📊 '+( item.title||item.type)+' → Output');
+  showToast('Analisis berhasil');
   // If user is already on output tab, refresh it live
   if(typeof currentTab!=='undefined' && currentTab==='output'){
     var _ocel=document.getElementById('app-content');
@@ -4144,7 +4147,7 @@ function renderData(el){
   html+='<button class="dt-btn dt-btn-add" onclick="addDataRowInline()">'+IC.plus+' Add</button>';
   if(sprMode){
     // In combined edit mode: single Done button saves + closes checkbox mode
-    html+='<button class="dt-btn dt-btn-done" onclick="saveSprMode()" style="background:linear-gradient(135deg,#059669,#0891b2)">'+IC.check+' Done</button>';
+    html+='<button class="dt-btn dt-btn-done" onclick="saveSprMode()">'+IC.check+' Done</button>';
     html+='<button class="dt-btn dt-btn-edit" onclick="exitSprMode()">✕ Cancel</button>';
   } else if(editMode){
     // Delete only visible when rows are selected
@@ -4258,7 +4261,7 @@ function enterSprMode(){
   editMode=false;
   selRows.clear();
   switchTab('data');
-  showToast('Edit mode — ketik langsung di sel, lalu tap Done untuk menyimpan');
+  showToast('Edit mode aktif');
 }
 
 function exitSprMode(){
@@ -4311,7 +4314,7 @@ function saveSprMode(){
   selRows.clear();
   updateBadges();
   switchTab('data');
-  showToast('Saved '+changed+' cell change(s) ✓');
+  showToast('Data berhasil disimpan');
 }
 
 function sprCellChange(inp,vtype){
@@ -4488,7 +4491,7 @@ function applyColFill(fieldName,vtype){
   
   updateBadges();
   renderTab('data');
-  showToast('Filled '+count+' cells in "'+fieldName+'" ✓');
+  showToast('Fill kolom berhasil');
 }
 
 function applyColSeq(fieldName,vtype){
@@ -4512,7 +4515,7 @@ function applyColSeq(fieldName,vtype){
   var modal=document.querySelector('[style*="position:fixed"][style*="9600"]');
   if(modal) modal.remove();
   updateBadges();renderTab('data');
-  showToast('Sequential fill: '+count+' cells ✓');
+  showToast('Fill berhasil');
 }
 
 // Add Multiple Empty Rows at once
@@ -4544,7 +4547,7 @@ function addMultipleRows(){
     modal.remove();
     updateBadges();
     renderTab('data');
-    showToast('Added '+n+' empty rows — start filling! ✓');
+    showToast('Rows berhasil ditambahkan');
   };
   setTimeout(function(){var inp=box.querySelector('#addrows-n');if(inp){inp.focus();inp.select();}},80);
 }
@@ -4569,7 +4572,7 @@ function enterCombinedEditMode(){
   sprBuffer={};
   selRows.clear();
   switchTab('data');
-  showToast('✎ Edit mode — type in cells, check to select rows');
+  showToast('Edit mode aktif');
 }
 
 // Inline Add Row (no popup)
@@ -4654,7 +4657,7 @@ function toggleAllRows(cb){
   var btn=document.getElementById('del-btn');
   if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del('+selRows.size+')';}
 }
-function deleteSelected(){if(!selRows.size)return;data=data.filter(r=>!selRows.has(r.id));selRows.clear();updateBadges();renderTab('data');showToast('Deleted');}
+function deleteSelected(){if(!selRows.size)return;data=data.filter(r=>!selRows.has(r.id));selRows.clear();updateBadges();renderTab('data');showToast('Data berhasil dihapus');}
 function addDataRow(){
   var nid=Math.max.apply(null,data.map(function(r){return r.id;}).concat([0]))+1;
   var modal=document.createElement('div');
@@ -4803,7 +4806,7 @@ function confirmEditRow(rowId){
   var modal=document.getElementById('edit-row-modal');
   if(modal) modal.remove();
   updateBadges();
-  showToast('Row updated');
+  showToast('Row berhasil diupdate');
   switchTab('data');
 }
 
@@ -4822,7 +4825,7 @@ function confirmAddRow(nid){
   var modal=document.getElementById('add-row-modal');
   if(modal)modal.remove();
   updateBadges();
-  showToast('Row added');
+  showToast('Row berhasil ditambahkan');
   switchTab('data');
 }
 
@@ -4869,7 +4872,7 @@ function handleCSV(e){
         addDataset(fname);
       }
       data=rows;vars=nv;if(typeof selRows!=='undefined')selRows.clear();updateBadges();renderTab('data');
-      showToast('Imported '+rows.length+' rows × '+hdr.length+' vars into "'+getActiveDs().name+'"');
+      showToast('CSV berhasil diimport');
     }catch(err){showToast('CSV error: '+err.message,'error');}
   };
   reader.readAsText(file);e.target.value='';
@@ -4921,7 +4924,7 @@ function renderVars(el){
     if(_varChecked.size>0){
       html+='<button class="btn btn-sm" onclick="_varDeleteSelected()" style="background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#f87171">🗑 Delete Selected ('+_varChecked.size+')</button>';
     }
-    html+='<button id="var-done-btn" class="btn btn-sm" onclick="_varSaveEditMode()" style="background:linear-gradient(135deg,#7c3aed,#059669);border:none;color:#fff;font-weight:700">✓ Done Editing</button>';
+    html+='<button id="var-done-btn" class="btn btn-sm" onclick="_varSaveEditMode()" style="background:linear-gradient(135deg,#7c3aed,#059669);border:none;color:#fff;font-weight:700"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Done</button>';
   }
   html+='<button class="btn btn-ghost btn-sm" onclick="clearAllData()">Clear All Data</button>';
   html+='</div></div>';
@@ -5047,7 +5050,7 @@ function addVarInline(){
   updateBadges();
   // Just refresh — don't enter edit mode automatically
   switchTab('variable');
-  showToast('Variable "'+name+'" added ✓');
+  showToast('Variable berhasil ditambahkan');
 }
 
 // ── Inline change handler ─────────────────────────────────────
@@ -5265,7 +5268,7 @@ function _varDeleteSelected(){
       _varChecked=new Set();
       updateBadges();
       switchTab('variable');
-      showToast('Deleted '+indices.length+' variable(s)');
+      showToast('Variable berhasil dihapus');
     }
   });
 }
@@ -5276,7 +5279,7 @@ function _varSaveEditMode(){
   _varChecked=new Set();
   updateBadges();
   switchTab('variable');
-  showToast('Table saved ✓');
+  showToast('Variable berhasil disimpan');
 }
 
 // ── Variable editing functions ──────────────────────────────────
@@ -5301,7 +5304,7 @@ function editVarField(i, field){
   } else {
     v[field]=inp;
   }
-  updateBadges();switchTab('variable');showToast('Updated ✓');
+  updateBadges();switchTab('variable');showToast('Variable berhasil diupdate');
 }
 
 function cycleVarType(i){i=parseInt(i);
@@ -5348,7 +5351,7 @@ function deleteVar(i){
       data.forEach(function(r){delete r[vname];});
       updateBadges();
       switchTab('variable');
-      showToast('Variable "'+vname+'" deleted');
+      showToast('Variable berhasil dihapus');
     }
   });
 }
@@ -5359,7 +5362,7 @@ function clearAllData(){
     title:'Clear All Data',
     msg:'Hapus semua baris data? <br><span style="color:rgba(232,222,255,.5);font-size:11.5px">Definisi variable akan tetap ada.</span>',
     okLabel:'Clear All Data',
-    onOk:function(){data=[];updateBadges();switchTab('data');showToast('Data cleared');}
+    onOk:function(){data=[];updateBadges();switchTab('data');showToast('Data berhasil dihapus');}
   });
 }
 
@@ -5424,7 +5427,7 @@ function confirmAddVar(){
     label:label||name,measure:nvMeasure,role:nvRole});
   data.forEach(function(r){r[name]=null;});
   var m=document.getElementById('add-var-modal');if(m)m.remove();
-  updateBadges();switchTab('variable');showToast('Variable "'+name+'" added');
+  updateBadges();switchTab('variable');showToast('Variable berhasil ditambahkan');
 }
 
 function renderAnalyze(el){
@@ -5645,9 +5648,23 @@ function renderAnalyze(el){
   if(!aState.medY&&nF.length>1) aState.medY=nF[Math.min(1,nF.length-1)];
   if(!aState.medM||!aState.medM.length) aState.medM=nF.length>2?[nF[2]]:[];
 
+  // Color map: group → sidebar icon color
+  var _GC={
+    'descriptive':'#f472b6','ttest':'#a78bfa','anova':'#34d399',
+    'correlation':'#f472b6','regression':'#67e8f9','nonparam':'#c084fc',
+    'glm':'#f9a8d4','hlm':'#a78bfa','reliability':'#34d399',
+    'factor':'#a5f3fc','factoranalysis':'#a5f3fc','sem':'#e879f9','mediation':'#fb923c',
+    'moderation':'#e879f9','charts':'#f472b6','discriminant':'#38bdf8',
+    'cluster':'#4ade80','missinganalysis':'#f87171','poweranalysis':'#fbbf24',
+    'roc':'#67e8f9','survival':'#4ade80','bayesian':'#f9a8d4',
+    'timeseries':'#67e8f9','metaanalysis':'#fb923c','transform':'#fbbf24',
+    'imputation':'#a5f3fc','crosstab':'#67e8f9','weightcases':'#fb923c'
+  };
+  var _gc=_GC[grp]||'#c084fc';
   var html='<div class="sub-tabs">';
   tabs.forEach(function(s){
-    html+='<button class="sub-btn'+(currentASub===s.id?' active':'')+'" onclick="switchASub(this.dataset.sub)" data-sub="'+s.id+'" style="display:inline-flex;align-items:center;gap:5px">'+s.ic+s.label+'</button>';
+    var coloredIc=s.ic.replace(/stroke="currentColor"/g,'stroke="'+_gc+'"').replace(/fill="currentColor"/g,'fill="'+_gc+'"');
+    html+='<button class="sub-btn'+(currentASub===s.id?' active':'')+'" onclick="switchASub(this.dataset.sub)" data-sub="'+s.id+'" style="display:inline-flex;align-items:center;gap:5px">'+coloredIc+' '+s.label+'</button>';
   });
   html+='</div><div id="a-content"></div>';
   el.innerHTML=html;
@@ -5665,7 +5682,7 @@ function renderASub(){
   if(currentASub==='descriptive'){
     const s=tryStats(()=>SE.descriptive(data.map(r=>r[aState.dFld])));
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"> Descriptive Statistics</div>';
+    html+='<div class="card"><div class="sec-hd">Descriptive Statistics</div>';
     html+='<div class="row" style="margin-bottom:11px">'+mkSelect('d-fld',nF,aState.dFld,'aState.dFld=val;renderASub()','Variable')+'<button class="btn btn-primary btn-sm" onclick="runDesc()">▶ Run</button></div>';
     if(s&&!s._err&&!s.error){
       html+='<div class="stats-grid2">';
@@ -5698,7 +5715,7 @@ function renderASub(){
     html+='<div class="card"><div class="sec-hd">Independent T-Test</div>';
     html+=mkSelect('tt-v',nF,aState.ttV,'aState.ttV=val;renderASub()','Dependent Variable');
     html+='<div style="margin-top:8px">'+mkSelect('tt-g',aF,aState.ttG,'aState.ttG=val;renderASub()','Grouping Variable')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runTTest()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runTTest()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">'+stCard('Mean ('+grps[0]+')',prv.meanA,'SD='+prv.sdA+' n='+prv.nA)+stCard('Mean ('+grps[1]+')',prv.meanB,'SD='+prv.sdB+' n='+prv.nB)+stCard('t',prv.t,'df='+prv.df)+stCard("Cohen's d",prv.cohensD,prv.dInterp)+'</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.p)+'</div>';
@@ -5727,7 +5744,7 @@ function renderASub(){
       html+=stCard('Std Dev',osSd);
       html+='</div>';
     }
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:11px" onclick="runOneSamp()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:11px" onclick="runOneSamp()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">';
       html+=stCard('Mean Diff',prv.meanDiff,'μ̄ − μ₀');
@@ -5759,7 +5776,7 @@ function renderASub(){
     html+='<div class="card"><div class="sec-hd">Paired Samples T-Test</div>';
     html+=mkSelect('pa-a',nF,aState.pairedA,'aState.pairedA=val;renderASub()','Variable A (Pre-test)');
     html+='<div style="margin-top:8px">'+mkSelect('pa-b',nF,aState.pairedB,'aState.pairedB=val;renderASub()','Variable B (Post-test)')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPaired()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPaired()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">'+stCard('Mean Diff',prv.meanDiff,prv.ci95)+stCard('SD Diff',prv.sdDiff)+stCard('t',prv.t,'df='+prv.df)+stCard("Cohen's dz",prv.cohensD,prv.dInterp)+'</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.p)+'</div>';
@@ -5794,7 +5811,7 @@ function renderASub(){
     html+='<div style="display:flex;gap:5px;margin-top:5px">';
     html+='<button class="btn btn-ghost btn-sm" onclick="aState.rmVars.push(\'\');renderASub()">+ Tambah titik waktu</button>';
     html+='</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runRmAnova()">▶ Run RM-ANOVA → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runRmAnova()">▶ Run</button>';
     if(rmPrv&&!rmPrv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">';
       html+=stCard('F',rmPrv.F,'df='+rmPrv.dfB+','+rmPrv.dfE);
@@ -5901,7 +5918,7 @@ function renderASub(){
         'lsd':'Liberal · No familywise correction · Use only when F is significant'}[aState.avPostMethod||'tukey'];
       html+='<div style="margin-top:5px;font-size:10px;color:rgba(232,222,255,.35);padding:0 2px">'+phHint+'</div>';
     }
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:11px">'+stCard('F',prv.F)+stCard('p',prv.p_fmt)+stCard('&#x03b7;&#x00b2;',prv.eta2,prv.eta2Interp)+'</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.p)+'</div>';
@@ -5919,12 +5936,12 @@ function renderASub(){
     const prv2=aState.av2V&&aState.av2A&&aState.av2B&&aState.av2A!==aState.av2B?
       tryStats(()=>SE.twowayANOVA(data,aState.av2V,aState.av2A,aState.av2B)):null;
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"> Two-Way ANOVA</div>';
+    html+='<div class="card"><div class="sec-hd">Two-Way ANOVA</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:9px;line-height:1.6">Tests main effects of two factors and their interaction (A×B). Requires at least 2 levels per factor.</div>';
     html+=mkSelect('av2-v',nF2,aState.av2V,'aState.av2V=val;renderASub()','Dependent Variable');
     html+='<div style="margin-top:8px">'+mkSelect('av2-a',aF2,aState.av2A,'aState.av2A=val;renderASub()','Factor A')+'</div>';
     html+='<div style="margin-top:8px">'+mkSelect('av2-b',aF2,aState.av2B,'aState.av2B=val;renderASub()','Factor B')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA2()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA2()">▶ Run</button>';
     if(prv2&&!prv2._err){
       html+='<div style="margin-top:11px">';
       prv2.effects.forEach(function(e){
@@ -5959,13 +5976,13 @@ function renderASub(){
       aState.av3A!==aState.av3B&&aState.av3A!==aState.av3C&&aState.av3B!==aState.av3C;
     const prv3=valid3?tryStats(()=>SE.threewayANOVA(data,aState.av3V,aState.av3A,aState.av3B,aState.av3C)):null;
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"> Three-Way ANOVA</div>';
+    html+='<div class="card"><div class="sec-hd">Three-Way ANOVA</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:9px;line-height:1.6">Tests 3 main effects + 3 two-way interactions + 1 three-way interaction. Factors A, B, C must be different variables.</div>';
     html+=mkSelect('av3-v',nF3,aState.av3V,'aState.av3V=val;renderASub()','Dependent Variable');
     html+='<div style="margin-top:8px">'+mkSelect('av3-a',aF3,aState.av3A,'aState.av3A=val;renderASub()','Factor A')+'</div>';
     html+='<div style="margin-top:8px">'+mkSelect('av3-b',aF3,aState.av3B,'aState.av3B=val;renderASub()','Factor B')+'</div>';
     html+='<div style="margin-top:8px">'+mkSelect('av3-c',aF3,aState.av3C,'aState.av3C=val;renderASub()','Factor C')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA3()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA3()">▶ Run</button>';
     if(prv3&&!prv3._err){
       html+='<div style="margin-top:11px">';
       var effectColors={'×':('#fbbf24')};
@@ -5994,14 +6011,14 @@ function renderASub(){
     // Partial correlation preview
     const pcPrv=aState.crType==='partial'&&aState.pcX&&aState.pcY&&aState.pcZ?tryStats(()=>SE.partialCorr(data.map(r=>r[aState.pcX]),data.map(r=>r[aState.pcY]),data.map(r=>r[aState.pcZ]))):null;
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"><span style="color:#f472b6;display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="5" r="1.5" fill="currentColor"/><circle cx="5" cy="17" r="1.5" fill="currentColor"/><circle cx="14" cy="15" r="1.5" fill="currentColor"/><circle cx="19" cy="18" r="1.5" fill="currentColor"/></svg></span> Correlation</div>';
+    html+='<div class="card"><div class="sec-hd">Correlation</div>';
     html+=mkCsel('cr-type',['pearson','spearman','partial'],aState.crType,'aState.crType=val;renderASub()','Type');
     if(aState.crType==='partial'){
       html+='<div style="margin-top:8px">'+mkSelect('pc-x',nF,aState.pcX,'aState.pcX=val;renderASub()','Variable X')+'</div>';
       html+='<div style="margin-top:8px">'+mkSelect('pc-y',nF,aState.pcY,'aState.pcY=val;renderASub()','Variable Y')+'</div>';
       html+='<div style="margin-top:8px">'+mkSelect('pc-z',nF,aState.pcZ,'aState.pcZ=val;renderASub()','Control Variable (Z)')+'</div>';
       html+='<div style="margin-top:7px;padding:7px 10px;background:rgba(103,232,249,.05);border-radius:7px;border:1px solid rgba(103,232,249,.15);font-size:10.5px;color:rgba(232,222,255,.5)">Partial r removes the linear influence of Z from both X and Y before computing the correlation.</div>';
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPartialCorr()">▶ Run → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPartialCorr()">▶ Run</button>';
       if(pcPrv&&!pcPrv._err){
         html+='<div class="stats-grid2" style="margin-top:11px">'+stCard('Partial r',pcPrv.rp)+stCard('r²',pcPrv.r2,'Variance explained')+stCard('p',pcPrv.p_fmt)+stCard('95% CI',pcPrv.ci95)+'</div>';
         html+='<div class="row" style="margin-top:8px">'+sigBadge(pcPrv.p)+'<span class="tag tag-gray">'+pcPrv.strength+' '+(parseFloat(pcPrv.rp)>=0?'positive':'negative')+'</span></div>';
@@ -6010,7 +6027,7 @@ function renderASub(){
     } else {
       html+='<div style="margin-top:8px">'+mkSelect('cr-x',nF,aState.crX,'aState.crX=val;renderASub()','Variable X')+'</div>';
       html+='<div style="margin-top:8px">'+mkSelect('cr-y',nF,aState.crY,'aState.crY=val;renderASub()','Variable Y')+'</div>';
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runCorr()">▶ Run → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runCorr()">▶ Run</button>';
       if(prv&&!prv._err){
         html+='<div class="stats-grid2" style="margin-top:11px">'+stCard('r',prv.r)+stCard('r²',prv.r2,'Variance explained')+stCard('p',prv.p_fmt)+stCard('95% CI',prv.ci95)+'</div>';
         html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.p)+'<span class="tag tag-gray">'+prv.strength+' '+prv.direction+'</span></div>';
@@ -6028,10 +6045,10 @@ function renderASub(){
   else if(currentASub==='regression'){
     const prv=tryStats(()=>SE.linearReg(data.map(r=>r[aState.regX]),data.map(r=>r[aState.regY])));
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd">Linear Regression</div>';
+    html+='<div class="card"><div class="sec-hd">Simple Regression</div>';
     html+=mkSelect('reg-x',nF,aState.regX,'aState.regX=val;renderASub()','Predictor (X)');
     html+='<div style="margin-top:8px">'+mkSelect('reg-y',nF,aState.regY,'aState.regY=val;renderASub()','Outcome (Y)')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runReg()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runReg()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px">'+stCard('R²',prv.R2,'Variance explained')+stCard('Adj R²',prv.R2adj)+stCard('F',prv.F,'p='+prv.pF_fmt)+stCard('RMSE',prv.RMSE)+'</div>';
       html+='<div class="eq" style="margin-top:9px">Ŷ = '+prv.b0+' + '+prv.b1+' · '+aState.regX+'</div>';
@@ -6046,7 +6063,7 @@ function renderASub(){
   else if(currentASub==='multipleReg'){
     const prv=aState.mrXs.length?tryStats(()=>SE.multipleReg(aState.mrXs,aState.mrY,data)):null;
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"> Multiple Regression</div>';
+    html+='<div class="card"><div class="sec-hd">Multiple Regression</div>';
     html+=mkSelect('mr-y',nF,aState.mrY,'aState.mrY=this.value;renderASub()','Dependent Variable (Y)');
     html+='<label class="lbl" style="margin-top:9px;margin-bottom:5px">Predictors (X):</label>';
     html+='<div style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;margin-bottom:11px">';
@@ -6054,7 +6071,7 @@ function renderASub(){
       html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(99,102,241,.07)':'transparent')+'"><input type="checkbox" data-fld="'+f+'" '+(sel?'checked':'')+' onchange="toggleMrXEl(this)" style="accent-color:#818cf8"/>'+f+'</label>';
     });
     html+='</div>';
-    html+='<button class="btn btn-primary btn-sm" onclick="runMultipleReg()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runMultipleReg()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px">'+stCard('R²',prv.R2,'Variance explained')+stCard('Adj R²',prv.R2adj)+stCard('F',prv.F,'p='+prv.pF_fmt)+stCard('DW',prv.DW,'Ideal 1.5-2.5')+'</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.pF)+'</div>';
@@ -6085,7 +6102,7 @@ function renderASub(){
       }
     }
 
-    html += '<div class="card"><div class="sec-hd">⚙ Hierarchical Regression <span style="font-size:10px;font-style:normal;color:rgba(232,222,255,.35);margin-left:8px">Bertahap per Block · ΔR² · F-change Test</span></div>';
+    html += '<div class="card"><div class="sec-hd">Hierarchical Regression <span style="font-size:10px;font-style:normal;color:rgba(232,222,255,.35);margin-left:8px">Bertahap per Block · ΔR² · F-change Test</span></div>';
     html += '<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:12px;line-height:1.7">Masukkan prediktor secara bertahap. Setiap Block menambah prediktor dan melaporkan <b style="color:#a5f3fc">ΔR²</b> (perubahan variance) beserta uji F-change signifikansinya.</div>';
     html += '<div class="grid2">';
 
@@ -6143,7 +6160,7 @@ function renderASub(){
     }
 
     // Run button
-    html += '<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="runHierarchicalReg()">▶ Run Hierarchical Regression → Output</button>';
+    html += '<button class="btn btn-primary btn-sm"  onclick="runHierarchicalReg()">▶ Run</button>';
     html += '</div>';
 
     // RIGHT: ΔR² summary card
@@ -6209,7 +6226,7 @@ function renderASub(){
     var lgPrv=(lgY&&lgXs.length&&lgCats.length>=2)?tryStats(function(){return SE.logisticReg(lgY,lgXs,data,lgType);}):null;
     html+='<div class="grid2">';
     // Setup Card
-    html+='<div class="card"><div class="sec-hd"><span style="color:#fb923c">S</span> Logistic Regression</div>';
+    html+='<div class="card"><div class="sec-hd">Logistic Regression</div>';
     // Type toggle
     html+=mkCsel('lg-type',['binary','multinomial'],lgType,'aState.lgType=val;renderASub()','Tipe Model');
     html+='<div style="margin-bottom:10px"></div>';
@@ -6237,7 +6254,7 @@ function renderASub(){
       html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(251,146,60,.07)':'transparent')+'"><input type="checkbox" data-lgf="'+f+'" '+(sel?'checked':'')+' onchange="toggleLgX(this)" style="accent-color:#fb923c"/>'+f+'</label>';
     });
     html+='</div>';
-    html+='<button class="btn btn-sm" style="background:linear-gradient(135deg,#fb923c,#db2777);color:#fff;font-weight:700" onclick="runLogistic()">▶ Run Logistic Reg → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runLogistic()">▶ Run</button>';
     // Quick preview stats
     if(lgPrv&&!lgPrv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">';
@@ -6302,7 +6319,7 @@ function renderASub(){
     html+=mkCsel('np-type',['mannwhitney','kruskal','wilcoxon'],aState.npType,'aState.npType=val;renderASub()','Test');
     html+='<div style="margin-top:8px">'+mkSelect('np-v',nF,aState.npV,'aState.npV=val;renderASub()','Variable')+'</div>';
     if(aState.npType!=='wilcoxon')html+='<div style="margin-top:8px">'+mkSelect('np-g',aF,aState.npG,'aState.npG=val;renderASub()','Grouping Variable')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runNP()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runNP()">▶ Run</button>';
     html+='<div class="assump" style="margin-top:11px"><b style="color:#818cf8">When to use:</b><br>· Non-normal distribution (SW p≤.05)<br>· Ordinal data · Small n · Many outliers</div>';
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Distribution Preview</div>'+svgBoxplot(data,aState.npV,aState.npType!=='wilcoxon'?aState.npG:null)+'</div></div>';
@@ -6320,7 +6337,7 @@ function renderASub(){
       html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(99,102,241,.07)':'transparent')+'"><input type="checkbox" data-fld="'+f+'" '+(sel?'checked':'')+' onchange="toggleAlphaVarEl(this)" style="accent-color:#818cf8"/>'+f+'</label>';
     });
     html+='</div>';
-    html+='<button class="btn btn-primary btn-sm" onclick="runAlpha()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runAlpha()">▶ Run</button>';
     if(aRes&&!aRes._err){
       html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:11px">'+stCard('Cronbach α',aRes.alpha,aRes.interp)+stCard('Items k',aRes.k)+stCard('Cases n',aRes.n)+'</div>';
       html+='<div class="row" style="margin-top:8px"><span class="tag '+(parseFloat(aRes.alpha)>=.7?'tag-green':'tag-red')+'">'+aRes.interp+'</span></div>';
@@ -6342,7 +6359,7 @@ function renderASub(){
     html+=mkSelect('kap-r1',aF2,aState.kappaR1,'aState.kappaR1=val;renderASub()','Rater 1 / Observer 1');
     html+='<div style="margin-top:8px">'+mkSelect('kap-r2',aF2,aState.kappaR2,'aState.kappaR2=val;renderASub()','Rater 2 / Observer 2')+'</div>';
     html+='<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:#94a3b8;cursor:pointer"><input type="checkbox" '+(aState.kappaWeighted?'checked':'')+' onchange="aState.kappaWeighted=this.checked;renderASub()" style="accent-color:#818cf8"/> Weighted Kappa (ordinal data)</label>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runKappa()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runKappa()">▶ Run</button>';
     // Live preview
     if(aState.kappaR1&&aState.kappaR2&&aState.kappaR1!==aState.kappaR2){
       var kR1=data.map(function(r){return r[aState.kappaR1];}).filter(function(v){return v!==null&&v!==undefined&&String(v).trim()!=='';});
@@ -6424,13 +6441,13 @@ function renderASub(){
     html+=mkSelect('tr-fld',nF,aState.trFld,'aState.trFld=val;renderASub()','Source Variable');
     html+='<div style="margin-top:8px">'+mkCsel('tr-type',['zscore','minmax','log','log10','sqrt','square','center','rank'],aState.trType,'aState.trType=val;renderASub()','Transformation')+'</div>';
     html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.trNewName+'" oninput="aState.trNewName=this.value"/></div>';
-    html+='<button class="btn btn-green btn-sm" style="margin-top:10px" onclick="runTransform()">✓ Apply</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runTransform()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     html+='<div class="assump" style="margin-top:11px">Z-score · Min-Max · Log · Sqrt · Square · Center · Rank</div>';
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Compute Variable</div>';
     html+='<div style="margin-bottom:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.computeName+'" oninput="aState.computeName=this.value"/></div>';
     html+='<div style="margin-bottom:8px"><label class="lbl">Expression</label><input class="inp" style="font-family:monospace" value="'+aState.computeExpr+'" oninput="aState.computeExpr=this.value" placeholder="e.g. age * 2 + score / 10"/></div>';
-    html+='<button class="btn btn-green btn-sm" onclick="runCompute()">✓ Compute</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runCompute()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     html+='<div class="assump" style="margin-top:10px">Vars · +−×÷^% · abs/sqrt/log/exp/round/floor/ceil</div>';
     html+='</div></div>';
   }
@@ -6444,16 +6461,16 @@ function renderASub(){
     html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.recodeNewName+'" oninput="aState.recodeNewName=this.value"/></div>';
     if(aState.recodeType==='binary'){
       html+='<div class="row" style="gap:7px;margin-top:8px;margin-bottom:9px"><div style="flex:1"><label class="lbl">Value → 0</label><input class="inp" id="rc-val0" placeholder="e.g. Male"/></div><div style="flex:1"><label class="lbl">Value → 1</label><input class="inp" id="rc-val1" placeholder="e.g. Female"/></div></div>';
-      html+='<button class="btn btn-green btn-sm" onclick="runRecodeBinary()">✓ Apply</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runRecodeBinary()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     } else if(aState.recodeType==='exact'){
       html+='<div style="max-height:180px;overflow-y:auto;margin:9px 0">';
       html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;font-size:10px;color:#64748b;margin-bottom:3px"><span>Original</span><span></span><span>New Value</span></div>';
       rcUniq.forEach((v,i)=>html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center;margin-bottom:4px"><div style="padding:5px 8px;background:rgba(255,255,255,.04);border-radius:6px;font-size:11.5px">'+v+'</div><span style="color:#64748b">→</span><input class="inp" style="padding:5px 8px;font-size:11.5px" id="rc-exact-'+i+'" placeholder="new"/></div>');
-      html+='</div><button class="btn btn-green btn-sm" onclick="runRecodeExact('+JSON.stringify(rcUniq)+')">✓ Apply</button>';
+      html+='</div><button class="btn btn-primary btn-sm" onclick="runRecodeExact('+JSON.stringify(rcUniq)+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     } else {
       html+='<div style="margin:9px 0">';
       for(let i=0;i<3;i++)html+='<div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:4px;align-items:center;margin-bottom:5px"><input class="inp" id="rc-from-'+i+'" placeholder="From" style="font-size:11px;padding:5px 8px"/><span style="color:#64748b">–</span><input class="inp" id="rc-to-'+i+'" placeholder="To" style="font-size:11px;padding:5px 8px"/><span style="color:#64748b">→</span><input class="inp" id="rc-new-'+i+'" placeholder="Label" style="font-size:11px;padding:5px 8px"/></div>';
-      html+='</div><button class="btn btn-green btn-sm" onclick="runRecodeRange(3)">✓ Apply</button>';
+      html+='</div><button class="btn btn-primary btn-sm" onclick="runRecodeRange(3)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     }
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Preview</div>';
@@ -6468,7 +6485,7 @@ function renderASub(){
     html+='<div class="card"><div class="sec-hd">Filter Cases</div>';
     html+='<div style="margin-bottom:9px"><label class="lbl">Filter Expression</label><input class="inp" style="font-family:monospace" value="'+aState.filterExpr+'" oninput="aState.filterExpr=this.value" placeholder="e.g. age > 25"/></div>';
     html+='<div class="assump" style="margin-bottom:11px"><b style="color:#818cf8">Syntax:</b><br><code style="color:#60a5fa">age > 25</code> · <code style="color:#60a5fa">gender == Male</code><br><code style="color:#60a5fa">score >= 70 && age < 35</code></div>';
-    html+='<div class="row" style="gap:8px"><button class="btn btn-primary btn-sm" onclick="applyFilter()">▶ Apply</button>';
+    html+='<div class="row" style="gap:8px"><button class="btn btn-primary btn-sm" onclick="applyFilter()">▶ Run</button>';
     if(aState.filterActive)html+='<button class="btn btn-red btn-sm" onclick="clearFilter()">✕ Clear</button>';
     html+='</div>';
     if(aState.filterActive)html+='<div style="margin-top:9px;padding:7px 11px;background:rgba(251,191,36,.06);border-radius:8px;font-size:11.5px;color:#fbbf24">Active: '+aState.filterExpr+' ('+data.length+' rows)</div>';
@@ -6535,7 +6552,7 @@ function renderASub(){
 
     // Buttons
     html+='<div class="row" style="gap:7px">';
-    html+='<button class="btn btn-primary btn-sm" onclick="runWeightCases()" '+(wcVar?'':'disabled')+'>⚖ Apply Weight</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runWeightCases()" '+(wcVar?'':'disabled')+'>▶ Run</button>';
     if(aState.wcActive)html+='<button class="btn btn-ghost btn-sm" onclick="clearWeightCases()">✕ Turn Off</button>';
     html+='</div>';
     html+='</div>';
@@ -6629,7 +6646,7 @@ function renderASub(){
     html+=mkSelect('imp-fld',nF,aState.imputeFld,'aState.imputeFld=val;renderASub()','Variable');
     html+='<div style="margin-top:8px">'+mkCsel('imp-meth',['mean','median','mode','zero','min','max'],aState.imputeMethod,'aState.imputeMethod=val;renderASub()','Method')+'</div>';
     html+='<div class="stats-grid2" style="margin-top:11px">'+stCard('Missing Count',impM,((impM/data.length)*100).toFixed(1)+'%')+stCard('Impute Value',impVal,'replaces '+impM+' cells')+'</div>';
-    html+='<div style="display:flex;gap:7px;margin-top:11px"><button class="btn btn-green btn-sm" onclick="runImpute()" '+(impM===0?'disabled':'')+'>✓ Apply</button><button class="btn btn-ghost btn-sm" onclick="imputeAllVars()">Impute All</button></div>';
+    html+='<div style="display:flex;gap:7px;margin-top:11px"><button class="btn btn-primary btn-sm" onclick="runImpute()" '+(impM===0?'disabled':'')+'><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button><button class="btn btn-ghost btn-sm" onclick="imputeAllVars()">Impute All</button></div>';
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Missing Overview</div>';
     vars.filter(v=>v.type==='Numeric').forEach(v=>{const mc=data.filter(r=>isMiss(r[v.name])).length,pct=(mc/data.length)*100;
@@ -6646,7 +6663,7 @@ function renderASub(){
     // Vars with missing
     var missVars=nF.filter(function(v){return data.some(function(r){return isMiss(r[v]);});});
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"> Multiple Imputation (MICE)</div>';
+    html+='<div class="card"><div class="sec-hd">Multiple Imputation (MICE)</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:11px;line-height:1.65">MI membuat M dataset lengkap melalui imputasi iteratif, menganalisis masing-masing, lalu menggabungkan hasil (Rubin\'s Rules) — jauh lebih akurat daripada single imputation untuk riset formal.</div>';
 
     // Variable selection
@@ -6675,7 +6692,7 @@ function renderASub(){
     html+=mkOptCsel('mi-method',[{val:'pmm',label:'PMM (Predictive Mean Matching)'},{val:'norm',label:'Bayesian Normal Regression'},{val:'mice_cart',label:'CART (non-linear)'}],aState.miMethod,'aState.miMethod=_cR["mi-method"]._vals[_cR["mi-method"].fields.indexOf(val)];renderASub()','');
     html+='</div></div>';
 
-    html+='<button class="btn btn-primary btn-sm" style="width:100%;margin-top:4px" onclick="runMultipleImputation()"> Run MI → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:4px" onclick="runMultipleImputation()">▶ Run</button>';
 
     // Preview missing pattern
     if(aState.miVars&&aState.miVars.length){
@@ -6731,7 +6748,7 @@ function renderASub(){
     const pcPrv=(aState.pcX&&aState.pcY&&aState.pcZ&&aState.pcX!==aState.pcY&&aState.pcX!==aState.pcZ&&aState.pcY!==aState.pcZ)
       ?tryStats(()=>SE.partialCorr(data.map(r=>r[aState.pcX]),data.map(r=>r[aState.pcY]),data.map(r=>r[aState.pcZ]))):null;
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd"><span style="color:#67e8f9;margin-right:6px">&#x2202;</span>Partial Correlation</div>';
+    html+='<div class="card"><div class="sec-hd">Partial Correlation</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:11px;line-height:1.6">Pearson r antara X dan Y setelah membuang pengaruh linear dari variabel kontrol Z.</div>';
     html+='<label class="lbl">Variable X</label>'+mkSelect('pc-x',nF,aState.pcX,'aState.pcX=val;renderASub()','Variable X');
     html+='<div style="margin-top:8px"><label class="lbl">Variable Y</label>'+mkSelect('pc-y',nF,aState.pcY,'aState.pcY=val;renderASub()','Variable Y')+'</div>';
@@ -6739,7 +6756,7 @@ function renderASub(){
     html+='<div style="margin-top:8px;padding:7px 10px;background:rgba(103,232,249,.05);border-radius:7px;border:1px solid rgba(103,232,249,.15);font-size:10.5px;color:rgba(232,222,255,.45);line-height:1.6">'
       +'<b style="color:#67e8f9">Partial r</b> = korelasi X–Y setelah residualisasi terhadap Z.<br>'
       +'<b style="color:#a5f3fc">Zero-order r</b> = korelasi bivariate tanpa kontrol.</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPartialCorr()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPartialCorr()">▶ Run</button>';
     if(pcPrv&&!pcPrv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">'+stCard('Partial r',pcPrv.rp)+stCard('r²',pcPrv.r2,'Variance explained')+stCard('p',pcPrv.p_fmt)+stCard('95% CI',pcPrv.ci95)+'</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(pcPrv.p)+'<span class="tag tag-gray">'+pcPrv.strength+' '+(parseFloat(pcPrv.rp)>=0?'positive':'negative')+'</span></div>';
@@ -6761,7 +6778,7 @@ function renderASub(){
     const ccaPrv=ccaReady?tryStats(()=>SE.canonicalCorr(aState.ccaXs,aState.ccaYs,data)):null;
     html+='<div class="grid2">';
     // Left panel: variable selection
-    html+='<div class="card"><div class="sec-hd"><span style="color:#c084fc;margin-right:6px">⊗</span>Canonical Correlation</div>';
+    html+='<div class="card"><div class="sec-hd">Canonical Correlation</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:11px;line-height:1.6">Hubungan antara <b style="color:#f472b6">set variabel X</b> dan <b style="color:#67e8f9">set variabel Y</b> secara simultan. Setara fitur MANOVA correlational di SPSS.</div>';
     html+='<label class="lbl" style="color:#f472b6">Set X (Predictor Variables)</label>';
     html+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;margin-bottom:12px">';
@@ -6787,7 +6804,7 @@ function renderASub(){
       +'<b style="color:#c084fc">Rc</b> = canonical correlation (max korelasi linear antar dua set)<br>'
       +'<b style="color:#c084fc">Wilks\' λ</b> = uji signifikansi tiap fungsi kanonik<br>'
       +'<b style="color:#c084fc">Struktur koefisien</b> = loading tiap variabel ke fungsi kanonik</div>';
-    html+='<button class="btn btn-primary btn-sm" onclick="runCCA()" '+(ccaReady?'':'disabled style="opacity:.45"')+'>▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runCCA()" '+(ccaReady?'':'disabled style="opacity:.45"')+'>▶ Run</button>';
     if(ccaPrv&&!ccaPrv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">';
       ccaPrv.tests.slice(0,2).forEach(function(t){
@@ -6849,7 +6866,7 @@ function renderASub(){
     }
     html+='<div class="grid2">';
     html+='<div class="card">';
-    html+='<div class="sec-hd"><span style="color:'+modelColor+'">GLM</span> '+modelLabel+' Setup</div>';
+    html+='<div class="sec-hd">'+(isNB?'Negative Binomial':'Poisson')+' Regression</div>';
     html+='<div style="margin-bottom:11px">';
     html+='<label class="lbl">Count / Frequency Variable <span style="color:#67e8f9">(non-negative integers)</span></label>';
     html+=mkSelect('cnt-dep',nF,aState.cntDep,'aState.cntDep=val;if(aState.cntPreds.indexOf(val)>=0){aState.cntPreds=aState.cntPreds.filter(function(x){return x!==val;});}renderASub()','Dependent Variable (count)');
@@ -6868,7 +6885,7 @@ function renderASub(){
         +'" style="accent-color:#34d399;width:13px;height:13px"/>'+f+'</label>';
     });
     html+='</div></div>';
-    html+='<button class="btn btn-sm" style="background:linear-gradient(135deg,'+modelColor+',#7c3aed);color:#fff;font-weight:700" onclick="'+(isNB?'runNegBinGLM':'runPoissonGLM')+'()">▶ Run '+modelLabel+' → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="'+(isNB?'runNegBinGLM':'runPoissonGLM')+'()">▶ Run</button>';
     html+='</div>';
     // Right panel: quick reference
     html+='<div class="card"><div class="sec-hd">Panduan Model</div>';
@@ -6974,7 +6991,7 @@ function renderASub(){
           +'" style="accent-color:#67e8f9;width:13px;height:13px"/>'+f+'</label>';
       });
       html+='</div></div>';
-      html+='<button class="btn btn-primary btn-sm" onclick="runGLM()">▶ Run GLM Univariate → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runGLM()">▶ Run</button>';
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">Quick Reference</div>';
       html+='<div class="assump" style="margin-bottom:9px"><b style="color:#f9a8d4">GLM Univariate</b> = ANOVA/ANCOVA framework.<br>Include <span style="color:#c084fc">factors</span> (categorical) and/or <span style="color:#67e8f9">covariates</span> (continuous) to test their effect on the DV.</div>';
@@ -7073,7 +7090,7 @@ function renderASub(){
           +'" style="accent-color:#a78bfa;width:13px;height:13px"/>'+f+'</label>';
       });
       html+='</div></div>';
-      html+='<button class="btn btn-primary btn-sm" onclick="runMANOVA()">▶ Run MANOVA → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runMANOVA()">▶ Run</button>';
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">About MANOVA</div>';
       html+='<div class="assump"><b style="color:#f9a8d4">Proper MANOVA</b> builds H (hypothesis) and E (error) cross-product matrices, then computes eigenvalues of E⁻¹H to derive all four multivariate test statistics.<br><br>';
@@ -7131,7 +7148,7 @@ function renderASub(){
       html+='<label class="lbl">Between-Subjects Factor <span style="color:rgba(232,222,255,.35)">(optional grouping)</span></label>';
       html+=mkSelect('rm-grp',['(none)',...aF],aState.glmBetween||'(none)','aState.glmBetween=val==="(none)"?"":val;renderASub()','Group factor');
       html+='</div>';
-      html+='<button class="btn btn-primary btn-sm" onclick="runRepeatedMeasures()">▶ Run Repeated Measures → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runRepeatedMeasures()">▶ Run</button>';
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">About Repeated Measures</div>';
       html+='<div class="assump"><b style="color:#f9a8d4">Repeated Measures GLM</b> examines change across time points (within-subjects) while controlling for individual differences.<br><br>This implementation uses <b style="color:#a78bfa">Paired T-Test</b> logic with optional between-subjects grouping for comparison.</div>';
@@ -7225,7 +7242,7 @@ function renderASub(){
       html+=mkSelect('hlm-dep-icc',nF,aState.hlmDep,'aState.hlmDep=val;renderASub()','Outcome');
       html+='<div style="margin-top:8px"><label class="lbl">Level-2 Grouping Variable <span style="color:#c084fc">(e.g. class, hospital)</span></label>';
       html+=mkSelect('hlm-grp-icc',aF,aState.hlmGroup,'aState.hlmGroup=val;renderASub()','Grouping')+'</div>';
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runHLM()">▶ Compute ICC → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runHLM()">▶ Run</button>';
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">Interpretation Guide</div>';
       html+='<div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px">';
@@ -7315,7 +7332,7 @@ function renderASub(){
         'aState.hlmModelType=_cR["hlm-modeltype"]._vals[_cR["hlm-modeltype"].fields.indexOf(val)];renderASub()',
         '');
       html+='</div>';
-      html+='<button class="btn btn-primary btn-sm" onclick="runHLM()">▶ Run Two-Level HLM → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runHLM()">▶ Run</button>';
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">Model Equations</div>';
       html+='<div style="font-size:11.5px;line-height:1.8;color:rgba(232,222,255,.55)">';
@@ -7372,7 +7389,7 @@ function renderASub(){
           +'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+f+'</label>';
       });
       html+='</div></div>';
-      html+='<button class="btn btn-primary btn-sm" onclick="runHLM()">▶ Run Three-Level HLM → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runHLM()">▶ Run</button>';
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">Variance Decomposition</div>';
       html+='<div class="assump" style="margin-bottom:10px">In a 3-level model, the total variance is split into three components:</div>';
@@ -7420,7 +7437,7 @@ function renderASub(){
 
     html+='<div class="grid2">';
     // ── Left: settings ──
-    html+='<div class="card"><div class="sec-hd">⬡ Exploratory Factor Analysis</div>';
+    html+='<div class="card"><div class="sec-hd">Exploratory Factor Analysis</div>';
     html+='<div style="margin-bottom:10px"><label class="lbl">Variables <span style="color:#67e8f9">(select ≥2 numeric)</span></label>';
     html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;max-height:160px;overflow-y:auto">';
     nF.forEach(function(f){
@@ -7438,7 +7455,7 @@ function renderASub(){
     html+='<input class="inp" type="number" min="1" max="'+(aState.efaVars.length||10)+'" value="'+aState.efaFactors+'" oninput="aState.efaFactors=Math.max(1,Math.min(parseInt(this.value)||2,aState.efaVars.length||1));renderASub()" style="width:100%"/></div>';
     html+='<div style="flex:1">'+mkCsel('efa-rot',['varimax','none'],aState.efaRotation,'aState.efaRotation=val;renderASub()','Rotation')+'</div>';
     html+='</div>';
-    html+='<button class="btn btn-primary btn-sm" onclick="runEFA()">▶ Run EFA → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runEFA()">▶ Run</button>';
     // Preview KMO + Bartlett
     if(efaPreview&&!efaPreview._err){
       var kmoColor=parseFloat(efaPreview.kmo)>=0.7?'#34d399':parseFloat(efaPreview.kmo)>=0.5?'#fbbf24':'#f87171';
@@ -7528,7 +7545,7 @@ function renderASub(){
 
     html+='<div class="grid2">';
     // ── Left: CFA setup ──
-    html+='<div class="card"><div class="sec-hd">⬡ Confirmatory Factor Analysis (CFA)</div>';
+    html+='<div class="card"><div class="sec-hd">Confirmatory Factor Analysis (CFA)</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:12px;line-height:1.6">Tentukan jumlah faktor laten dan assign variabel ke masing-masing faktor. CFA akan menghitung fit indices: CFI, TLI, RMSEA, SRMR.</div>';
     // Number of factors
     html+='<div style="margin-bottom:10px">'+mkCsel('cfa-nfac',['1','2','3','4','5'],String(aState.cfaFactors),'setCfaFactors(parseInt(val))','Jumlah Faktor Laten')+'</div>';
@@ -7559,7 +7576,7 @@ function renderASub(){
       html+='</div>';
     });
 
-    html+='<button class="btn btn-primary btn-sm" onclick="runCFA()" style="width:100%;margin-top:4px">▶ Run CFA → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runCFA()" style="margin-top:4px">▶ Run</button>';
     html+='</div>';
 
     // ── Right: Fit indices preview ──
@@ -7661,7 +7678,7 @@ function renderASub(){
       medPreview=tryStats(function(){return computeMediation(aState.medX,aState.medM,aState.medY,500);});
     }
 
-    html+='<div class="card"><div class="sec-hd">⚗ Mediation Analysis <span style="font-size:10px;font-style:normal;color:rgba(232,222,255,.3);margin-left:7px">Baron-Kenny Steps · Sobel Test · Bootstrap CI</span></div>';
+    html+='<div class="card"><div class="sec-hd">Mediation Analysis <span style="font-size:10px;font-style:normal;color:rgba(232,222,255,.3);margin-left:7px">Baron-Kenny Steps · Sobel Test · Bootstrap CI</span></div>';
     html+='<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:12px;line-height:1.7">Apakah variabel <b style="color:#fb923c">X</b> berpengaruh terhadap <b style="color:#67e8f9">Y</b> <em>melalui</em> <b style="color:#f472b6">M</b>? Mediation Analysis menjawab pertanyaan ini dengan menghitung efek tidak langsung (indirect effect) menggunakan Sobel test dan Bootstrap confidence interval.</div>';
 
     // Path Diagram SVG
@@ -7694,7 +7711,7 @@ function renderASub(){
       html+='<button onclick="aState.medBootN='+n+';renderASub()" style="padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;'+(aState.medBootN===n?'background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:none;':'background:rgba(124,58,237,.07);color:rgba(232,222,255,.5);border:1px solid rgba(124,58,237,.2);')+'">'+n+'</button>';
     });
     html+='</div></div>';
-    html+='<button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="runMediation()">▶ Run Full Mediation → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:4px;margin-bottom:4px" onclick="runMediation()">▶ Run</button>';
     html+='</div>';
 
     // Right column: live preview
@@ -7745,7 +7762,7 @@ function renderASub(){
     html+='</div>';
 
     // Interpretation guide
-    html+='<div class="card" style="margin-top:0"><div class="sec-hd">Panduan Interpretasi</div>';
+    html+='<div class="card" style="margin-top:9px"><div class="sec-hd">Panduan Interpretasi</div>';
     html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;font-size:11.5px;color:rgba(232,222,255,.6);line-height:1.65">';
     html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#34d399">Full Mediation</b><br>c signifikan, a & b signifikan, tapi c\' tidak signifikan → X hanya berpengaruh ke Y lewat M.</div>';
     html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#fbbf24">Partial Mediation</b><br>c, a, b, dan c\' semuanya signifikan → X berpengaruh langsung ke Y dan juga lewat M.</div>';
@@ -7773,16 +7790,13 @@ function renderASub(){
       semResult=tryStats(function(){return computeSEM(aState.semLatents,aState.semLatentMap,aState.semPaths);});
     }
 
-    html+='<div style="margin-bottom:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(232,121,249,.1),rgba(167,139,250,.07));border:1px solid rgba(232,121,249,.25);border-radius:10px">';
-    html+='<div style="font-size:13px;font-weight:800;color:#e879f9;font-family:Playfair Display,serif;font-style:italic;margin-bottom:3px">⬡ Structural Equation Modeling (SEM)</div>';
-    html+='<div style="font-size:11px;color:rgba(232,222,255,.5);line-height:1.6">SEM mengkombinasikan CFA (model pengukuran) + Path Analysis (model struktural). Cocok untuk: uji konstruk laten, hubungan kausal antar konstruk, dan mediasi kompleks. Tools: SPSS AMOS, R lavaan, Mplus.</div>';
-    html+='</div>';
+    html+='<div class="analyze-info-bar"><div class="analyze-info-title">Structural Equation Modeling (SEM)</div><div class="analyze-info-desc">Mengkombinasikan CFA + Path Analysis. Untuk uji konstruk laten, hubungan kausal antar konstruk, dan mediasi kompleks.</div></div>';
 
     // Mode tabs
     html+='<div style="display:flex;gap:5px;margin-bottom:13px">';
-    [{k:'measurement',l:'① Measurement Model (CFA)',ic:'⬡'},{k:'structural',l:'② Structural Model (Path)',ic:'→'},{k:'results',l:'③ Results & Fit',ic:''}].forEach(function(t){
+    [{k:'measurement',l:'① Measurement Model (CFA)'},{k:'structural',l:'② Structural Model (Path)'},{k:'results',l:'③ Results & Fit'}].forEach(function(t){
       var act=aState.semMode===t.k;
-      html+='<button onclick="aState.semMode=\''+t.k+'\';renderASub()" style="padding:7px 14px;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;flex:1;transition:all .15s;'+(act?'background:linear-gradient(135deg,rgba(232,121,249,.3),rgba(167,139,250,.2));color:#e879f9;border:1px solid rgba(232,121,249,.4);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')+'">'+t.ic+' '+t.l+'</button>';
+      html+='<button onclick="aState.semMode=\''+t.k+'\';renderASub()" style="padding:7px 14px;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;flex:1;transition:all .15s;'+(act?'background:linear-gradient(135deg,rgba(232,121,249,.3),rgba(167,139,250,.2));color:#e879f9;border:1px solid rgba(232,121,249,.4);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')+'">'+t.l+'</button>';
     });
     html+='</div>';
 
@@ -7833,9 +7847,9 @@ function renderASub(){
       html+='<div class="card"><div class="sec-hd">Measurement Model Fit</div>';
       if(!semReady){
         html+='<div class="chart-empty" style="padding:32px 0">Tambah ≥1 konstruk dengan ≥2 indikator untuk melihat fit model pengukuran.</div>';
-        html+='<div style="margin-top:14px;padding:11px;background:rgba(232,121,249,.05);border:1px solid rgba(232,121,249,.18);border-radius:8px;font-size:11px;color:rgba(232,222,255,.55);line-height:1.65">';
-        html+='<b style="color:#e879f9">Workflow SEM (AMOS):</b><br>';
-        html+='1. Definisikan konstruk laten + indikator<br>2. Gambar structural paths<br>3. Run dan cek fit: CFI, RMSEA, SRMR<br>4. Modifikasi model jika fit buruk<br>5. Interpretasi path coefficients';
+        html+='<div class="analyze-info-bar" style="margin-top:14px">';
+        html+='<div class="analyze-info-title">Workflow SEM (AMOS)</div>';
+        html+='<div class="analyze-info-desc">1. Definisikan konstruk laten + indikator<br>2. Gambar structural paths<br>3. Run dan cek fit: CFI, RMSEA, SRMR<br>4. Modifikasi model jika fit buruk<br>5. Interpretasi path coefficients</div>';
         html+='</div>';
       } else if(semResult&&semResult._err){
         html+='<div class="miss-warn">'+semResult.msg+'</div>';
@@ -7961,7 +7975,7 @@ function renderASub(){
 
       // Run button
       html+='<div class="card" style="text-align:center;padding:14px">';
-      html+='<button class="btn btn-primary" onclick="runSEM()" style="padding:11px 40px;font-size:13px">▶ Run Full SEM → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runSEM()" style="padding:11px 40px;font-size:13px">▶ Run</button>';
       html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:7px">Akan menghitung: CFA measurement model + structural paths + fit indices + path coefficients</div>';
       html+='</div>';
     }
@@ -8056,7 +8070,7 @@ function renderASub(){
         html+='</div></div>';
 
         // Run SEM to output button
-        html+='<div style="text-align:center;margin-top:6px"><button class="btn btn-primary" onclick="runSEM()" style="padding:11px 36px">▶ Simpan ke Output Panel</button></div>';
+        html+='<div style="text-align:center;margin-top:6px"><button class="btn btn-primary btn-sm" onclick="runSEM()" style="padding:11px 36px">▶ Run</button></div>';
       }
     }
   }
@@ -8068,7 +8082,7 @@ function renderASub(){
     if(!aState.ldaGroup) aState.ldaGroup='';
     if(!aState.ldaPreds) aState.ldaPreds=[];
     var ldaResult=aState.ldaResult||null;
-    html+='<div class="card"><div class="sec-hd">⬡ Linear Discriminant Analysis</div>';
+    html+='<div class="card"><div class="sec-hd">Linear Discriminant Analysis</div>';
     html+='<div style="margin-bottom:10px"><label class="lbl">Grouping Variable (Kategorikal)</label>';
     html+=mkSelect('lda-grp',aF,aState.ldaGroup,'aState.ldaGroup=val;aState.ldaResult=null;renderASub()','Select grouping variable');
     html+='</div>';
@@ -8080,7 +8094,7 @@ function renderASub(){
       html+='<button onclick="(function(){var i=aState.ldaPreds.indexOf(\''+f+'\');if(i>=0)aState.ldaPreds.splice(i,1);else aState.ldaPreds.push(\''+f+'\');aState.ldaResult=null;renderASub();})()" style="padding:4px 10px;border-radius:6px;border:1.5px solid '+(sel?'#38bdf8':'rgba(124,58,237,.3)')+';background:'+(sel?'rgba(56,189,248,.15)':'rgba(124,58,237,.06)')+';color:'+(sel?'#38bdf8':'rgba(232,222,255,.5)')+';font-size:11px;cursor:pointer;font-family:Inter,sans-serif;font-weight:'+(sel?'700':'400')+'">'+(sel?'✓ ':'')+f+'</button>';
     });
     html+='</div></div>';
-    html+='<button class="btn btn-primary" onclick="runDiscriminant()" style="margin-top:4px">▶ Run Discriminant Analysis → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runDiscriminant()" style="margin-top:4px">▶ Run</button>';
     html+='</div>';
 
     if(ldaResult&&ldaResult._err){
@@ -8178,7 +8192,7 @@ function renderASub(){
     if(!aState.clLinkage) aState.clLinkage='ward';
     var clResult=aState.clResult||null;
 
-    html+='<div class="card"><div class="sec-hd">⬡ Cluster Analysis</div>';
+    html+='<div class="card"><div class="sec-hd">Cluster Analysis</div>';
     // Method toggle
     html+='<div style="margin-bottom:10px">'+mkCsel('cl-method',['kmeans','hierarchical'],aState.clMethod,'aState.clMethod=val;aState.clResult=null;renderASub()','Method')+'</div>';
 
@@ -8198,7 +8212,7 @@ function renderASub(){
       html+='<div style="margin-bottom:10px">'+mkCsel('cl-hk',['2','3','4','5','6'],String(aState.clK),'aState.clK=parseInt(val);aState.clResult=null;renderASub()','Cut Clusters (k)')+'</div>';
     }
 
-    html+='<button class="btn btn-primary" onclick="runCluster()" style="margin-top:4px">▶ Run Cluster Analysis → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runCluster()" style="margin-top:4px">▶ Run</button>';
     html+='</div>';
 
     if(clResult&&clResult._err){
@@ -8283,10 +8297,7 @@ function renderASub(){
     var nF2=vars.filter(function(v){return v.type==='Numeric';}).map(function(v){return v.name;});
     var n2=data.length;
 
-    html+='<div style="margin-bottom:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(248,113,113,.1),rgba(251,191,36,.06));border:1px solid rgba(248,113,113,.25);border-radius:10px">';
-    html+='<div style="font-size:13px;font-weight:800;color:#f87171;font-family:Playfair Display,serif;font-style:italic;margin-bottom:3px">◎ Missing Data Analysis</div>';
-    html+='<div style="font-size:11px;color:rgba(232,222,255,.5);line-height:1.6">Little\'s MCAR test determines whether missing data is Missing Completely At Random. Pattern matrix visualizes the distribution and co-occurrence of missing values across variables and cases.</div>';
-    html+='</div>';
+    html+='<div class="analyze-info-bar"><div class="analyze-info-title">◎ Missing Data Analysis</div><div class="analyze-info-desc">Little\'s MCAR test: apakah data hilang bersifat acak (MCAR). Pattern matrix memvisualisasikan distribusi dan co-occurrence nilai hilang.</div></div>';
 
     if(!n2||!nF2.length){
       html+='<div class="card"><div class="chart-empty" style="padding:38px 0">No numeric data loaded. Import a CSV file to begin missing data analysis.</div></div>';
@@ -8569,7 +8580,7 @@ function renderASub(){
           html+='</div></div>';
         }
       }
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="runROC()"> Analyze → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runROC()">▶ Run</button>';
       if(rocPrv&&!rocPrv._err){
         html+='<div class="stats-grid2" style="margin-top:12px">';
         html+=stCard('AUC',rocPrv.auc,rocPrv.aucInterp);
@@ -8691,7 +8702,7 @@ function renderASub(){
     if(aState.survMethod==='km'){
       html+='<div class="card"><div class="sec-hd">Kaplan-Meier Estimator</div>';
       html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:10px;line-height:1.65">Mengestimasi survival function S(t) = P(T&gt;t) dari data dengan censoring. Titik drop = event; ✚ = censored.</div>';
-      html+='<button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:11px" onclick="runSurvival()">▶ Run → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-bottom:11px" onclick="runSurvival()">▶ Run</button>';
       if(survPrv&&!survPrv._err){
         html+='<div class="stats-grid2">';
         survPrv.groups.forEach(function(g){
@@ -8729,7 +8740,7 @@ function renderASub(){
         html+='<div style="padding:10px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18);border-radius:8px;font-size:11.5px;color:rgba(232,222,255,.7);line-height:1.65">'+lr.interpretation+'</div>';
         html+=mkTable(['Group','N','Events','Censored','Median Survival','O-E'],
           survPrv.groups.map(function(g){return [g.label,g.n,g.events,g.n-g.events,g.medianSurv===null?'NR':SE.f4(g.medianSurv),SE.f4(g.oe||0)];}));
-        html+='<button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="runSurvival()">▶ Save to Output</button>';
+        html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runSurvival()">▶ Run</button>';
       } else if(survPrv&&survPrv._err) html+='<div style="color:#f87171;font-size:11px">'+survPrv.msg+'</div>';
       else html+='<div class="chart-empty">Pilih group variable dan pastikan data sudah di-load</div>';
       html+='</div>';
@@ -8749,7 +8760,7 @@ function renderASub(){
         html+='<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;background:'+(sel?'rgba(74,222,128,.12)':'rgba(255,255,255,.03)')+';border:1px solid '+(sel?'rgba(74,222,128,.3)':'rgba(255,255,255,.07)')+'"><input type="checkbox" '+(sel?'checked':'')+' onchange="toggleSurvCov(\''+v+'\',this.checked)" style="accent-color:#4ade80"/>'+v+'</label>';
       });
       html+='</div>';
-      html+='<button class="btn btn-primary btn-sm" style="width:100%" onclick="runCoxRegression()">▶ Fit Cox Model → Output</button>';
+      html+='<button class="btn btn-primary btn-sm"  onclick="runCoxRegression()">▶ Run</button>';
       if(coxPrv&&!coxPrv._err){
         html+='<div class="stats-grid2" style="margin-top:11px">';
         html+=stCard('N',coxPrv.n,'');
@@ -8793,7 +8804,7 @@ function renderASub(){
       try{ pwRes=computePower(pw.pwTest,parseFloat(pw.pwAlpha),parseFloat(pw.pwPower),parseFloat(pw.pwEffect),parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),pw.pwSolve,parseInt(pw.pwN||30)); }catch(e){ pwRes={err:e.message}; }
 
       html+='<div class="grid2">';
-      html+='<div class="card"><div class="sec-hd">⚡ Power Analysis — Sample Size Calculator</div>';
+      html+='<div class="card"><div class="sec-hd">Power Analysis — Sample Size Calculator</div>';
       html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:12px;line-height:1.6">Tentukan N minimum yang dibutuhkan, atau hitung power dari N yang ada, berdasarkan effect size, α, dan tipe uji statistik.</div>';
 
       // Test type — custom csel
@@ -8857,7 +8868,7 @@ function renderASub(){
         html+='</div>';
       }
 
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:10px;width:100%" onclick="runPowerAnalysis()">⚡ Calculate → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPowerAnalysis()">▶ Run</button>';
       html+='</div>';
 
       // Results panel
@@ -8955,7 +8966,7 @@ function renderASub(){
         html+='</div>';
         html+=svgSensitivityCurve(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseFloat(pw.pwPower)||0.80,parseInt(pw.pwTails||2),parseInt(pw.pwN||30));
       }
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="runPowerAnalysis()">Save to Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runPowerAnalysis()">▶ Run</button>';
       html+='</div>';
     }
   }
@@ -8974,7 +8985,7 @@ function renderASub(){
 
     if(currentASub==='moderation'){
       html+='<div class="grid2">';
-      html+='<div class="card"><div class="sec-hd">⚡ Moderation Analysis (X×W → Y)</div>';
+      html+='<div class="card"><div class="sec-hd">Moderation Analysis (X×W → Y)</div>';
       html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:10px;line-height:1.6">Uji apakah hubungan X→Y berbeda tergantung nilai moderator W. Interaction term X×W harus signifikan.</div>';
 
       html+=mkSelect('mod-x',nF2,aState.modX,'aState.modX=val;renderASub()','Independent Variable (X)');
@@ -8993,7 +9004,7 @@ function renderASub(){
       // Mean centering
       html+='<div style="margin-top:9px"><label style="display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" '+(aState.modCenter!==false?'checked':'')+' onchange="aState.modCenter=this.checked;renderASub()" style="accent-color:#c084fc"/><span style="font-size:12px;color:rgba(232,222,255,.7)">Mean-center X and W before interaction</span></label><div style="font-size:10px;color:rgba(232,222,255,.35);margin-top:3px;margin-left:22px">Direkomendasikan untuk mengurangi multikollinearitas dan memudahkan interpretasi</div></div>';
 
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="runModeration()">▶ Run Moderation → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runModeration()">▶ Run</button>';
 
       if(modPrv&&!modPrv._err){
         html+='<div style="margin-top:12px">';
@@ -9084,7 +9095,7 @@ function renderASub(){
         else if(jn.regions.length===1) html+='Johnson-Neyman point pada W='+SE.f4(jn.regions[0].value)+'. Hubungan X→Y signifikan '+jn.regions[0].direction+'.';
         else html+='Terdapat '+jn.regions.length+' titik transisi signifikansi pada rentang W.';
         html+='</div>';
-        html+='<button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="runModeration()">Save to Output</button>';
+        html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runModeration()">▶ Run</button>';
       } else if(modPrv&&modPrv._err){
         html+='<div style="color:#f87171;font-size:11px">'+modPrv.msg+'</div>';
       }
@@ -9109,7 +9120,7 @@ function renderASub(){
       }
     }
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd">&#x3B2; Bayesian Independent T-Test (Bayes Factor)</div>';
+    html+='<div class="card"><div class="sec-hd">Bayesian Independent T-Test</div>';
     html+='<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:11px;line-height:1.6">The Bayes Factor (BF₁₀) quantifies evidence <em>for</em> H₁ relative to H₀. BF₁₀ &gt; 3 = moderate evidence for effect; &lt; 1/3 = evidence for null.</div>';
     html+=mkSelect('bay-v',nF,bV,'aState.bayV=val;renderASub()','Dependent Variable');
     html+='<div style="margin-top:8px">'+mkSelect('bay-g',aF,bG,'aState.bayG=val;renderASub()','Grouping Variable')+'</div>';
@@ -9129,7 +9140,7 @@ function renderASub(){
       html+='<button class="btn btn-sm '+(sel?'btn-primary':'btn-ghost')+'" onclick="aState.bayTails='+opt.v+';renderASub()">'+opt.l+'</button>';
     });
     html+='</div></div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runBayes()">&#x25B6; Run &#x2192; Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runBayes()">▶ Run</button>';
     if(prv&&!prv._err){
       var bf=parseFloat(prv.BF10);
       var bfCol=bf>100?'#34d399':bf>10?'#4ade80':bf>3?'#a3e635':bf>1?'#fbbf24':bf>0.333?'#fb923c':'#f87171';
@@ -9177,7 +9188,7 @@ function renderASub(){
       bcPrv=tryStats(function(){return SE.bayesPearson(SE.validNums(data.map(function(r){return r[bcX];})),SE.validNums(data.map(function(r){return r[bcY];})),bcPrior);});
     }
     html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd">&#x3B2; Bayesian Correlation (Bayes Factor)</div>';
+    html+='<div class="card"><div class="sec-hd">Bayesian Correlation</div>';
     html+='<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:11px;line-height:1.6">Tests H₁: ρ≠0 vs H₀: ρ=0. Uses the Jeffreys–Zellner–Siow prior on the correlation coefficient.</div>';
     html+=mkSelect('bc-x',nF,bcX,'aState.bcX=val;renderASub()','Variable X');
     html+='<div style="margin-top:8px">'+mkSelect('bc-y',nF,bcY,'aState.bcY=val;renderASub()','Variable Y')+'</div>';
@@ -9189,7 +9200,7 @@ function renderASub(){
       html+='<button class="btn btn-sm '+(sel?'btn-primary':'btn-ghost')+'" onclick="aState.bcPrior='+opt.v+';renderASub()">'+opt.l+'</button>';
     });
     html+='</div></div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runBayesCorr()">&#x25B6; Run &#x2192; Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runBayesCorr()">▶ Run</button>';
     if(bcPrv&&!bcPrv._err){
       var bfc=parseFloat(bcPrv.BF10);
       var bfcCol=bfc>100?'#34d399':bfc>10?'#4ade80':bfc>3?'#a3e635':bfc>1?'#fbbf24':bfc>0.333?'#fb923c':'#f87171';
@@ -9231,7 +9242,7 @@ function renderASub(){
     html+='<div><label class="lbl">α₀ (shape)</label><input class="inp" type="number" step="0.1" min="0.01" value="'+bpAlpha+'" oninput="aState.bpAlpha=Math.max(0.01,parseFloat(this.value)||0.5);renderASub()"/></div>';
     html+='<div><label class="lbl">β₀ (rate)</label><input class="inp" type="number" step="0.1" min="0.01" value="'+bpBeta+'" oninput="aState.bpBeta=Math.max(0.01,parseFloat(this.value)||0.5);renderASub()"/></div>';
     html+='</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runBayesPosterior()">&#x25B6; Run &#x2192; Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runBayesPosterior()">▶ Run</button>';
     if(bpPrv&&!bpPrv._err){
       html+='<div class="stats-grid2" style="margin-top:11px">';
       html+=stCard('Posterior Mean (μ)',bpPrv.postMean,'');
@@ -9428,7 +9439,7 @@ function renderASub(){
 
     // LEFT: Settings
     html+='<div>';
-    html+='<div class="card"><div class="sec-hd"><span style="color:#67e8f9">⏱</span> Time Series Analysis</div>';
+    html+='<div class="card"><div class="sec-hd">Time Series Analysis</div>';
     html+=mkSelect('ts-v',nF,tsV,'aState.tsV=val;renderASub()','Time-ordered Variable');
     html+='<div style="margin-top:9px">'+mkCsel('ts-mod',['arima','decomp'],tsMod,'aState.tsMod=val;renderASub()','Method')+'</div>';
 
@@ -9496,7 +9507,7 @@ function renderASub(){
       html+='</div>';
     }
 
-    html+='<button class="btn btn-primary" style="margin-top:8px;width:100%;justify-content:center" onclick="runTimeSeries()">▶ Run → Output</button>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="runTimeSeries()">▶ Run</button>';
     html+='</div>'; // end left col
 
     // RIGHT: Charts
@@ -9657,7 +9668,7 @@ function renderASub(){
       });
       html+='</tbody></table></div>';
       html+='<div style="display:flex;gap:5px;margin-top:8px">';
-      html+='<button class="btn btn-primary" onclick="runMetaAnalysis()" style="flex:1;justify-content:center">▶ Run → Output</button>';
+      html+='<button class="btn btn-primary btn-sm" onclick="runMetaAnalysis()" style="flex:1">▶ Run</button>';
       html+='<button class="btn btn-sm" onclick="aState.metaStudies=[];renderASub()" style="background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.2);color:#f87171">Clear All</button>';
       html+='</div>';
     }
@@ -9981,7 +9992,7 @@ function metaAddStudy(){
   aState.metaStudies.push({name:name,yi:yi,vi:vi,ni:ni});
   aState.metaNewStudy={name:'',yi:'',vi:'',ni:''};
   renderASub();
-  showToast('Studi "'+name+'" ditambahkan ✓');
+  showToast('Studi berhasil ditambahkan');
 }
 
 function metaRemoveStudy(i){
@@ -10002,7 +10013,7 @@ function metaLoadExample(){
   ];
   aState.metaEffect='d';
   renderASub();
-  showToast('Contoh data dimuat ✓');
+  showToast('Data berhasil dimuat');
 }
 
 function runMetaAnalysis(){
@@ -10018,7 +10029,7 @@ function runMetaAnalysis(){
       model:aState.metaModel,
       effectType:aState.metaEffect
     });
-    showToast('Meta-Analysis disimpan ke Output ✓');
+    showToast('Meta-Analysis berhasil');
   },'Meta-Analysis');
 }
 
@@ -11090,7 +11101,7 @@ function runMultipleImputation(){
     updateBadges();
     var title='Multiple Imputation ('+res.method.toUpperCase()+', M='+res.M+'): ['+res.targetVars.join(', ')+']';
     addOutput({type:'mi',title:title,res:res});
-    showToast('MI applied — dataset now uses imputed values (M=1 applied)');
+    showToast('Imputation berhasil');
   },'Multiple Imputation');
 }
 
@@ -12213,7 +12224,7 @@ function runSEM(){
       latentMap:JSON.parse(JSON.stringify(aState.semLatentMap)),
       paths:aState.semPaths.slice()
     });
-    showToast('SEM analysis saved to output ✓');
+    showToast('SEM berhasil');
   },'SEM');
 }
 
@@ -13138,7 +13149,7 @@ function runDiscriminant(){
   aState.ldaResult=res;
   renderASub();
   addOutput({id:'lda_'+Date.now(),title:'Discriminant Analysis: '+grp+' ~ '+preds.join('+'),type:'discriminant',res:res,groupVar:grp,predVars:preds});
-  showToast('Discriminant Analysis selesai ✓');
+  showToast('Discriminant Analysis berhasil');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -13498,7 +13509,7 @@ function runCluster(){
   aState.clResult=res;
   renderASub();
   addOutput({id:'cl_'+Date.now(),title:(method==='kmeans'?'K-Means':'Hierarchical')+' Cluster (k='+res.k+'): '+vars.join(', '),type:'cluster',res:res,vars,k:res.k,method});
-  showToast('Cluster Analysis selesai ✓');
+  showToast('Cluster Analysis berhasil');
 }
 
 function runMultipleReg(){runSafe(()=>{
@@ -13567,7 +13578,7 @@ function runTransform(){
       case'center':return v-mn;case'rank':return rm.get(v)??null;default:return v;}};
   data=data.map(r=>({...r,[nn]:tx(r[fld])}));
   vars=[...vars,{name:nn,type:'Numeric',width:10,dec:4,label:nn+' ('+tt+')',measure:'Scale',role:'Input'}];
-  updateBadges();showToast('Created "'+nn+'"');renderASub();
+  updateBadges();showToast('Transform berhasil');renderASub();
 }
 
 function runCompute(){
@@ -13607,7 +13618,7 @@ function runCompute(){
   });
   if(errors>data.length*.8){showToast('Expression errors in >80% rows','error');return;}
   data=nd;vars=[...vars,{name:nn,type:'Numeric',width:10,dec:4,label:nn+' (computed)',measure:'Scale',role:'Input'}];
-  updateBadges();showToast('Computed "'+nn+'" ('+errors+' errors)');renderASub();
+  updateBadges();showToast('Compute berhasil');renderASub();
 }
 
 // Recode
@@ -13620,7 +13631,7 @@ function runRecodeRange(n){
   if(!rules.length){showToast('Enter at least 1 rule','error');return;}
   data=data.map(r=>{const v=r[aState.recodeFld];if(v===null||v===undefined)return{...r,[nn]:null};for(const rule of rules)if(v>=rule.from&&v<=rule.to)return{...r,[nn]:rule.newVal};return{...r,[nn]:null};});
   vars=[...vars,{name:nn,type:'String',width:15,dec:0,label:nn+' (recoded)',measure:'Nominal',role:'Input'}];
-  updateBadges();showToast('Recoded → '+nn);renderASub();
+  updateBadges();showToast('Recode berhasil');renderASub();
 }
 function runRecodeBinary(){
   const nn=aState.recodeNewName.trim();if(!nn){showToast('Enter name','error');return;}
@@ -13628,7 +13639,7 @@ function runRecodeBinary(){
   if(!v0||!v1){showToast('Enter both values','error');return;}
   data=data.map(r=>{const v=String(r[aState.recodeFld]??'');if(v===v0)return{...r,[nn]:0};if(v===v1)return{...r,[nn]:1};return{...r,[nn]:null};});
   vars=[...vars,{name:nn,type:'Numeric',width:5,dec:0,label:nn+' (0='+v0+',1='+v1+')',measure:'Nominal',role:'Input'}];
-  updateBadges();showToast('Binary recode done');renderASub();
+  updateBadges();showToast('Recode berhasil');renderASub();
 }
 function runRecodeExact(uniq){
   const nn=aState.recodeNewName.trim();if(!nn){showToast('Enter name','error');return;}
@@ -13637,7 +13648,7 @@ function runRecodeExact(uniq){
   const isNum=Object.values(map).every(v=>!isNaN(Number(v)));
   data=data.map(r=>{const v=r[aState.recodeFld];if(v===null||v===undefined)return{...r,[nn]:null};const nv=map[v];if(nv===undefined)return{...r,[nn]:null};return{...r,[nn]:isNum?Number(nv):nv};});
   vars=[...vars,{name:nn,type:isNum?'Numeric':'String',width:15,dec:0,label:nn+' (recoded)',measure:isNum?'Scale':'Nominal',role:'Input'}];
-  updateBadges();showToast('Recoded → '+nn);renderASub();
+  updateBadges();showToast('Recode berhasil');renderASub();
 }
 
 // Filter
@@ -13687,11 +13698,11 @@ function applyFilter(){
   if(!_origData)_origData=[...data];
   const filtered=_origData.filter(r=>safeFilter(r,expr));
   if(!filtered.length){showToast('No rows match','error');return;}
-  data=filtered;aState.filterActive=true;updateBadges();showToast('Filter: '+filtered.length+'/'+_origData.length+' rows');renderASub();
+  data=filtered;aState.filterActive=true;updateBadges();showToast('Filter berhasil');renderASub();
 }
-function clearFilter(){if(_origData){data=[..._origData];_origData=null;}aState.filterActive=false;updateBadges();showToast('Filter cleared');renderASub();}
-function completeCases(){if(!_origData)_origData=[...data];data=_origData.filter(r=>vars.every(v=>!isMiss(r[v.name])));aState.filterActive=true;updateBadges();showToast('Complete cases: '+data.length);renderASub();}
-function removeOutlierFilter(){if(!numFields().length)return;const fld=numFields()[0];const vals=SE.validNums(data.map(r=>r[fld]));const s=[...vals].sort((a,b)=>a-b);const q1=SE.quantile(s,.25),q3=SE.quantile(s,.75),iqr=q3-q1;if(!_origData)_origData=[...data];data=_origData.filter(r=>{const v=r[fld];return v===null||v===undefined||(v>=q1-1.5*iqr&&v<=q3+1.5*iqr);});aState.filterActive=true;updateBadges();showToast('Outlier filter applied');renderASub();}
+function clearFilter(){if(_origData){data=[..._origData];_origData=null;}aState.filterActive=false;updateBadges();showToast('Filter berhasil dihapus');renderASub();}
+function completeCases(){if(!_origData)_origData=[...data];data=_origData.filter(r=>vars.every(v=>!isMiss(r[v.name])));aState.filterActive=true;updateBadges();showToast('Filter berhasil');renderASub();}
+function removeOutlierFilter(){if(!numFields().length)return;const fld=numFields()[0];const vals=SE.validNums(data.map(r=>r[fld]));const s=[...vals].sort((a,b)=>a-b);const q1=SE.quantile(s,.25),q3=SE.quantile(s,.75),iqr=q3-q1;if(!_origData)_origData=[...data];data=_origData.filter(r=>{const v=r[fld];return v===null||v===undefined||(v>=q1-1.5*iqr&&v<=q3+1.5*iqr);});aState.filterActive=true;updateBadges();showToast('Filter berhasil');renderASub();}
 
 // ── WEIGHT CASES ─────────────────────────────────────────────────────────
 // VIRTUAL WEIGHTING: data fisik TIDAK pernah diexpand.
@@ -13715,7 +13726,7 @@ function runWeightCases(){
   var badge=document.getElementById('wc-badge');
   if(badge)badge.style.display='inline';
   updateBadges();
-  showToast('Weight Cases aktif ⚖ — N efektif (ΣW): '+nEff+(nSkipped?' · '+nSkipped+' baris dilewati':''));
+  showToast('Weight Cases berhasil');
   renderASub();
 }
 
@@ -13739,11 +13750,11 @@ function runImpute(){
     case'mode':{const fr={};vals.forEach(v=>{fr[v]=(fr[v]||0)+1;});iv=parseFloat(Object.entries(fr).sort((a,b)=>b[1]-a[1])[0][0]);break;}
     case'zero':iv=0;break;case'min':iv=Math.min(...vals);break;case'max':iv=Math.max(...vals);break;default:iv=SE.mean(vals);}
   let n=0;data=data.map(r=>{if(isMiss(r[fld])){n++;return{...r,[fld]:iv};}return r;});
-  updateBadges();showToast('Imputed '+n+' missing values');renderASub();
+  updateBadges();showToast('Imputation berhasil');renderASub();
 }
 function imputeAllVars(){
   let tot=0;numFields().forEach(fld=>{const vals=SE.validNums(data.map(r=>r[fld]));if(!vals.length)return;const iv=SE.mean(vals);data=data.map(r=>{if(isMiss(r[fld])){tot++;return{...r,[fld]:iv};}return r;});});
-  updateBadges();showToast('Imputed '+tot+' values (mean)');renderASub();
+  updateBadges();showToast('Imputation berhasil');renderASub();
 }
 
 // Corr matrix field toggle
@@ -13760,7 +13771,7 @@ function _loadSyntaxToEditor(syn){
   synText=syn;
   var ta=document.getElementById('syn-ta');
   if(ta){ta.value=syn;}
-  showToast('Syntax loaded to editor');
+  showToast('Syntax berhasil dimuat');
 }
 function _downloadSyntax(){
   var syn=document.getElementById('syn-ta')?document.getElementById('syn-ta').value:synText;
@@ -13776,7 +13787,7 @@ function renderSyntax(el){
   html+='<div class="card"><div class="sec-hd">Syntax Editor</div>';
   html+='<textarea class="syn-area" id="syn-ta" oninput="synText=this.value">'+synText+'</textarea>';
   html+='<div class="row" style="margin-top:9px;flex-wrap:wrap;gap:6px">';
-  html+='<button class="btn btn-green btn-sm" onclick="execSyntax()" id="syn-run-btn">&#9654; Run All</button>';
+  html+='<button class="btn btn-primary btn-sm" onclick="execSyntax()" id="syn-run-btn">▶ Run All</button>';
   html+='<button class="btn btn-ghost btn-sm" onclick="_downloadSyntax()">&#8595; Save .sps</button>';
   html+='<button class="btn btn-ghost btn-sm" onclick="synResults=[];renderTab(\'syntax\')">Clear</button>';
   html+='</div>';
@@ -13870,6 +13881,190 @@ function renderPivot(el){
 // ════════════════════════════════════════════════════════════════════════
 // OUTPUT VIEW — Tab Group System
 // ════════════════════════════════════════════════════════════════════════
+
+// ── Interpretation box helper ─────────────────────────────────────────
+// Renders a subtle, theme-consistent conclusion line at the bottom of each output card
+function _interpBox(text){
+  return '<div style="margin-top:14px;padding:9px 13px;border-top:1px solid rgba(124,58,237,.1);font-size:11.5px;color:rgba(232,222,255,.45);line-height:1.65;font-style:italic">'+text+'</div>';
+}
+
+// Build interpretation string per output type
+function _buildInterp(o){
+  var r=o.res;
+  var p=r?parseFloat(r.p||r.p_fmt||r.pF||r.lrP||1):1;
+  var sig=p<.05;
+
+  if(o.type==='descriptive'){
+    var sk=parseFloat(o.stats&&o.stats.skewness)||0;
+    var swp=parseFloat(o.stats&&o.stats.shapiroP)||1;
+    var norm=swp>.05;
+    return 'Distribusi '+o.field+' '+(norm?'normal (SW p='+o.stats.shapiroP+')'
+      :'tidak normal (SW p='+o.stats.shapiroP+')')
+      +', skewness '+Math.abs(sk).toFixed(2)+(Math.abs(sk)<1?' (simetris)':(sk>0?' (condong kanan)':' (condong kiri)'))+'.';
+  }
+  if(o.type==='ttest'){
+    var d=parseFloat(r.cohensD)||0;
+    var mag=Math.abs(d)<.2?'trivial':Math.abs(d)<.5?'kecil':Math.abs(d)<.8?'sedang':'besar';
+    return (sig
+      ?'Terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (t='+r.t+', p='+r.p_fmt+'). Ukuran efek Cohen\'s d='+r.cohensD+' ('+mag+').'
+      :'Tidak terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (t='+r.t+', p='+r.p_fmt+'). Efek d='+r.cohensD+' ('+mag+').');
+  }
+  if(o.type==='onesamp'){
+    return (sig
+      ?'Rata-rata sampel (x̄='+r.mean+') berbeda signifikan dari nilai uji μ₀='+o.mu0+' (t='+r.t+', p='+r.p_fmt+').'
+      :'Rata-rata sampel (x̄='+r.mean+') tidak berbeda signifikan dari nilai uji μ₀='+o.mu0+' (t='+r.t+', p='+r.p_fmt+').');
+  }
+  if(o.type==='paired'){
+    return (sig
+      ?'Terdapat perbedaan signifikan antara dua kondisi (mean diff='+r.meanDiff+', t='+r.t+', p='+r.p_fmt+'). Efek d='+r.cohensD+' ('+r.dInterp+').'
+      :'Tidak terdapat perbedaan signifikan antara dua kondisi (mean diff='+r.meanDiff+', p='+r.p_fmt+').');
+  }
+  if(o.type==='rmanova'){
+    return (sig
+      ?'Terdapat perbedaan signifikan antar time point (F='+r.F+', p='+r.p_fmt+'). Ukuran efek η²p='+r.etaSq+' ('+r.etaInterp+').'
+      :'Tidak terdapat perbedaan signifikan antar time point (F='+r.F+', p='+r.p_fmt+').');
+  }
+  if(o.type==='anova'){
+    return (sig
+      ?'Terdapat perbedaan signifikan antar grup (F='+r.F+', p='+r.p_fmt+'). Ukuran efek η²='+r.eta2+' ('+r.eta2Interp+'). Lanjutkan dengan post-hoc untuk mengetahui pasangan yang berbeda.'
+      :'Tidak terdapat perbedaan signifikan antar grup (F='+r.F+', p='+r.p_fmt+'). η²='+r.eta2+'.');
+  }
+  if(o.type==='anova2'){
+    var sigEffects=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return e.source;});
+    return sigEffects.length
+      ?'Efek signifikan: '+sigEffects.join(', ')+'. Perhatikan interaksi jika '+r.factorA+'×'+r.factorB+' signifikan.'
+      :'Tidak ada efek utama maupun interaksi yang signifikan.';
+  }
+  if(o.type==='anova3'){
+    var sigEff3=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return e.source;});
+    return sigEff3.length
+      ?'Efek signifikan: '+sigEff3.join(', ')+'.'
+      :'Tidak ada efek utama maupun interaksi yang signifikan.';
+  }
+  if(o.type==='correlation'){
+    return (sig
+      ?'Terdapat korelasi '+r.direction+' yang signifikan antara kedua variabel (r='+r.r+', p='+r.p_fmt+'). Kekuatan: '+r.strength+'. Variabel berbagi '+r.r2+' varians bersama.'
+      :'Tidak terdapat korelasi signifikan antara kedua variabel (r='+r.r+', p='+r.p_fmt+').');
+  }
+  if(o.type==='partialCorrelation'){
+    return (sig
+      ?'Setelah mengontrol '+o.pcZ+', korelasi antara '+o.pcX+' dan '+o.pcY+' tetap signifikan (r='+r.rp+', p='+r.p_fmt+').'
+      :'Setelah mengontrol '+o.pcZ+', korelasi antara '+o.pcX+' dan '+o.pcY+' tidak signifikan (r='+r.rp+', p='+r.p_fmt+').');
+  }
+  if(o.type==='regression'){
+    var pF=parseFloat(r.pF_fmt||1);
+    return (pF<.05
+      ?'Model regresi signifikan (F p='+r.pF_fmt+'). '+o.xF+' menjelaskan '+r.R2+' varians '+o.yF+'. Setiap +1 '+o.xF+' → '+o.yF+' berubah '+r.b1+'.'
+      :'Model regresi tidak signifikan (F p='+r.pF_fmt+'). '+o.xF+' tidak cukup menjelaskan varians '+o.yF+'.');
+  }
+  if(o.type==='multipleReg'){
+    var pF2=parseFloat(r.pF||1);
+    var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&parseFloat(c.p_fmt)<.05;}).map(function(c){return c.name;});
+    return (pF2<.05
+      ?'Model signifikan (R²='+r.R2+', p='+SE.f4(r.pF)+'). Prediktor signifikan: '+(sigPreds.length?sigPreds.join(', '):'tidak ada')+'.'
+      :'Model tidak signifikan secara keseluruhan (R²='+r.R2+').');
+  }
+  if(o.type==='logistic'){
+    return (parseFloat(r.nagelkerke)>.3
+      ?'Model logistik menjelaskan ~'+r.nagelkerke+' varians (Nagelkerke R²). Akurasi klasifikasi: '+r.accuracy+'%. Periksa OR prediktor signifikan untuk arah pengaruh.'
+      :'Model logistik dengan Nagelkerke R²='+r.nagelkerke+'. Akurasi: '+r.accuracy+'%.');
+  }
+  if(o.type==='mannwhitney'){
+    return (sig
+      ?'Terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (U='+r.U+', p='+r.p_fmt+'). Ukuran efek r='+r.r_eff+'.'
+      :'Tidak terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (U='+r.U+', p='+r.p_fmt+').');
+  }
+  if(o.type==='kruskal'){
+    return (sig
+      ?'Terdapat perbedaan signifikan antar grup (H='+r.H+', p='+r.p_fmt+'). Lanjutkan dengan uji post-hoc nonparametrik.'
+      :'Tidak terdapat perbedaan signifikan antar grup (H='+r.H+', p='+r.p_fmt+').');
+  }
+  if(o.type==='wilcoxon'){
+    return (sig
+      ?'Terdapat perbedaan signifikan antara dua kondisi (W='+r.Wplus+', p='+r.p_fmt+').'
+      :'Tidak terdapat perbedaan signifikan antara dua kondisi (p='+r.p_fmt+').');
+  }
+  if(o.type==='chiSquare'||o.type==='nonparam'){
+    return (sig
+      ?'Terdapat hubungan signifikan antar variabel (χ²='+r.chi2+', p='+r.p_fmt+'). Kekuatan asosiasi V='+r.V+' ('+r.Vinterp+').'
+      :'Tidak terdapat hubungan signifikan antar variabel (χ²='+r.chi2+', p='+r.p_fmt+').');
+  }
+  if(o.type==='alpha'){
+    return 'Cronbach α='+r.alpha+' ('+r.interp+'). '+(parseFloat(r.alpha)>=.7?'Reliabilitas internal diterima.':'Reliabilitas di bawah standar minimum (α < .70).');
+  }
+  if(o.type==='kappa'){
+    return 'Cohen\'s κ='+r.kappa+' ('+r.interp+'). '+(parseFloat(r.kappa)>.6?'Kesepakatan antar-rater dapat diterima.':'Kesepakatan antar-rater rendah.');
+  }
+  if(o.type==='efa'){
+    var nf=r&&r.nFactors||'?';
+    return 'EFA mengekstrak '+nf+' faktor. Periksa loading ≥ |.40| untuk interpretasi setiap faktor. Variabel dengan cross-loading tinggi perlu diperhatikan.';
+  }
+  if(o.type==='mediation'){
+    var ab=r&&r.ab;
+    var abSig=r&&r.abSig;
+    return (abSig
+      ?'Mediasi signifikan — indirect effect (ab='+ab+') berbeda dari nol berdasarkan bootstrap CI. '+(r&&parseFloat(r.c_prime_p)>=.05?'Full mediation (c\' tidak signifikan).':'Partial mediation (c\' masih signifikan).')
+      :'Efek indirect tidak signifikan (ab='+ab+'). Mediasi tidak terbukti pada α=.05.');
+  }
+  if(o.type==='moderation'){
+    return (sig
+      ?'Efek interaksi signifikan (p='+r.p_fmt+') — hubungan antara X dan Y dimoderasi oleh W. Lihat interaction plot untuk pola.'
+      :'Efek interaksi tidak signifikan (p='+r.p_fmt+') — W tidak memoderasi hubungan X→Y.');
+  }
+  if(o.type==='survival'||o.type==='cox'){
+    return 'Analisis survival selesai. Periksa kurva Kaplan-Meier dan hazard ratio untuk interpretasi perbedaan antar grup.';
+  }
+  if(o.type==='roc'){
+    var auc=r&&r.auc||0;
+    var aucInterp=auc>.9?'excellent':auc>.8?'good':auc>.7?'fair':auc>.6?'poor':'tidak informatif';
+    return 'AUC='+auc+' ('+aucInterp+'). '+(auc>.7?'Model memiliki kemampuan diskriminasi yang memadai.':'Kemampuan diskriminasi model terbatas.');
+  }
+  if(o.type==='bayesian'||o.type==='bayes_ttest'){
+    return 'Interpretasi Bayesian: BF₁₀ > 3 menunjukkan dukungan moderat untuk H₁; BF₁₀ < 1/3 mendukung H₀. Posterior distribution merangkum estimasi parameter.';
+  }
+  if(o.type==='hlm'){
+    var icc=r&&r.ICC;
+    return icc!==undefined
+      ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+o.depVar+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')
+      :'Model HLM selesai. Periksa random effects untuk variasi antar kelompok.';
+  }
+  if(o.type==='sem'){
+    var cfi=r&&r.CFI||0;
+    var rmsea=r&&r.RMSEA||1;
+    return 'Model fit: CFI='+cfi+' ('+( parseFloat(cfi)>=.95?'good':parseFloat(cfi)>=.90?'acceptable':'poor')+'), RMSEA='+rmsea+' ('+(parseFloat(rmsea)<=.05?'excellent':parseFloat(rmsea)<=.08?'acceptable':'poor')+').';
+  }
+  if(o.type==='discriminant'){
+    return 'Analisis diskriminan selesai. Periksa canonical discriminant functions dan struktur koefisien untuk mengidentifikasi variabel pembeda utama.';
+  }
+  if(o.type==='cluster'){
+    return 'Cluster analysis selesai. Interpretasikan profil setiap cluster berdasarkan centroid dan ukuran cluster untuk memberikan label deskriptif.';
+  }
+  if(o.type==='metaanalysis'){
+    return 'Meta-analysis selesai. Periksa pooled effect size, heterogeneity (I²), dan funnel plot untuk menilai publication bias.';
+  }
+  if(o.type==='timeseries'){
+    return 'Analisis time series selesai. Periksa ACF/PACF dan diagnostik residual untuk memastikan model sudah memadai.';
+  }
+  if(o.type==='poweranalysis'){
+    return 'Power analysis selesai. Power ≥ 0.80 umumnya dianggap memadai untuk mendeteksi efek yang diharapkan.';
+  }
+  if(o.type==='glm'){
+    return 'General Linear Model selesai. Periksa partial η² untuk ukuran efek setiap faktor.';
+  }
+  if(o.type==='manova'){
+    return 'MANOVA selesai. Jika uji multivariat signifikan, lanjutkan dengan univariat ANOVA per DV dengan koreksi Bonferroni.';
+  }
+  if(o.type==='hierarchicalReg'){
+    var lastBlock=(r&&r.blocks)?r.blocks[r.blocks.length-1]:null;
+    return lastBlock
+      ?'Model final (Block '+lastBlock.block+'): R²='+lastBlock.R2+'. ΔR² setiap blok menunjukkan kontribusi inkremental prediktor baru.'
+      :'Hierarchical regression selesai. Bandingkan ΔR² antar blok untuk menilai kontribusi setiap set prediktor.';
+  }
+  if(o.type==='corrmatrix'){
+    return 'Matriks korelasi selesai. Perhatikan korelasi tinggi (|r| > .70) yang bisa mengindikasikan multikollinearitas jika variabel digunakan bersama dalam regresi.';
+  }
+  return null;
+}
 
 // Output tab group state
 var _outMode = 'all';       // 'all' | 'group'
@@ -15441,6 +15636,9 @@ function renderOutput(el){
       html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:6px">Funnel plot simetris → tidak ada publication bias. Asimetri → kemungkinan ada bias publikasi.</div>';
     }
 
+    // ── Interpretation summary ────────────────────────────────────────
+    try{var _interp=_buildInterp(o);if(_interp)html+=_interpBox(_interp);}catch(e){}
+
     html+='</div>';
   });
   html+='</div>'; // end grid wrapper
@@ -16048,7 +16246,7 @@ function copyAPA(id,btn){
       btn.textContent='Copied!';
       btn.classList.add('copied');
       setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);
-      showToast('APA table copied — paste ke Word ✓');
+      showToast('APA berhasil disalin');
     }).catch(function(){fallbackCopy(text,btn);});
   } else {
     fallbackCopy(text,btn);
@@ -16065,7 +16263,7 @@ function fallbackCopy(text,btn){
   try{
     document.execCommand('copy');
     if(btn){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);}
-    showToast('APA table copied — paste ke Word ✓');
+    showToast('APA berhasil disalin');
   }catch(e){
     showToast('Copy gagal — coba manual select teks','error');
   }
@@ -16130,7 +16328,7 @@ async function sendAI(){
 function saveSession(){
   try{
     const snap={data,vars,outputs:outputs.map(o=>({...o,yHat:undefined,residuals:undefined,xs:undefined,ys:undefined,pairs:undefined}))};
-    localStorage.setItem('oss_session',JSON.stringify(snap));showToast('Session saved ✓');
+    localStorage.setItem('oss_session',JSON.stringify(snap));showToast('Session berhasil disimpan');
   }catch(e){showToast('Save failed: '+e.message,'error');}
 }
 function loadSession(){
@@ -16145,7 +16343,7 @@ function exportDataCSV(){
   const csv=[header,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='oss_data.csv';a.click();URL.revokeObjectURL(url);
-  showToast('CSV exported');
+  showToast('CSV berhasil diexport');
 }
 
 function generateAPAReport(){
@@ -16162,7 +16360,7 @@ function generateAPAReport(){
   });
   const blob=new Blob([apa],{type:'text/plain'});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='oss_apa_report.txt';a.click();URL.revokeObjectURL(url);
-  showToast('APA report exported');
+  showToast('Report berhasil diexport');
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -16473,7 +16671,7 @@ function saveSession(){
     _dsSyncSave(); // push globals → active dataset object
     var snap={datasets:datasets,activeDatasetId:activeDatasetId};
     localStorage.setItem('oss_session',JSON.stringify(snap));
-    showToast('Session saved ✓');
+    showToast('Session berhasil disimpan');
   }catch(e){showToast('Save failed','error');}
 }
 function loadSession(){
@@ -16513,7 +16711,7 @@ function exportDataCSV(){
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');a.href=url;a.download='oss_data.csv';a.click();
   URL.revokeObjectURL(url);
-  showToast('CSV exported');
+  showToast('CSV berhasil diexport');
 }
 
 function generateAPAReport(){
@@ -16532,7 +16730,7 @@ function generateAPAReport(){
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');a.href=url;a.download='oss_apa.txt';a.click();
   URL.revokeObjectURL(url);
-  showToast('APA report exported');
+  showToast('Report berhasil diexport');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -16706,7 +16904,7 @@ function _doExportExcel(){
   });
   
   XLSX.writeFile(wb,'OSS_Results_'+new Date().toISOString().slice(0,10)+'.xlsx');
-  showToast('Excel exported ✓ (.xlsx)');
+  showToast('Excel berhasil diexport');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -16843,7 +17041,7 @@ function _exportSingleOutput(id, mode){
   a.download='OSS_'+safeName+'_'+new Date().toISOString().slice(0,10)+'.doc';
   a.click();
   setTimeout(function(){URL.revokeObjectURL(url);},2000);
-  showToast('Exported: '+o.title+' ✓ (.doc)');
+  showToast('Export berhasil');
 }
 
 // ── Build HTML for one output (mode: 'table'|'chart'|'both') ──
@@ -17262,7 +17460,7 @@ function _exportBulkWord(ids, mode){
   a.download='OSS_Report_'+new Date().toISOString().slice(0,10)+'.doc';
   a.click();
   setTimeout(function(){URL.revokeObjectURL(url);},2000);
-  showToast('✓ Exported '+selected.length+' output(s) ke .doc');
+  showToast('Export berhasil');
 }
 
 // EXPORT TO WORD (.docx via HTML→Blob)
@@ -17283,7 +17481,7 @@ function exportToWord(){
   a.download='OSS_Report_'+new Date().toISOString().slice(0,10)+'.doc';
   a.click();
   setTimeout(function(){URL.revokeObjectURL(url);},2000);
-  showToast('Word document exported ✓ (.doc)');
+  showToast('Word berhasil diexport');
 }
 
 function _wordCSS(){
@@ -17503,7 +17701,7 @@ function _escHtml(s){
         fn();
         OSSLoader.update('Analisis selesai ✓');
         OSSLoader.hide(340);
-        showToast(label + ' complete → Output');
+        showToast(label+' berhasil');
       }catch(e){
         OSSLoader.hide(0);
         showToast(e.message, 'error');
@@ -17779,7 +17977,7 @@ async function saveToFile(){
         await writable.close();
         _ossFileHandle = handle;
         ossUpdateFileBar(handle.name);
-        showToast('✓ Tersimpan ke ' + handle.name);
+        showToast('File berhasil disimpan');
         return;
       } catch(err){
         if(err.name === 'AbortError') return; // user cancelled
@@ -17797,7 +17995,7 @@ async function saveToFile(){
     setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
     if(!_ossFileName) _ossFileName = fname;
     ossUpdateFileBar(fname);
-    showToast('✓ File diunduh: ' + fname);
+    showToast('File berhasil diunduh');
 
   } catch(e){
     showToast('Gagal menyimpan: ' + e.message, 'error');
@@ -17851,7 +18049,7 @@ async function importFromFile(){
         ossRestore(snap);
         _ossFileHandle = handle;
         ossUpdateFileBar(handle.name);
-        showToast('✓ Dibuka: ' + handle.name);
+        showToast('File berhasil dibuka');
         return;
       } catch(err){
         if(err.name === 'AbortError') return;
@@ -17879,7 +18077,7 @@ function handleOSSImport(evt){
       ossRestore(snap);
       _ossFileHandle = null; // no handle in fallback mode
       ossUpdateFileBar(file.name);
-      showToast('✓ Dibuka: ' + file.name);
+      showToast('File berhasil dibuka');
     } catch(err){
       showToast('Format file tidak valid: ' + err.message, 'error');
     }
@@ -17972,7 +18170,7 @@ function _pwaCheckInstalled(){
           var newWorker = reg.installing;
           newWorker.addEventListener('statechange', function(){
             if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
-              showToast('Update OSS tersedia — refresh untuk menggunakan versi terbaru');
+              showToast('Update tersedia — refresh browser');
             }
           });
         });
@@ -18001,7 +18199,7 @@ function _pwaCheckInstalled(){
     var banner = document.getElementById('oss-pwa-banner');
     if(banner) banner.classList.remove('show');
     _pwaSetInstalled(true);
-    showToast('\u2713 OSS berhasil diinstall sebagai aplikasi!');
+    showToast('OSS berhasil diinstall');
   });
 })();
 
@@ -18042,7 +18240,7 @@ function dismissPWABanner(){
 updateBadges();
 renderDsSidebar();
 if(loadSession()){
-  setTimeout(function(){showToast('Session restored ✓');updateBadges();renderDsSidebar();},400);
+  setTimeout(function(){showToast('Session berhasil dimuat');updateBadges();renderDsSidebar();},400);
 }
 
 
