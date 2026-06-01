@@ -4143,8 +4143,8 @@ function renderData(el){
   // + Add: always inline blank row, no popup
   html+='<button class="dt-btn dt-btn-add" onclick="addDataRowInline()">'+IC.plus+' Add</button>';
   if(sprMode){
-    // In combined edit mode: Save All + Cancel only
-    html+='<button class="dt-btn dt-btn-done" onclick="saveSprMode()" style="background:linear-gradient(135deg,#059669,#0891b2)">✓ Save All</button>';
+    // In combined edit mode: single Done button saves + closes checkbox mode
+    html+='<button class="dt-btn dt-btn-done" onclick="saveSprMode()" style="background:linear-gradient(135deg,#059669,#0891b2)">'+IC.check+' Done</button>';
     html+='<button class="dt-btn dt-btn-edit" onclick="exitSprMode()">✕ Cancel</button>';
   } else if(editMode){
     // Delete only visible when rows are selected
@@ -4206,6 +4206,9 @@ function renderData(el){
         html+='<input class="spr-cell'+(iM?' missing-cell':'')+'" ';
         html+='data-rowid="'+row.id+'" data-field="'+v.name+'" ';
         html+='type="text" ';
+        if(v.type==='Numeric'||v.type==='Scale'){
+          html+='inputmode="decimal" ';
+        }
         html+='value="'+escHtmlAttr(dispVal)+'" ';
         html+='placeholder="'+(iM?'. (missing)':'.')+'" ';
         html+='onkeydown="sprKeyNav(event,'+row.id+',\''+v.name+'\')" ';
@@ -4227,11 +4230,7 @@ function renderData(el){
   // Footer info bar
   html+='<div style="padding:5px 11px;border-top:1px solid rgba(124,58,237,.08);color:rgba(232,222,255,.25);font-size:11px;display:flex;gap:12px;align-items:center">';
   html+='<span>'+d.length+'/'+data.length+' rows'+(aState.wcActive?' <span style="color:#fb923c;font-size:10px">⚖ N efektif = '+getNEff()+'</span>':'')+'</span>';
-  if(sprMode){
-    html+='<span style="color:#34d399;font-weight:600">✎ Edit mode — type in cells · Tab/Enter navigate · "." = missing · ⬇ Fill to fill column</span>';
-  } else if(editMode){
-    html+='<span style="color:#c084fc">Select rows with checkboxes · "." = missing</span>';
-  }
+  // edit hint removed
   html+='</div></div>';
   el.innerHTML=html;
 
@@ -4259,7 +4258,7 @@ function enterSprMode(){
   editMode=false;
   selRows.clear();
   switchTab('data');
-  showToast('Bulk Edit mode — edit any cell, then Save All');
+  showToast('Edit mode — ketik langsung di sel, lalu tap Done untuk menyimpan');
 }
 
 function exitSprMode(){
@@ -4308,6 +4307,8 @@ function saveSprMode(){
   });
   sprMode=false;
   sprBuffer={};
+  editMode=false;   // close checkbox mode too — single Done, single session
+  selRows.clear();
   updateBadges();
   switchTab('data');
   showToast('Saved '+changed+' cell change(s) ✓');
@@ -13904,13 +13905,29 @@ function _outGroup(o){
 }
 
 function _outGroupColor(key){
+  // Colors match the sidebar icon colors for each category
   var colors={
-    'T-Test':'#60a5fa','ANOVA':'#fb923c','Correlation':'#34d399','Regression':'#a78bfa',
-    'Descriptives':'#fbbf24','Factor Analysis':'#67e8f9','Cluster':'#4ade80',
-    'Non-Parametric':'#f87171','Reliability':'#e879f9','Bayesian':'#f9a8d4',
-    'Time Series':'#a5f3fc','Survival':'#86efac','ROC':'#fde68a','Moderation':'#c4b5fd',
-    'Mediation':'#f0abfc','Missing Analysis':'#fca5a5','Power Analysis':'#fdba74',
-    'Meta-Analysis':'#fb923c','SEM':'#818cf8','HLM':'#6ee7b7','Discriminant':'#93c5fd'
+    'T-Test':'#a78bfa',          // purple — matches T-Test sidebar icon
+    'ANOVA':'#34d399',            // green — matches ANOVA sidebar icon
+    'Correlation':'#f472b6',      // pink — matches Correlation sidebar icon
+    'Regression':'#67e8f9',       // cyan — matches Regression sidebar icon
+    'Descriptives':'#f472b6',     // pink — matches Descriptive sidebar icon
+    'Factor Analysis':'#a5f3fc',  // light cyan — matches Factor Analysis sidebar icon
+    'Cluster':'#4ade80',          // bright green — matches Cluster sidebar icon
+    'Non-Parametric':'#c084fc',   // purple — matches Nonparametric sidebar icon
+    'Reliability':'#34d399',      // green — matches Reliability sidebar icon
+    'Bayesian':'#f9a8d4',         // light pink — matches Bayesian sidebar icon
+    'Time Series':'#67e8f9',      // cyan — matches Time Series sidebar icon
+    'Survival':'#4ade80',         // green — matches Survival sidebar icon
+    'ROC':'#67e8f9',              // cyan — matches ROC Curve sidebar icon
+    'Moderation':'#e879f9',       // fuchsia — matches Moderation sidebar icon
+    'Mediation':'#fb923c',        // orange — matches Mediation sidebar icon
+    'Missing Analysis':'#f87171', // red — matches Missing Analysis sidebar icon
+    'Power Analysis':'#fbbf24',   // yellow — matches Power Analysis sidebar icon
+    'Meta-Analysis':'#fb923c',    // orange — matches Meta-Analysis sidebar icon
+    'SEM':'#e879f9',              // fuchsia — matches SEM sidebar icon
+    'HLM':'#a78bfa',              // purple — matches HLM sidebar icon
+    'Discriminant':'#38bdf8'      // sky blue — matches Discriminant sidebar icon
   };
   return colors[key]||'#c084fc';
 }
@@ -13965,7 +13982,7 @@ function renderOutput(el){
   // Grid layout picker
   var gridOpts=[{c:1,lbl:'1×1'},{c:2,lbl:'1×2'},{c:3,lbl:'2×2'},{c:4,lbl:'2×3'},{c:5,lbl:'2×4'},{c:6,lbl:'3×3'},{c:7,lbl:'3×4'},{c:8,lbl:'4×4'}];
   html+='<div style="display:flex;background:rgba(14,6,24,.7);border:1px solid rgba(124,58,237,.18);border-radius:8px;padding:2px;gap:1px;align-items:center">';
-  html+='<span style="font-size:9px;color:rgba(232,222,255,.28);padding:0 5px 0 6px;white-space:nowrap;letter-spacing:.4px;font-weight:600;text-transform:uppercase">Grid</span>';
+  html+='<span style="font-size:9px;padding:3px 6px 3px 7px;background:rgba(124,58,237,.4);color:#e8deff;border-radius:5px;white-space:nowrap;letter-spacing:.4px;font-weight:700;text-transform:uppercase;border:1px solid rgba(124,58,237,.35);margin-right:2px">Grid</span>';
   gridOpts.forEach(function(g){
     var active=_outGrid===g.c;
     html+='<button onclick="_outGrid='+g.c+';renderTab(\'output\')" style="padding:4px 7px;border-radius:5px;border:none;cursor:pointer;font-size:10px;font-family:Inter,sans-serif;font-weight:700;white-space:nowrap;transition:.12s;'+(active?'background:rgba(124,58,237,.5);color:#e8deff':'background:transparent;color:rgba(232,222,255,.3)')+'" title="'+g.lbl+' grid">'+g.lbl+'</button>';
@@ -13993,19 +14010,20 @@ function renderOutput(el){
     groups.forEach(function(g){
       var col=_outGroupColor(g.key);
       var grpOuts=outputs.filter(function(o){return _outGroup(o)===g.key;});
+      // Derive a solid background from col (sidebar-like, not transparent)
       html+='<div onclick="_outActiveGroup=\'' + g.key.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\';renderTab(\'output\')" ';
-      html+='style="cursor:pointer;background:rgba(14,6,24,.75);border:1px solid '+col+'28;border-top:2px solid '+col+';border-radius:12px;padding:14px 16px;transition:.18s;position:relative">';
+      html+='style="cursor:pointer;background:rgba(14,6,28,.97);border:1px solid '+col+'45;border-top:3px solid '+col+';border-radius:12px;padding:14px 16px;transition:.18s;position:relative;box-shadow:0 2px 18px rgba(0,0,0,.45),inset 0 0 0 1px '+col+'10">';
       html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">';
       html+='<span style="color:'+col+';display:flex">'+_outGroupIcon(g.key)+'</span>';
       html+='<span style="font-size:13px;font-weight:700;color:#e8deff">'+g.key+'</span>';
-      html+='<span style="margin-left:auto;background:'+col+'22;color:'+col+';border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700">'+g.count+'</span>';
+      html+='<span style="margin-left:auto;background:'+col+'30;color:'+col+';border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;border:1px solid '+col+'40">'+g.count+'</span>';
       html+='</div>';
       grpOuts.slice(0,2).forEach(function(o){
         html+='<div style="font-size:10.5px;color:rgba(232,222,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+o.title+'</div>';
       });
       if(g.count>2) html+='<div style="font-size:10px;color:rgba(232,222,255,.25);margin-top:2px">+'+(g.count-2)+' more…</div>';
       html+='<div style="font-size:9.5px;color:rgba(232,222,255,.2);margin-top:8px">Latest: '+new Date(grpOuts[0].id).toLocaleTimeString()+'</div>';
-      html+='<div style="position:absolute;bottom:10px;right:12px;font-size:10.5px;color:'+col+';opacity:.6">View →</div>';
+      html+='<div style="position:absolute;bottom:10px;right:12px;font-size:10.5px;color:'+col+';opacity:.8">View →</div>';
       html+='</div>';
     });
     html+='</div>';

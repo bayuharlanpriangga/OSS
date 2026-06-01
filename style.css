@@ -276,19 +276,15 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
     radial-gradient(ellipse 60% 20% at 50% 100%,rgba(219,39,119,.06),transparent);
   z-index:0}
 
-.s-logo{padding:15px 14px 12px;display:flex;align-items:center;gap:10px;
-  border-bottom:1px solid rgba(124,58,237,.12);cursor:pointer;
-  flex-shrink:0;position:relative;z-index:1}
-.s-logo:hover{background:rgba(124,58,237,.06)}
-.s-logo-icon{width:30px;height:30px;border-radius:7px;flex-shrink:0;
-  background:linear-gradient(135deg,#7c3aed,#db2777);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Playfair Display',serif;font-size:13px;font-weight:900;color:#fff;
-  box-shadow:0 0 14px rgba(124,58,237,.45)}
-.s-logo-text{font-family:'Playfair Display',serif;font-size:14px;font-weight:800;
+.s-logo{padding:18px 14px 16px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid rgba(124,58,237,.18);
+  flex-shrink:0;position:relative;z-index:1;cursor:default}
+.s-logo-icon{display:none}
+.s-logo-text{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;
   background:linear-gradient(135deg,#c084fc,#f472b6);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.s-logo-sub{font-size:8px;color:rgba(232,222,255,.3);margin-top:-1px}
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:1.5px;text-align:center}
+.s-logo-sub{display:none!important}
 
 .s-body{flex:1;overflow-y:auto;padding:8px 6px 24px;-webkit-overflow-scrolling:touch;position:relative;z-index:1;min-height:0}
 .s-body::-webkit-scrollbar{display:none}
@@ -313,7 +309,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
   filter:blur(14px);pointer-events:none}
 .s-item-ic{font-size:13px;flex-shrink:0;width:18px;text-align:center}
 
-.s-foot{padding:10px 6px 20px;border-top:1px solid rgba(124,58,237,.1);flex-shrink:0;position:relative;z-index:1}
+.s-foot{padding:10px 6px 20px;border-top:1px solid rgba(124,58,237,.1);flex-shrink:0;position:relative;z-index:1;padding-bottom:max(20px,env(safe-area-inset-bottom,20px))}
 .s-badges{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
 .s-badge{padding:4px 8px;border-radius:5px;font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:5px}
 .sb-cases{background:rgba(5,150,105,.1);color:#34d399;border:1px solid rgba(5,150,105,.2)}
@@ -907,7 +903,7 @@ svg text{font-family:'Inter',system-ui,sans-serif}
     top:0;bottom:0;height:100%;overflow:hidden;display:flex;flex-direction:column}
   #side.open{left:0;box-shadow:4px 0 30px rgba(0,0,0,.5)}
   #side .s-body{flex:1;min-height:0;overflow-y:auto}
-  #side .s-foot{flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,20px)}
+  #side .s-foot{flex-shrink:0;padding-bottom:max(env(safe-area-inset-bottom,0px) + 20px, 52px)}
   #pa{flex-direction:column}
   #main{flex:1;min-height:0}
   .grid2{grid-template-columns:1fr}
