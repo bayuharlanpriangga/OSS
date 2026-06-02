@@ -18166,16 +18166,29 @@ function _pwaCheckInstalled(){
   if('serviceWorker' in navigator){
     window.addEventListener('load', function(){
       navigator.serviceWorker.register('./sw.js').then(function(reg){
+        // Check for update immediately on load
+        reg.update();
+
         reg.addEventListener('updatefound', function(){
           var newWorker = reg.installing;
           newWorker.addEventListener('statechange', function(){
             if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
+              // Force activate new SW immediately — skip waiting
+              newWorker.postMessage({type:'SKIP_WAITING'});
               showToast('Update tersedia — refresh browser');
             }
           });
         });
       }).catch(function(err){
         console.warn('OSS SW registration failed:', err);
+      });
+
+      // When SW has taken control, reload once to use new cache
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(!window._swReloading){
+          window._swReloading = true;
+          window.location.reload();
+        }
       });
     });
   }
