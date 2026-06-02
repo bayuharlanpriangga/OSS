@@ -869,18 +869,18 @@ svg text{font-family:'Inter',system-ui,sans-serif}
 /* TOP BAR */
 #top-bar{
   display:none;height:50px;flex-shrink:0;
-  background:rgba(14,6,24,.95);backdrop-filter:blur(20px);
+  background:rgba(14,6,24,.92);backdrop-filter:blur(28px);
   border-bottom:1px solid rgba(124,58,237,.15);
   align-items:center;padding:0 12px;gap:10px;
   position:relative;z-index:50;
 }
 #menu-btn{
-  width:34px;height:34px;border-radius:8px;border:1px solid rgba(124,58,237,.2);
-  background:rgba(124,58,237,.08);color:rgba(232,222,255,.7);cursor:pointer;
+  width:34px;height:34px;border-radius:8px;border:1px solid rgba(124,58,237,.3);
+  background:rgba(124,58,237,.18);color:#c084fc;cursor:pointer;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
   transition:all .15s;
 }
-#menu-btn:hover{background:rgba(124,58,237,.2);color:#c084fc}
+#menu-btn:hover{background:rgba(124,58,237,.28);color:#e8b4f8}
 .tb-logo{display:flex;align-items:center;gap:7px;cursor:pointer;flex:1}
 .tb-logo-icon{width:26px;height:26px;border-radius:6px;
   background:linear-gradient(135deg,#7c3aed,#db2777);
@@ -894,11 +894,11 @@ svg text{font-family:'Inter',system-ui,sans-serif}
 .tb-badge{padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;
   background:rgba(5,150,105,.12);color:#34d399;border:1px solid rgba(5,150,105,.22)}
 .tb-miss{background:rgba(239,68,68,.12)!important;color:#f87171!important;border-color:rgba(239,68,68,.22)!important}
-.tb-cmd{width:30px;height:30px;border-radius:7px;border:1px solid rgba(124,58,237,.2);
-  background:rgba(124,58,237,.08);color:rgba(232,222,255,.5);cursor:pointer;
+.tb-cmd{width:30px;height:30px;border-radius:7px;border:1px solid rgba(124,58,237,.3);
+  background:rgba(124,58,237,.18);color:#c084fc;cursor:pointer;
   display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;
   transition:all .15s;font-family:'Inter',sans-serif;}
-.tb-cmd:hover{background:rgba(124,58,237,.2);color:#c084fc}
+.tb-cmd:hover{background:rgba(124,58,237,.28);color:#e8b4f8}
 
 /* MOBILE */
 @media(max-width:620px){
