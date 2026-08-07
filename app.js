@@ -119,34 +119,20 @@ var currentASub='descriptive';
 var currentGroup='descriptive';
 
 function enterApp(){
-  var home=document.getElementById('ph');
   var app=document.getElementById('pa');
-  home.classList.remove('on');
-  setTimeout(function(){
-    app.classList.add('on');
-    // Show mobile menu button only inside app on small screens
-    var mb=document.getElementById('mob-btn');
-    if(mb){
-      if(window.innerWidth<=620){
-        mb.style.cssText='display:flex!important;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:999px;padding:10px 22px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,.45);font-family:Inter,sans-serif;align-items:center;gap:7px';
-      }
-    }
-    if(!appReady){
-      appReady=true;
-      updateBadges();
-      switchTab('data');
-    }
-  },180);
-}
-
-function exitApp(){
-  var home=document.getElementById('ph');
-  var app=document.getElementById('pa');
+  if(app) app.classList.add('on');
+  // Show mobile menu button only inside app on small screens
   var mb=document.getElementById('mob-btn');
-  if(mb) mb.style.display='none';
-  closeSide();
-  app.classList.remove('on');
-  setTimeout(function(){ home.classList.add('on'); },180);
+  if(mb){
+    if(window.innerWidth<=620){
+      mb.style.cssText='display:flex!important;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:999px;padding:10px 22px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,.45);font-family:Inter,sans-serif;align-items:center;gap:7px';
+    }
+  }
+  if(!appReady){
+    appReady=true;
+    updateBadges();
+    switchTab('data');
+  }
 }
 
 function toggleSide(){
@@ -4152,7 +4138,7 @@ function renderData(el){
   } else if(editMode){
     // Delete only visible when rows are selected
     if(selRows.size>0){
-      html+='<button class="dt-btn dt-btn-del" id="del-btn" onclick="deleteSelected()">'+IC.trash+' Del('+selRows.size+')</button>';
+      html+='<button class="dt-btn dt-btn-del" id="del-btn" onclick="deleteSelected()">'+IC.trash+' Del '+selRows.size+'</button>';
     }
     html+='<button class="dt-btn dt-btn-done" onclick="toggleEditMode()">'+IC.check+' Done</button>';
   } else {
@@ -4608,11 +4594,11 @@ function toggleRow(id,cb){
         var newDel=document.createElement('button');
         newDel.id='del-btn';newDel.className='dt-btn dt-btn-del';
         newDel.onclick=function(){deleteSelected();};
-        newDel.innerHTML=IC.trash+' Del('+selRows.size+')';
+        newDel.innerHTML=IC.trash+' Del '+selRows.size;
         if(doneBtn) toolbar.insertBefore(newDel,doneBtn);
         else toolbar.appendChild(newDel);
       } else {
-        existing.innerHTML=IC.trash+' Del('+selRows.size+')';
+        existing.innerHTML=IC.trash+' Del '+selRows.size;
       }
     } else {
       if(existing) existing.remove();
@@ -4655,7 +4641,7 @@ function toggleAllRows(cb){
   });
   // Sync del button
   var btn=document.getElementById('del-btn');
-  if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del('+selRows.size+')';}
+  if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del '+selRows.size;}
 }
 function deleteSelected(){if(!selRows.size)return;data=data.filter(r=>!selRows.has(r.id));selRows.clear();updateBadges();renderTab('data');showToast('Data berhasil dihapus');}
 function addDataRow(){
@@ -5661,15 +5647,52 @@ function renderAnalyze(el){
     'imputation':'#a5f3fc','crosstab':'#67e8f9','weightcases':'#fb923c'
   };
   var _gc=_GC[grp]||'#c084fc';
-  var html='<div class="sub-tabs">';
+  var html='<div class="sub-tabs"><div class="sub-tab-indicator"></div>';
   tabs.forEach(function(s){
     var coloredIc=s.ic.replace(/stroke="currentColor"/g,'stroke="'+_gc+'"').replace(/fill="currentColor"/g,'fill="'+_gc+'"');
     html+='<button class="sub-btn'+(currentASub===s.id?' active':'')+'" onclick="switchASub(this.dataset.sub)" data-sub="'+s.id+'" style="display:inline-flex;align-items:center;gap:5px">'+coloredIc+' '+s.label+'</button>';
   });
   html+='</div><div id="a-content"></div>';
   el.innerHTML=html;
+  positionSubTabIndicator(el,grp);
   renderASub();
 }
+
+// ── Sliding pill indicator for .sub-tabs groups ──
+var _subTabAnim={grp:null,left:0,width:0};
+function positionSubTabIndicator(el,grp){
+  var wrap=el.querySelector('.sub-tabs');
+  var ind=wrap&&wrap.querySelector('.sub-tab-indicator');
+  var activeBtn=wrap&&wrap.querySelector('.sub-btn.active');
+  if(!wrap||!ind||!activeBtn) return;
+  var targetLeft=activeBtn.offsetLeft;
+  var targetWidth=activeBtn.offsetWidth;
+  var sameGroup=_subTabAnim.grp===grp;
+  ind.style.transition='none';
+  ind.style.left=(sameGroup?_subTabAnim.left:targetLeft)+'px';
+  ind.style.width=(sameGroup?_subTabAnim.width:targetWidth)+'px';
+  // force reflow so the browser registers the start position before animating
+  void ind.offsetWidth;
+  ind.style.transition='';
+  ind.style.left=targetLeft+'px';
+  ind.style.width=targetWidth+'px';
+  _subTabAnim={grp:grp,left:targetLeft,width:targetWidth};
+}
+// Keep the pill aligned if the window/sidebar is resized (no slide animation, just snap)
+window.addEventListener('resize',function(){
+  var el=document.getElementById('app-content');
+  if(!el) return;
+  var wrap=el.querySelector('.sub-tabs');
+  var ind=wrap&&wrap.querySelector('.sub-tab-indicator');
+  var activeBtn=wrap&&wrap.querySelector('.sub-btn.active');
+  if(!wrap||!ind||!activeBtn) return;
+  ind.style.transition='none';
+  ind.style.left=activeBtn.offsetLeft+'px';
+  ind.style.width=activeBtn.offsetWidth+'px';
+  void ind.offsetWidth;
+  ind.style.transition='';
+  _subTabAnim={grp:currentGroup,left:activeBtn.offsetLeft,width:activeBtn.offsetWidth};
+});
 
 
 
@@ -16462,7 +16485,6 @@ function switchASub(sub){
 
 // Compatibility
 function goToApp(tab){ enterApp(); if(tab) setTimeout(function(){switchTab(tab);},200); }
-function showHome(){ exitApp(); }
 
 // ════════════════════════════════════════════════════════════
 // UPDATE BADGES
@@ -16635,7 +16657,6 @@ var CMD_ACTIONS=[
   {label:'Export to Word (.doc)',fn:function(){exportWordDialog();}},
   {label:'APA Report (text)',fn:function(){generateAPAReport();}},
   {label:'New Dataset',fn:function(){showAddDatasetModal();}},
-  {label:'Back to Home',fn:function(){exitApp();}},
 ];
 
 function renderCmdResults(q){
@@ -18255,6 +18276,8 @@ renderDsSidebar();
 if(loadSession()){
   setTimeout(function(){showToast('Session berhasil dimuat');updateBadges();renderDsSidebar();},400);
 }
+// App now opens directly — no home/welcome page
+enterApp();
 
 
 
@@ -18264,47 +18287,31 @@ if(loadSession()){
   var ls = document.getElementById('loading-screen');
   var bar = document.getElementById('load-bar');
   var pct = document.getElementById('load-percent');
-  var current = 0;
-  var target = 0;
-  var done = false;
+  var DURATION = 3500; // smooth continuous progress: 1 → 100 over ~3.5s, no jumps
+  var start = null;
+  var lastShown = 0;
 
-  function setTarget(v){ target = Math.min(100, Math.max(target, v)); }
-
-  // Animate percentage counter
-  function animTick(){
-    if(current < target){
-      var step = Math.max(1, Math.ceil((target - current) * 0.08));
-      current = Math.min(target, current + step);
+  function tick(ts){
+    if(start === null) start = ts;
+    var elapsed = ts - start;
+    var raw = (elapsed / DURATION) * 100;
+    var current = Math.min(100, Math.max(1, Math.floor(raw)));
+    if(current !== lastShown){
+      lastShown = current;
       bar.style.width = current + '%';
       pct.textContent = current + '%';
     }
-    if(!done || current < 100){
-      requestAnimationFrame(animTick);
+    if(elapsed < DURATION){
+      requestAnimationFrame(tick);
     } else {
+      bar.style.width = '100%';
+      pct.textContent = '100%';
       setTimeout(function(){
         ls.classList.add('hidden');
         setTimeout(function(){ ls.style.display='none'; }, 650);
       }, 280);
     }
   }
-  requestAnimationFrame(animTick);
-
-  // Progress milestones
-  setTimeout(function(){ setTarget(30); }, 300);
-  setTimeout(function(){ setTarget(55); }, 600);
-  setTimeout(function(){ setTarget(75); }, 900);
-  setTimeout(function(){ setTarget(90); }, 1200);
-
-  function finish(){
-    setTarget(100);
-    done = true;
-  }
-
-  if(document.readyState === 'complete'){
-    setTimeout(finish, 1400);
-  } else {
-    window.addEventListener('load', function(){ setTimeout(finish, 400); });
-    setTimeout(finish, 1800); // fallback
-  }
+  requestAnimationFrame(tick);
 })();
 

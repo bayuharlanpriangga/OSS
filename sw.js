@@ -4,7 +4,7 @@
 ════════════════════════════════════════════════════════════ */
 
 // ⚠ Bump this version string setiap kali deploy biar cache lama otomatis dihapus
-const CACHE_NAME = 'oss-v3';
+const CACHE_NAME = 'oss-v4';
 const APP_SHELL = ['/OSS/', '/OSS/index.html', '/OSS/manifest.json'];
 
 // File-file utama yang harus selalu network-first (langsung ambil dari server)

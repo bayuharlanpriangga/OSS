@@ -6,7 +6,7 @@
 <title>OSS — Orias Statistik System</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json"/>
-<meta name="theme-color" content="#7c3aed"/>
+<meta name="theme-color" content="#150a24"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -21,8 +21,6 @@
 <div id="loading-screen">
   <div class="load-icon-wrap">
     <div class="load-icon-glow"></div>
-    <div class="load-ring"></div>
-    <div class="load-ring2"></div>
     <svg class="load-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
       <defs>
         <radialGradient id="ls-bg" cx="40%" cy="35%" r="70%">
@@ -69,14 +67,14 @@
         <ellipse cx="54" cy="10" rx="18" ry="16" fill="url(#ls-wc3)"/>
         <path d="M8,24 Q4,18 10,12 Q14,8 18,14 Q12,16 8,24Z" fill="#f472b6" opacity="0.18"/>
         <path d="M50,8 Q56,14 54,20 Q52,12 50,8Z" fill="#c084fc" opacity="0.22"/>
-        <rect x="9" y="47" width="7" height="8" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
-        <rect x="19" y="39" width="7" height="16" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
-        <rect x="29" y="30" width="7" height="25" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
-        <rect x="39" y="35" width="7" height="20" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
-        <polyline points="12,46 22,37 32,27 46,18" fill="none" stroke="url(#ls-trendGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-        <circle cx="46" cy="18" r="3.5" fill="#fda4cf" opacity="0.98" filter="url(#ls-glow)"/>
-        <circle cx="46" cy="18" r="1.5" fill="#fff" opacity="0.9"/>
-        <text x="51" y="42" font-family="serif" font-size="13" font-weight="900" fill="#fda4cf" opacity="0.65" text-anchor="middle">&#x3A3;</text>
+        <rect class="ls-bar ls-bar1" x="9" y="47" width="7" height="8" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <rect class="ls-bar ls-bar2" x="19" y="39" width="7" height="16" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <rect class="ls-bar ls-bar3" x="29" y="30" width="7" height="25" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <rect class="ls-bar ls-bar4" x="39" y="35" width="7" height="20" rx="1.5" fill="url(#ls-barGrad)" opacity="0.95" filter="url(#ls-glow)"/>
+        <polyline class="ls-trend" points="12,46 22,37 32,27 46,18" fill="none" stroke="url(#ls-trendGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+        <circle class="ls-dot" cx="46" cy="18" r="3.5" fill="#fda4cf" opacity="0.98" filter="url(#ls-glow)"/>
+        <circle class="ls-dot ls-dot-inner" cx="46" cy="18" r="1.5" fill="#fff" opacity="0.9"/>
+        <text class="ls-sigma" x="51" y="42" font-family="serif" font-size="13" font-weight="900" fill="#fda4cf" opacity="0.65" text-anchor="middle">&#x3A3;</text>
       </g>
       <!-- Border ring di atas -->
       <circle cx="32" cy="32" r="30" fill="none" stroke="#f472b6" stroke-width="1.5" opacity="0.25"/>
@@ -90,27 +88,14 @@
   <div class="load-bar-wrap">
     <div id="load-bar" class="load-bar"></div>
   </div>
+  <div class="load-footer">Powered by <span class="load-footer-brand">Orias</span></div>
 </div>
 
 <!-- WATERCOLOR CANVAS — always on -->
 <canvas id="wc"></canvas>
 
-<!-- HOME PAGE -->
-<div id="ph" class="page on">
-  <div class="hstroke hs1"></div><div class="hstroke hs2"></div>
-  <div class="hstroke hs3"></div><div class="hstroke hs4"></div>
-  <div class="hstroke hs5"></div><div class="hstroke hs6"></div>
-  <div class="hero-wrap">
-    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
-    <div class="hero-kicker">· Orias Statistik System</div>
-    <h1 class="hero-title">OSS</h1>
-    <p class="hero-sub">Welcome</p>
-    <button class="hero-cta" onclick="enterApp()"><span>OPEN →</span></button>
-  </div>
-</div>
-
 <!-- APP PAGE -->
-<div id="pa" class="page">
+<div id="pa" class="page on">
 
   <!-- MOBILE TOP BAR -->
   <div id="top-bar">
@@ -230,12 +215,6 @@
       <div class="s-badges">
         <div class="s-badge sb-cases" id="badge-cases">● N=20 cases</div>
         <div class="s-badge sb-miss" id="badge-miss"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Missing</div>
-      </div>
-      <!-- File status bar: shows open file name -->
-      <div id="oss-file-bar">
-        <span class="fbar-dot"></span>
-        <span class="fbar-name" id="oss-file-bar-name">Untitled</span>
-        <span class="fbar-unsaved" id="oss-file-bar-unsaved" style="display:none">● Unsaved</span>
       </div>
       <!-- Install PWA button — always visible, state managed by JS -->
       <div id="sidebar-install-wrap" style="margin-bottom:6px">
