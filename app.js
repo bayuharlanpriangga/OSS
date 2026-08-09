@@ -151,6 +151,22 @@ function closeSide(){
 document.addEventListener('keydown',function(e){
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openCmd();}
   if(e.key==='Escape'){closeCsel();closeCmd();}
+  // a11y: Enter/Space mengaktifkan elemen non-<button> yang berperan tombol (mis. .s-item sidebar)
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches&&e.target.matches('[data-kbd-clickable]')){
+    e.preventDefault();
+    e.target.click();
+  }
+});
+
+// a11y: item navigasi sidebar (.s-item/.s-cat) adalah <div onclick> — tidak bisa dijangkau Tab.
+// Elemen ini statis di index.html (tidak di-render ulang tiap frame), jadi cukup dipatch sekali
+// saat load — tidak pakai MutationObserver supaya tidak menambah beban render tabel data besar.
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.s-item, .s-cat[onclick]').forEach(function(el){
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+    el.setAttribute('data-kbd-clickable','1');
+  });
 });
 
 
@@ -3424,9 +3440,9 @@ function renderDsSidebar(){
     wrapStyle+=active?'background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(219,39,119,.1));border:1px solid rgba(124,58,237,.22);':'border:1px solid transparent;';
     var dotCol=active?'#c084fc':'rgba(232,222,255,.2)';
     var nameStyle='flex:1;font-size:11px;font-weight:'+(active?'600':'400')+';color:'+(active?'#c084fc':'rgba(232,222,255,.45)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    return '<div style="'+wrapStyle+'" onclick="switchDataset('+ds.id+')">'
+    return '<div style="'+wrapStyle+'" onclick="switchDataset('+ds.id+')" tabindex="0" role="button" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();switchDataset('+ds.id+');}" aria-label="'+escHtmlAttr(ds.name)+(active?' (aktif)':'')+'">'
       +'<span style="width:7px;height:7px;border-radius:50%;background:'+dotCol+';flex-shrink:0"></span>'
-      +'<span style="'+nameStyle+'" ondblclick="event.stopPropagation();renameDataset('+ds.id+')">'+ds.name+'</span>'
+      +'<span style="'+nameStyle+'" ondblclick="event.stopPropagation();renameDataset('+ds.id+')">'+escHtml(ds.name)+'</span>'
       +'<span style="font-size:9px;color:rgba(232,222,255,.3)">N='+ds.data.length+(mc>0?' ⚠'+mc:'')+'</span>'
       +delBtn
       +'</div>';
@@ -3566,7 +3582,7 @@ function showToast(msg,type='success'){
   var icon=type==='error'
     ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
     :'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  t.innerHTML=icon+' '+msg;
+  t.innerHTML=icon+' '+escHtml(msg);
   t.className=type;t.style.display='flex';
   clearTimeout(window._toastTimer);
   window._toastTimer=setTimeout(()=>t.style.display='none',2600);
@@ -3692,10 +3708,10 @@ function svgInteractionPlot(cellMeansTable, xLabel, lineLabel, depLabel, W, H){
 
   // X axis labels (Factor B)
   levB.forEach(function(lbl,i){
-    svg+='<text x="'+xPos(i)+'" y="'+(P.t+ch+16)+'" text-anchor="middle" font-size="9" fill="#94a3b8">'+lbl+'</text>';
+    svg+='<text x="'+xPos(i)+'" y="'+(P.t+ch+16)+'" text-anchor="middle" font-size="9" fill="#94a3b8">'+escHtml(lbl)+'</text>';
   });
   // X axis title
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9.5" fill="#64748b">'+xLabel+'</text>';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9.5" fill="#64748b">'+escHtml(xLabel)+'</text>';
   // Y axis title
   svg+='<text x="11" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9.5" fill="#64748b" transform="rotate(-90 11 '+(P.t+ch/2)+')">'+depLabel+'</text>';
 
@@ -3888,8 +3904,8 @@ function svgScatter(dataArr,xField,yField,W=400,H=200){
   pts.forEach(r=>svg+='<circle cx="'+tx(r[xField])+'" cy="'+ty(r[yField])+'" r="5" fill="#818cf8" fill-opacity=".7" stroke="#a78bfa" stroke-width="1.2"/>');
   [xMin,(xMin+xMax)/2,xMax].forEach(v=>svg+='<text x="'+tx(v)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8" fill="#64748b">'+v.toFixed(0)+'</text>');
   [yMin,(yMin+yMax)/2,yMax].forEach(v=>svg+='<text x="'+(P.l-4)+'" y="'+(ty(v)+4)+'" text-anchor="end" font-size="8" fill="#64748b">'+v.toFixed(0)+'</text>');
-  svg+='<text x="'+(W/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+xField+'</text>';
-  if(rLabel)svg+='<text x="'+(W-P.r)+'" y="'+(P.t+2)+'" text-anchor="end" font-size="8" fill="#f472b6">'+rLabel+'</text>';
+  svg+='<text x="'+(W/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+escHtml(xField)+'</text>';
+  if(rLabel)svg+='<text x="'+(W-P.r)+'" y="'+(P.t+2)+'" text-anchor="end" font-size="8" fill="#f472b6">'+escHtml(rLabel)+'</text>';
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(H-P.b)+'" stroke="#1e293b"/>';
   svg+='<line x1="'+P.l+'" y1="'+(H-P.b)+'" x2="'+(W-P.r)+'" y2="'+(H-P.b)+'" stroke="#1e293b"/>';
   return svg+'</svg>';
@@ -3970,11 +3986,11 @@ function sigBadge(p){
   return '<span class="tag tag-gray">p = '+p+' ns</span>';
 }
 function stCard(label,value,note=''){
-  return '<div class="sb"><div class="sb-label">'+label+'</div><div class="sb-value">'+(value??'N/A')+'</div>'+(note?'<div class="sb-note">'+note+'</div>':'')+'</div>';
+  return '<div class="sb"><div class="sb-label">'+escHtml(label)+'</div><div class="sb-value">'+(value??'N/A')+'</div>'+(note?'<div class="sb-note">'+note+'</div>':'')+'</div>';
 }
 function mkTable(headers,rows,cls){
   let h='<div class="tbl-wrap"><table'+(cls?' class="'+cls+'"':'')+'><thead><tr>';
-  headers.forEach(hh=>h+='<th>'+hh+'</th>');
+  headers.forEach(hh=>h+='<th>'+escHtml(hh)+'</th>');
   h+='</tr></thead><tbody>';
   rows.forEach((row,ri)=>{h+='<tr class="'+(ri%2?'':'alt')+'">';row.forEach((cell,ci)=>h+='<td class="'+(ci===0?'td-label':'')+'">'+(cell??'—')+'</td>');h+='</tr>';});
   return h+'</tbody></table></div>';
@@ -3998,10 +4014,10 @@ function mkCsel(id,fields,current,onChange,lbl='',showBadge=false){
   const disp=current||fields[0]||'—';
   _cR[id]={fields,current:disp,onChange,showBadge,label:lbl};
   const bdg=showBadge?varBdg(disp):'';
-  return (lbl?'<label class="lbl">'+lbl+'</label>':'')+
+  return (lbl?'<label class="lbl">'+escHtml(lbl)+'</label>':'')+
     '<div class="csel-wrap" id="cw-'+id+'">'+
       '<div class="csel-trigger" onclick="openCselById(\''+id+'\')">'+
-        '<span class="csel-val" id="cv-'+id+'">'+disp+'</span>'+bdg+
+        '<span class="csel-val" id="cv-'+id+'">'+escHtml(disp)+'</span>'+bdg+
         '<span class="csel-arrow">▾</span>'+
       '</div>'+
     '</div>';
@@ -4096,10 +4112,10 @@ function mkOptCsel(id, pairs, currentVal, onChangeTpl, lbl, noSearch){
     label: lbl||'',
     noSearch: noSearch||false
   };
-  return (lbl?'<label class="lbl">'+lbl+'</label>':'')+
+  return (lbl?'<label class="lbl">'+escHtml(lbl)+'</label>':'')+
     '<div class="csel-wrap" id="cw-'+id+'" style="margin-top:5px">'+
       '<div class="csel-trigger" onclick="openOptCselById(\''+id+'\')">'+
-        '<span class="csel-val" id="cv-'+id+'">'+disp+'</span>'+
+        '<span class="csel-val" id="cv-'+id+'">'+escHtml(disp)+'</span>'+
         '<span class="csel-arrow">&#x25be;</span>'+
       '</div>'+
     '</div>';
@@ -4119,15 +4135,23 @@ var sortCol=null,sortDir='asc',searchQ='',selRows=new Set();
 
 var sprMode=false; // spreadsheet (bulk edit) mode
 
+// ── Windowed rendering untuk dataset besar (performa) ──────────────
+// Di bawah threshold ini, semua baris dirender seperti biasa (perilaku tidak berubah).
+// Di atas threshold, hanya render batch pertama + tombol "Muat lebih banyak" —
+// menghindari innerHTML raksasa untuk ribuan baris tanpa mengubah fitur edit/checkbox.
+var _ossDataPageThreshold = 300;
+var _ossDataPageSize = 300;
+var _ossDataShown = _ossDataPageSize;
+
 function renderData(el){
   var mc=missCount().filter(function(m){return m.count>0;});
   var html='';
   if(mc.length){
-    html+='<div class="miss-warn">'+IC.warn+' <span><b>Missing:</b> '+mc.map(function(m){return m.name+'('+m.count+')';}).join(' · ')+' · Enter "." to mark missing</span></div>';
+    html+='<div class="miss-warn">'+IC.warn+' <span><b>Missing:</b> '+mc.map(function(m){return escHtml(m.name)+'('+m.count+')';}).join(' · ')+' · Enter "." to mark missing</span></div>';
   }
   // Toolbar
   html+='<div class="data-toolbar">';
-  html+='<div class="dt-search"><span class="dt-search-ic">'+IC.search+'</span><input class="inp" id="srch-inp" placeholder="Search…" value="'+searchQ+'" oninput="searchData(this.value)" autocomplete="off"/></div>';
+  html+='<div class="dt-search"><span class="dt-search-ic">'+IC.search+'</span><input class="inp" id="srch-inp" placeholder="Search…" value="'+escHtmlAttr(searchQ)+'" oninput="searchData(this.value)" autocomplete="off"/></div>';
   html+='<div class="dt-actions">';
   // + Add: always inline blank row, no popup
   html+='<button class="dt-btn dt-btn-add" onclick="addDataRowInline()">'+IC.plus+' Add</button>';
@@ -4164,19 +4188,23 @@ function renderData(el){
     var MC={Scale:'#67e8f9',Nominal:'#f472b6',Ordinal:'#c084fc'};
     var sc=sortCol===v.name&&!sprMode?(sortDir==='asc'?' '+IC.sort_asc:' '+IC.sort_desc):'';
     var dot='<span style="color:'+(MC[v.measure]||'rgba(232,222,255,.3)')+';font-size:7px;margin-right:3px">●</span>';
+    var vNameSafe=escHtml(v.name);
     // Badge ⚖ di header kolom bobot kalau weight aktif
     var wBadge=(aState.wcActive&&aState.wcVar===v.name)
       ?'<span style="margin-left:4px;background:linear-gradient(135deg,#fb923c,#f472b6);color:#fff;border-radius:999px;padding:0 5px;font-size:8px">⚖</span>':'';
     if(sprMode){
       // Column fill button in header (combined edit mode)
-      html+='<th>'+dot+v.name+wBadge+'<button class="col-fill-btn" onclick="colFillModal(\''+v.name+'\')" title="Fill entire column">⬇ Fill</button></th>';
+      html+='<th>'+dot+vNameSafe+wBadge+'<button class="col-fill-btn" onclick="colFillModal(this.closest(\'th\').dataset.vn)" data-vn="'+escHtmlAttr(v.name)+'" title="Fill entire column">⬇ Fill</button></th>';
     } else {
-      html+='<th onclick="toggleSort(this.dataset.col)" data-col="'+v.name+'" style="cursor:pointer">'+dot+v.name+wBadge+sc+'</th>';
+      html+='<th onclick="toggleSort(this.dataset.col)" data-col="'+escHtmlAttr(v.name)+'" style="cursor:pointer">'+dot+vNameSafe+wBadge+sc+'</th>';
     }
   });
   html+='</tr></thead><tbody>';
 
-  d.forEach(function(row,ri){
+  var isWindowed = !sprMode && d.length > _ossDataPageThreshold;
+  var dShown = isWindowed ? d.slice(0, _ossDataShown) : d;
+
+  dShown.forEach(function(row,ri){
     var sel=selRows.has(row.id);
     html+='<tr class="'+(sel?'selected':ri%2===0?'alt':'')+'">';
     // Checkbox col — visible in both editMode and sprMode (combined)
@@ -4193,14 +4221,14 @@ function renderData(el){
         var dispVal=(iM?'':String(val??''));
         html+='<td style="padding:3px 4px">';
         html+='<input class="spr-cell'+(iM?' missing-cell':'')+'" ';
-        html+='data-rowid="'+row.id+'" data-field="'+v.name+'" ';
+        html+='data-rowid="'+row.id+'" data-field="'+escHtmlAttr(v.name)+'" ';
         html+='type="text" ';
         if(v.type==='Numeric'||v.type==='Scale'){
           html+='inputmode="decimal" ';
         }
         html+='value="'+escHtmlAttr(dispVal)+'" ';
         html+='placeholder="'+(iM?'. (missing)':'.')+'" ';
-        html+='onkeydown="sprKeyNav(event,'+row.id+',\''+v.name+'\')" ';
+        html+='onkeydown="sprKeyNav(event,'+row.id+',this.dataset.field)" ';
         html+='onchange="sprCellChange(this,\''+v.type+'\')" ';
         html+='oninput="sprCellInput(this)" />';
         html+='</td>';
@@ -4208,7 +4236,7 @@ function renderData(el){
         html+='<td>';
         if(iM) html+='<span class="td-miss">—</span>';
         else if(v.type==='Numeric'&&typeof val==='number') html+='<span class="td-num">'+val.toFixed(v.dec)+'</span>';
-        else html+='<span class="td-str">'+val+'</span>';
+        else html+='<span class="td-str">'+escHtml(val)+'</span>';
         html+='</td>';
       }
     });
@@ -4217,8 +4245,11 @@ function renderData(el){
   html+='</tbody></table></div>';
 
   // Footer info bar
-  html+='<div style="padding:5px 11px;border-top:1px solid rgba(124,58,237,.08);color:rgba(232,222,255,.25);font-size:11px;display:flex;gap:12px;align-items:center">';
-  html+='<span>'+d.length+'/'+data.length+' rows'+(aState.wcActive?' <span style="color:#fb923c;font-size:10px">⚖ N efektif = '+getNEff()+'</span>':'')+'</span>';
+  html+='<div style="padding:5px 11px;border-top:1px solid rgba(124,58,237,.08);color:rgba(232,222,255,.25);font-size:11px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">';
+  html+='<span>'+dShown.length+'/'+d.length+' rows'+(d.length!==data.length?' (dari '+data.length+' total)':'')+(aState.wcActive?' <span style="color:#fb923c;font-size:10px">⚖ N efektif = '+getNEff()+'</span>':'')+'</span>';
+  if(isWindowed && dShown.length<d.length){
+    html+='<button class="dt-btn" style="margin-left:auto" onclick="_ossLoadMoreRows()">⬇ Muat '+Math.min(_ossDataPageSize,d.length-dShown.length)+' baris lagi</button>';
+  }
   // edit hint removed
   html+='</div></div>';
   el.innerHTML=html;
@@ -4369,7 +4400,7 @@ function colFillModal(fieldName){
   var existing=[...new Set(data.map(function(r){return r[fieldName];}).filter(function(x){return x!==null&&x!==undefined;}))].slice(0,8);
   
   var hdrHtml='<div style="padding:14px 16px 10px;border-bottom:1px solid rgba(124,58,237,.12);display:flex;align-items:center;justify-content:space-between">';
-  hdrHtml+='<div><div style="font-family:Playfair Display,serif;font-style:italic;font-size:15px;font-weight:700;color:#c084fc">Fill Column: '+v.label+'</div>';
+  hdrHtml+='<div><div style="font-family:Playfair Display,serif;font-style:italic;font-size:15px;font-weight:700;color:#c084fc">Fill Column: '+escHtml(v.label)+'</div>';
   hdrHtml+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:2px">Apply a value to selected or all rows</div></div>';
   hdrHtml+='<button id="colfill-close" style="background:rgba(124,58,237,.12);border:none;color:rgba(232,222,255,.5);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px">✕</button>';
   hdrHtml+='</div>';
@@ -4579,8 +4610,9 @@ function addDataRowInline(){
 
 
 
-function searchData(q){searchQ=q;renderTab('data');}
-function toggleSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}renderTab('data');}
+function searchData(q){searchQ=q;_ossDataShown=_ossDataPageSize;renderTab('data');}
+function toggleSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}_ossDataShown=_ossDataPageSize;renderTab('data');}
+function _ossLoadMoreRows(){_ossDataShown+=_ossDataPageSize;renderTab('data');}
 function toggleRow(id,cb){
   if(cb.checked)selRows.add(id);else selRows.delete(id);
   // Re-render toolbar if needed to show/hide del button
@@ -4886,7 +4918,7 @@ function renderVars(el){
     const pct=data.length>0?((m.count/data.length)*100).toFixed(1):'0.0';
     const hasM=m.count>0;
     html+='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.12);border-radius:8px;padding:9px 12px;min-width:90px">';
-    html+='<div style="font-size:9.5px;color:rgba(232,222,255,.4);text-transform:uppercase;font-weight:700;margin-bottom:3px">'+v.name+'</div>';
+    html+='<div style="font-size:9.5px;color:rgba(232,222,255,.4);text-transform:uppercase;font-weight:700;margin-bottom:3px">'+escHtml(v.name)+'</div>';
     html+='<div style="font-size:13px;font-weight:800;color:'+(hasM?'#f87171':'#34d399')+'">'+(hasM?m.count+' miss':'0 miss')+'</div>';
     html+='<div style="font-size:9.5px;color:rgba(232,222,255,.3)">'+pct+'% of '+data.length+'</div>';
     html+='</div>';
@@ -4940,9 +4972,9 @@ function renderVars(el){
 
     // Name
     if(em){
-      html+='<td><input class="var-inline-inp" data-i="'+i+'" data-fld="name" value="'+v.name+'" onblur="_varInlineChange(this)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100px;font-weight:700;color:#c084fc"/></td>';
+      html+='<td><input class="var-inline-inp" data-i="'+i+'" data-fld="name" value="'+escHtmlAttr(v.name)+'" onblur="_varInlineChange(this)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100px;font-weight:700;color:#c084fc"/></td>';
     } else {
-      html+='<td><span style="font-weight:700;color:#c084fc">'+v.name+'</span></td>';
+      html+='<td><span style="font-weight:700;color:#c084fc">'+escHtml(v.name)+'</span></td>';
     }
 
     // Type — clickable badge opens in-web picker popup (no native dropdown)
@@ -5883,7 +5915,7 @@ function renderASub(){
         if(!vals.length){html+='<tr><td>T'+(i+1)+'</td><td>'+v+'</td><td colspan="3">—</td></tr>';return;}
         var mean=vals.reduce(function(a,b){return a+b;},0)/vals.length;
         var sd=Math.sqrt(vals.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/(vals.length-1));
-        html+='<tr><td class="td-label">T'+(i+1)+'</td><td class="td-str">'+v+'</td><td class="td-num">'+vals.length+'</td><td class="td-num">'+SE.fmt4(mean)+'</td><td class="td-num">'+SE.fmt4(sd)+'</td></tr>';
+        html+='<tr><td class="td-label">T'+(i+1)+'</td><td class="td-str">'+escHtml(v)+'</td><td class="td-num">'+vals.length+'</td><td class="td-num">'+SE.fmt4(mean)+'</td><td class="td-num">'+SE.fmt4(sd)+'</td></tr>';
       });
       html+='</tbody></table></div>';
     }
@@ -6368,7 +6400,7 @@ function renderASub(){
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Interpretation</div>';
     [['≥.90','Excellent','tag-green'],['≥.80','Good','tag-blue'],['≥.70','Acceptable','tag-purple'],['≥.60','Questionable','tag-yellow'],['≥.50','Poor','tag-orange'],['<.50','Unacceptable','tag-red']].forEach(([rng,lbl,cls])=>{
-      html+='<div style="display:flex;align-items:center;gap:9px;padding:6px 10px;background:rgba(255,255,255,.018);border-radius:7px;border:1px solid rgba(255,255,255,.04);margin-bottom:4px"><span style="font-family:monospace;font-size:11px;color:#94a3b8;width:40px">'+rng+'</span><span class="tag '+cls+'">'+lbl+'</span></div>';
+      html+='<div style="display:flex;align-items:center;gap:9px;padding:6px 10px;background:rgba(255,255,255,.018);border-radius:7px;border:1px solid rgba(255,255,255,.04);margin-bottom:4px"><span style="font-family:monospace;font-size:11px;color:#94a3b8;width:40px">'+rng+'</span><span class="tag '+cls+'">'+escHtml(lbl)+'</span></div>';
     });
     html+='</div></div>';
   }
@@ -6444,10 +6476,10 @@ function renderASub(){
     html+=mkSelect('ct-col',aF,aState.ctCol,'aState.ctCol=val;renderASub()','Column');
     if(chi&&!chi._err)html+='<div class="row" style="gap:5px;align-self:flex-end">'+sigBadge(chi.p)+'<span class="tag tag-purple">χ²='+chi.chi2+'</span><span class="tag tag-blue">V='+chi.V+'</span></div>';
     html+='</div></div>';
-    html+='<div class="card"><div class="tbl-wrap"><table><thead><tr><th style="color:#818cf8">'+aState.ctRow+' \\ '+aState.ctCol+'</th>';
-    ctCols.forEach(c=>html+='<th>'+c+'</th>');html+='<th>Total</th></tr></thead><tbody>';
+    html+='<div class="card"><div class="tbl-wrap"><table><thead><tr><th style="color:#818cf8">'+escHtml(aState.ctRow)+' \\ '+escHtml(aState.ctCol)+'</th>';
+    ctCols.forEach(c=>html+='<th>'+escHtml(c)+'</th>');html+='<th>Total</th></tr></thead><tbody>';
     ctRows.forEach((rv,ri)=>{
-      html+='<tr class="'+(ri%2?'':'alt')+'"><td class="td-label" style="color:#818cf8">'+rv+'</td>';
+      html+='<tr class="'+(ri%2?'':'alt')+'"><td class="td-label" style="color:#818cf8">'+escHtml(rv)+'</td>';
       ctCols.forEach((cv,ci)=>{const f=ctMat[ri][ci],pct=((f/ctN)*100).toFixed(1);const exp=chi&&chi.exp?chi.exp[ri][ci]:null;
         html+='<td><div style="font-weight:700">'+f+'</div><div style="font-size:9px;color:#64748b">'+pct+'%'+(exp?' (E='+exp.toFixed(1)+')':'')+'</div></td>';});
       html+='<td style="font-weight:700;color:#94a3b8">'+ctRT[ri]+'</td></tr>';
@@ -6673,7 +6705,7 @@ function renderASub(){
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Missing Overview</div>';
     vars.filter(v=>v.type==='Numeric').forEach(v=>{const mc=data.filter(r=>isMiss(r[v.name])).length,pct=(mc/data.length)*100;
-      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:65px;font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis">'+v.name+'</span><div style="flex:1;height:7px;background:rgba(255,255,255,.055);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:'+(pct>20?'#f87171':pct>5?'#fbbf24':'#34d399')+';border-radius:3px"></div></div><span style="font-size:10px;color:'+(mc>0?'#f87171':'#34d399')+';width:22px;text-align:right">'+mc+'</span></div>';
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:65px;font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis">'+escHtml(v.name)+'</span><div style="flex:1;height:7px;background:rgba(255,255,255,.055);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:'+(pct>20?'#f87171':pct>5?'#fbbf24':'#34d399')+';border-radius:3px"></div></div><span style="font-size:10px;color:'+(mc>0?'#f87171':'#34d399')+';width:22px;text-align:right">'+mc+'</span></div>';
     });
     html+='</div></div>';
   }
@@ -6726,7 +6758,7 @@ function renderASub(){
         var pct=(mc/data.length*100).toFixed(1);
         var mthd={'pmm':'PMM','norm':'Bayesian','mice_cart':'CART'}[aState.miMethod]||'PMM';
         var col=parseFloat(pct)>20?'#f87171':parseFloat(pct)>5?'#fbbf24':'#34d399';
-        html+='<tr><td class="td-label">'+v+'</td><td class="td-num" style="color:'+col+'">'+mc+'</td><td class="td-num" style="color:'+col+'">'+pct+'%</td><td style="font-size:10.5px;color:#c084fc">'+mthd+'</td></tr>';
+        html+='<tr><td class="td-label">'+escHtml(v)+'</td><td class="td-num" style="color:'+col+'">'+mc+'</td><td class="td-num" style="color:'+col+'">'+pct+'%</td><td style="font-size:10.5px;color:#c084fc">'+mthd+'</td></tr>';
       });
       html+='</tbody></table></div></div>';
     }
@@ -7059,8 +7091,8 @@ function renderASub(){
           if(!levels) return;
           var eff=glmRes.effects.find(function(e){return e.source===fac;});
           if(!eff||!eff.groups) return;
-          html+='<div style="margin-top:12px"><div class="sec-hd" style="font-size:11px">'+fac+' — Estimated Marginal Means</div>';
-          html+='<div class="tbl-wrap"><table><thead><tr><th>'+fac+'</th><th>N</th><th>Mean</th><th>SD</th><th>95% CI</th></tr></thead><tbody>';
+          html+='<div style="margin-top:12px"><div class="sec-hd" style="font-size:11px">'+escHtml(fac)+' — Estimated Marginal Means</div>';
+          html+='<div class="tbl-wrap"><table><thead><tr><th>'+escHtml(fac)+'</th><th>N</th><th>Mean</th><th>SD</th><th>95% CI</th></tr></thead><tbody>';
           levels.forEach(function(g){
             var gv=eff.groups[g];
             if(!gv||!gv.length) return;
@@ -7136,7 +7168,7 @@ function renderASub(){
           ['Roy\'s Greatest Root', manova.roy],
         ].forEach(function(pair){
           var lbl=pair[0], t=pair[1];
-          html+='<tr><td class="td-label" style="font-size:11px">'+lbl+'</td>';
+          html+='<tr><td class="td-label" style="font-size:11px">'+escHtml(lbl)+'</td>';
           html+='<td class="td-num">'+t.stat+'</td><td class="td-num">'+t.F+'</td>';
           html+='<td class="td-num">'+t.df1+'</td><td class="td-num">'+t.df2+'</td>';
           html+='<td class="td-num">'+(t.sig?'<b style="color:#34d399">'+t.p_fmt+'</b>':t.p_fmt)+'</td>';
@@ -7520,7 +7552,7 @@ function renderASub(){
       for(var f=0;f<efaPreview.nFactors;f++) html+='<th>F'+(f+1)+'</th>';
       html+='<th>Communality h²</th></tr></thead><tbody>';
       aState.efaVars.forEach(function(v,i){
-        html+='<tr><td class="td-label">'+v+'</td>';
+        html+='<tr><td class="td-label">'+escHtml(v)+'</td>';
         efaPreview.loadings[i].forEach(function(l){
           var absL=Math.abs(parseFloat(l));
           var highlight=absL>=0.4;
@@ -7618,7 +7650,7 @@ function renderASub(){
 
       // Fit index cards
       function fitCard(name, val, interp, good, cutoff, color){
-        return '<div class="sb"><div class="sb-label">'+name+'</div>'
+        return '<div class="sb"><div class="sb-label">'+escHtml(name)+'</div>'
           +'<div class="sb-value" style="color:'+color+'">'+val+'</div>'
           +'<div style="font-size:9.5px;color:'+color+';margin-top:2px">'+interp+'</div>'
           +'<div style="font-size:9px;color:rgba(232,222,255,.25);margin-top:1px">'+cutoff+'</div></div>';
@@ -7657,8 +7689,8 @@ function renderASub(){
           var h2num=h2!==null?parseFloat(h2):null;
           var h2col=h2num!==null?(h2num>=0.7?'#34d399':h2num>=0.4?'#fbbf24':'#f87171'):'rgba(232,222,255,.4)';
           html+='<tr>';
-          if(vi===0) html+='<td class="td-label" rowspan="'+vars.length+'" style="color:'+factColor+';font-weight:800;vertical-align:top;padding-top:10px">'+fn+'</td>';
-          html+='<td class="td-label">'+v+'</td>';
+          if(vi===0) html+='<td class="td-label" rowspan="'+vars.length+'" style="color:'+factColor+';font-weight:800;vertical-align:top;padding-top:10px">'+escHtml(fn)+'</td>';
+          html+='<td class="td-label">'+escHtml(v)+'</td>';
           html+='<td class="td-num" style="color:'+lamCol+';font-weight:'+(Math.abs(lamNum||0)>=0.5?700:400)+'">'+( lam!==null?lam:'—' )+'</td>';
           html+='<td class="td-num" style="color:'+h2col+'">'+( h2!==null?h2:'—' )+'</td>';
           html+='<td><span class="tag" style="font-size:9px;'+( lamNum!==null&&Math.abs(lamNum)>=0.5?'background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)':'background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)' )+'">'+( lamNum!==null&&Math.abs(lamNum)>=0.5?'✓ Adequate':'✗ Weak' )+'</span></td>';
@@ -7672,10 +7704,10 @@ function renderASub(){
       // Residual matrix
       html+='<div class="card"><div class="sec-hd">Residual Correlation Matrix (R − Σ̂)</div>';
       html+='<div style="overflow-x:auto"><table style="font-size:11px"><thead><tr><th></th>';
-      r.varNames.forEach(function(v){ html+='<th>'+v+'</th>'; });
+      r.varNames.forEach(function(v){ html+='<th>'+escHtml(v)+'</th>'; });
       html+='</tr></thead><tbody>';
       r.varNames.forEach(function(v, i){
-        html+='<tr><td class="td-label">'+v+'</td>';
+        html+='<tr><td class="td-label">'+escHtml(v)+'</td>';
         r.varNames.forEach(function(vj, j){
           var resid=r.R[i][j]-r.Sigma[i][j];
           var absR=Math.abs(resid);
@@ -7883,7 +7915,7 @@ function renderASub(){
         html+='<div style="font-size:10px;color:rgba(232,222,255,.4);margin-top:2px">N='+semResult.n+' · '+semResult.totalIndicators+' indikators · '+semResult.nLatent+' latent factors</div>';
         html+='</div>';
         html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">';
-        function semFitCard(name,val,interp,col){return '<div class="sb"><div class="sb-label">'+name+'</div><div class="sb-value" style="color:'+col+'">'+val+'</div><div style="font-size:9.5px;color:'+col+';margin-top:2px">'+interp+'</div></div>';}
+        function semFitCard(name,val,interp,col){return '<div class="sb"><div class="sb-label">'+escHtml(name)+'</div><div class="sb-value" style="color:'+col+'">'+val+'</div><div style="font-size:9.5px;color:'+col+';margin-top:2px">'+interp+'</div></div>';}
         var cficol2=semResult.CFI_raw>=0.95?'#34d399':semResult.CFI_raw>=0.90?'#fbbf24':'#f87171';
         var tlicol2=semResult.TLI_raw>=0.95?'#34d399':semResult.TLI_raw>=0.90?'#fbbf24':'#f87171';
         var rmsecol2=semResult.RMSEA_raw<=0.05?'#34d399':semResult.RMSEA_raw<=0.08?'#fbbf24':'#f87171';
@@ -8158,7 +8190,7 @@ function renderASub(){
       // Group means
       html+='<div class="card"><div class="sec-hd">Group Means (Discriminant Scores)</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Group</th><th>N</th>';
-      lr.preds.forEach(function(p){ html+='<th>'+p+'</th>'; });
+      lr.preds.forEach(function(p){ html+='<th>'+escHtml(p)+'</th>'; });
       html+='</tr></thead><tbody>';
       lr.groupStats.forEach(function(g){
         html+='<tr><td class="td-label" style="color:#38bdf8;font-weight:700">'+g.label+'</td><td class="td-num">'+g.n+'</td>';
@@ -8170,7 +8202,7 @@ function renderASub(){
       // Classification table
       html+='<div class="card"><div class="sec-hd">Classification Results</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Actual \\ Predicted</th>';
-      lr.groups.forEach(function(g){ html+='<th>'+g+'</th>'; });
+      lr.groups.forEach(function(g){ html+='<th>'+escHtml(g)+'</th>'; });
       html+='<th>Total</th><th>% Correct</th></tr></thead><tbody>';
       lr.classTable.forEach(function(row,i){
         var tot=row.counts.reduce(function(s,v){return s+v;},0);
@@ -8261,13 +8293,13 @@ function renderASub(){
       var silVal=parseFloat(cr.silhouette);
       var silLabel=silVal>=0.7?'Strong structure':silVal>=0.5?'Reasonable structure':silVal>=0.25?'Weak structure':'No substantial structure';
       var silColor=silVal>=0.5?'#34d399':silVal>=0.25?'#fbbf24':'#f87171';
-      html+='<div style="padding:8px 11px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.18);border-radius:8px;font-size:11.5px;color:rgba(232,222,255,.7)">Silhouette = <b style="color:'+silColor+'">'+cr.silhouette+'</b> → <b style="color:'+silColor+'">'+silLabel+'</b><br><span style="font-size:10px;color:rgba(232,222,255,.4)">≥0.70 = strong · ≥0.50 = reasonable · ≥0.25 = weak · <0.25 = poor</span></div>';
+      html+='<div style="padding:8px 11px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.18);border-radius:8px;font-size:11.5px;color:rgba(232,222,255,.7)">Silhouette = <b style="color:'+silColor+'">'+cr.silhouette+'</b> → <b style="color:'+silColor+'">'+escHtml(silLabel)+'</b><br><span style="font-size:10px;color:rgba(232,222,255,.4)">≥0.70 = strong · ≥0.50 = reasonable · ≥0.25 = weak · <0.25 = poor</span></div>';
       html+='</div>';
 
       // Cluster sizes
       html+='<div class="card"><div class="sec-hd">Cluster Sizes & Centroids</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Cluster</th><th>N</th><th>%</th>';
-      cr.vars.forEach(function(v){ html+='<th>'+v+' (mean)</th>'; });
+      cr.vars.forEach(function(v){ html+='<th>'+escHtml(v)+' (mean)</th>'; });
       html+='</tr></thead><tbody>';
       var clColors=['#4ade80','#38bdf8','#f472b6','#fb923c','#a78bfa','#34d399','#fbbf24','#e879f9'];
       cr.clusters.forEach(function(c,i){
@@ -8350,7 +8382,7 @@ function renderASub(){
         var barCol=pctNum>20?'#f87171':pctNum>5?'#fbbf24':'#34d399';
         var barW=Math.max(0,Math.min(100,pctNum));
         html+='<tr>';
-        html+='<td class="td-label" style="color:#c084fc">'+mv.name+'</td>';
+        html+='<td class="td-label" style="color:#c084fc">'+escHtml(mv.name)+'</td>';
         html+='<td class="td-num" style="color:'+(mv.count>0?'#f87171':'#34d399')+'">'+mv.count+'</td>';
         html+='<td class="td-num">'+mv.pct+'%</td>';
         html+='<td class="td-num" style="color:#34d399">'+(n2-mv.count)+'</td>';
@@ -8467,7 +8499,7 @@ function renderASub(){
           // Pattern table
           html+='<div class="sec-hd" style="margin-top:14px;margin-bottom:8px">Missing Patterns ('+nPat+' unique patterns)</div>';
           html+='<div class="tbl-wrap"><table><thead><tr><th>Pattern</th><th>N</th><th>%</th>';
-          nF2.forEach(function(v){ html+='<th style="font-size:10px;max-width:70px;word-break:break-all">'+v+'</th>'; });
+          nF2.forEach(function(v){ html+='<th style="font-size:10px;max-width:70px;word-break:break-all">'+escHtml(v)+'</th>'; });
           html+='</tr></thead><tbody>';
           patList.sort(function(a,b){return b.n-a.n;}).forEach(function(pat){
             var missCnt=pat.obs.filter(function(o){return !o;}).length;
@@ -8536,10 +8568,10 @@ function renderASub(){
         html+='<div class="card"><div class="sec-hd">Pairwise Missing Co-occurrence</div>';
         html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:10px">Number of cases where both variables are simultaneously missing. High values suggest correlated missingness.</div>';
         html+='<div class="tbl-wrap"><table><thead><tr><th></th>';
-        nF2.forEach(function(v){html+='<th style="font-size:10px">'+v+'</th>';});
+        nF2.forEach(function(v){html+='<th style="font-size:10px">'+escHtml(v)+'</th>';});
         html+='</tr></thead><tbody>';
         nF2.forEach(function(v1,i){
-          html+='<tr><td class="td-label" style="color:#c084fc;font-weight:700">'+v1+'</td>';
+          html+='<tr><td class="td-label" style="color:#c084fc;font-weight:700">'+escHtml(v1)+'</td>';
           nF2.forEach(function(v2,j){
             var cnt=data.filter(function(r){
               var m1=r[v1]===null||r[v1]===undefined||r[v1]==='';
@@ -9902,7 +9934,7 @@ function svgMetaForestPlot(studies, res, effectType){
 
     // Labels
     var nameShort=s.name.length>18?s.name.slice(0,16)+'…':s.name;
-    svg+='<text x="'+(padL-6)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="9" fill="rgba(232,222,255,.65)" font-family="Inter,sans-serif">'+nameShort+'</text>';
+    svg+='<text x="'+(padL-6)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="9" fill="rgba(232,222,255,.65)" font-family="Inter,sans-serif">'+escHtml(nameShort)+'</text>';
     svg+='<text x="'+(padL+cw+5)+'" y="'+(y+3.5)+'" font-size="8.5" fill="rgba(232,222,255,.55)" font-family="Inter,sans-serif">'+s.yi.toFixed(3)+' ['+s.ci_lo+', '+s.ci_hi+']</text>';
     svg+='<text x="'+(padL+cw+108)+'" y="'+(y+3.5)+'" font-size="8.5" fill="rgba(232,222,255,.4)" font-family="Inter,sans-serif">'+s.weight.toFixed(1)+'%</text>';
   });
@@ -10889,7 +10921,7 @@ function svgModerationPlot(res,xName,wName,yName,W,H){
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   [xRange[0],(xRange[0]+xRange[1])/2,xRange[1]].forEach(function(v){svg+='<text x="'+tx(v)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8" fill="#64748b">'+SE.f4(v)+'</text>';});
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+xName+'</text>';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+escHtml(xName)+'</text>';
   return svg+'</svg>';
 }
 
@@ -11225,8 +11257,8 @@ function svgROC(roc,W,H){
     var x=tx(v),y=ty(v);
     svg+='<line x1="'+x+'" x2="'+x+'" y1="'+P.t+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.05)"/>';
     svg+='<line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,255,255,.05)"/>';
-    svg+='<text x="'+x+'" y="'+(H-P.b+13)+'" text-anchor="middle" font-size="8" fill="#475569">'+v+'</text>';
-    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="#475569">'+v+'</text>';
+    svg+='<text x="'+x+'" y="'+(H-P.b+13)+'" text-anchor="middle" font-size="8" fill="#475569">'+escHtml(v)+'</text>';
+    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="#475569">'+escHtml(v)+'</text>';
   });
   // Diagonal reference line
   svg+='<line x1="'+tx(0)+'" y1="'+ty(0)+'" x2="'+tx(1)+'" y2="'+ty(1)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2" stroke-dasharray="5,3"/>';
@@ -11384,7 +11416,7 @@ function svgKaplanMeier(res,W,H){
   [0,.25,.5,.75,1].forEach(function(v){
     var y=ty(v),x=tx(v*tMax);
     svg+='<line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,255,255,'+(v===0.5?'.12':'.05')+')" stroke-width="'+(v===0.5?1.2:1)+'"/>';
-    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="#64748b">'+v+'</text>';
+    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="#64748b">'+escHtml(v)+'</text>';
     svg+='<text x="'+x+'" y="'+(H-P.b+13)+'" text-anchor="middle" font-size="8" fill="#64748b">'+(v*tMax).toFixed(0)+'</text>';
   });
   // Reference line at 0.5 (median)
@@ -13825,7 +13857,7 @@ function renderSyntax(el){
     _syntaxHistory.forEach(function(h,i){
       html+='<div style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.15);border-radius:8px;padding:8px 10px">';
       html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
-      html+='<span style="font-size:10.5px;font-weight:600;color:#a78bfa">'+h.title+'</span>';
+      html+='<span style="font-size:10.5px;font-weight:600;color:#a78bfa">'+escHtml(h.title)+'</span>';
       html+='<button onclick="_loadSyntaxToEditor(_syntaxHistory['+i+'].syntax)" style="font-size:10px;padding:2px 8px;border-radius:5px;border:1px solid rgba(124,58,237,.3);background:rgba(124,58,237,.15);color:#c084fc;cursor:pointer;font-family:Inter,sans-serif">Load to Editor</button>';
       html+='</div>';
       html+='<pre style="font-family:Fira Code,monospace;font-size:9.5px;color:#94a3b8;white-space:pre-wrap;margin:0;line-height:1.6">'+h.syntax.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>';
@@ -13888,8 +13920,8 @@ function renderPivot(el){
   html+=mkCsel('pv-fn',['mean','sum','count','min','max','std'],pvState.fn,'pvState.fn=val;renderPivot(document.getElementById(\'view-pivot\'))','Function');
   html+='</div></div>';
   html+='<div class="card"><div class="tbl-wrap"><table><thead><tr>';
-  html+='<th style="color:#818cf8">'+pvState.row+' \\ '+pvState.col+'</th>';
-  cv.forEach(c=>html+='<th style="color:#60a5fa">'+c+'</th>');
+  html+='<th style="color:#818cf8">'+escHtml(pvState.row)+' \\ '+escHtml(pvState.col)+'</th>';
+  cv.forEach(c=>html+='<th style="color:#60a5fa">'+escHtml(c)+'</th>');
   html+='</tr></thead><tbody>';
   rv.forEach((r,ri)=>{html+='<tr class="'+(ri%2?'':'alt')+'"><td style="font-weight:700;color:#a78bfa">'+r+'</td>';
     cv.forEach(c=>{const v=cell(r,c);html+='<td style="text-align:right;color:'+(v==='—'?'#334155':'#e2e8f0')+'">'+v+'</td>';});
@@ -14237,7 +14269,7 @@ function renderOutput(el){
       html+='<span style="margin-left:auto;background:'+col+'30;color:'+col+';border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;border:1px solid '+col+'40">'+g.count+'</span>';
       html+='</div>';
       grpOuts.slice(0,2).forEach(function(o){
-        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+o.title+'</div>';
+        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+escHtml(o.title)+'</div>';
       });
       if(g.count>2) html+='<div style="font-size:10px;color:rgba(232,222,255,.25);margin-top:2px">+'+(g.count-2)+' more…</div>';
       html+='<div style="font-size:9.5px;color:rgba(232,222,255,.2);margin-top:8px">Latest: '+new Date(grpOuts[0].id).toLocaleTimeString()+'</div>';
@@ -14263,7 +14295,7 @@ function renderOutput(el){
       subTitles.forEach(function(sub){
         var cnt=toShow.filter(function(o){return o.title===sub;}).length;
         html+='<div style="background:rgba(14,6,24,.7);border:1px solid '+col2+'25;border-radius:6px;padding:4px 10px;font-size:10.5px;color:rgba(232,222,255,.65);display:flex;align-items:center;gap:5px">';
-        html+=sub;
+        html+=escHtml(sub);
         if(cnt>1) html+='<span style="background:'+col2+'22;color:'+col2+';border-radius:999px;padding:0 6px;font-size:9.5px;font-weight:700">×'+cnt+'</span>';
         html+='</div>';
       });
@@ -14286,7 +14318,7 @@ function renderOutput(el){
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:6px">';
     html+='<div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1">';
     html+='<span style="background:'+grpColor+'18;color:'+grpColor+';border:1px solid '+grpColor+'30;border-radius:5px;padding:1px 7px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0">'+_outGroup(o)+'</span>';
-    html+='<div class="sec-hd" style="margin-bottom:0;overflow:hidden;text-overflow:ellipsis;white-space:'+ (_isCompact?'nowrap':'normal')+'">'+o.title+'</div>';
+    html+='<div class="sec-hd" style="margin-bottom:0;overflow:hidden;text-overflow:ellipsis;white-space:'+ (_isCompact?'nowrap':'normal')+'">'+escHtml(o.title)+'</div>';
     html+='</div>';
     html+='<div class="row" style="gap:5px;flex-wrap:wrap;flex-shrink:0">';
     html+='<span style="font-size:9.5px;color:#334155">'+new Date(o.id).toLocaleTimeString()+'</span>';
@@ -14781,7 +14813,7 @@ function renderOutput(el){
         if(!r2.converged) html+='<span class="tag tag-yellow">⚠ IRLS did not fully converge</span>';
         html+='</div>';
         // Coefficients table
-        html+='<div class="sec-hd" style="margin-bottom:7px"><span style="color:'+mColor+'">'+mLabel+'</span> — Coefficients</div>';
+        html+='<div class="sec-hd" style="margin-bottom:7px"><span style="color:'+mColor+'">'+escHtml(mLabel)+'</span> — Coefficients</div>';
         html+='<div class="tbl-wrap"><table><thead><tr>';
         ['Predictor','β','SE','z','p','IRR (e^β)','95% CI IRR'].forEach(function(h2){html+='<th>'+h2+'</th>';});
         html+='</tr></thead><tbody>';
@@ -14875,8 +14907,8 @@ function renderOutput(el){
 
         // ── Group Means matrix
         html+='<div class="sec-hd" style="margin-bottom:7px">Group Means</div>';
-        html+='<div class="tbl-wrap" style="margin-bottom:11px"><table><thead><tr><th>'+r.factor+'</th><th>N</th>';
-        r.depVars.forEach(function(dv){ html+='<th>'+dv+'</th>'; });
+        html+='<div class="tbl-wrap" style="margin-bottom:11px"><table><thead><tr><th>'+escHtml(r.factor)+'</th><th>N</th>';
+        r.depVars.forEach(function(dv){ html+='<th>'+escHtml(dv)+'</th>'; });
         html+='</tr></thead><tbody>';
         r.groupMeans.forEach(function(gm){
           html+='<tr><td class="td-label">'+gm.key+'</td><td class="td-num">'+gm.n+'</td>';
@@ -14998,11 +15030,11 @@ function renderOutput(el){
       html+='</div>';
       // Confusion matrix
       html+='<div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;letter-spacing:.5px">CONFUSION MATRIX</div>';
-      html+='<div class="tbl-wrap" style="margin-bottom:12px"><table><thead><tr><th style="color:#818cf8">'+o.vars[0]+' \\ '+o.vars[1]+'</th>';
-      r.cats.forEach(function(c){html+='<th>'+c+'</th>';});
+      html+='<div class="tbl-wrap" style="margin-bottom:12px"><table><thead><tr><th style="color:#818cf8">'+escHtml(o.vars[0])+' \\ '+escHtml(o.vars[1])+'</th>';
+      r.cats.forEach(function(c){html+='<th>'+escHtml(c)+'</th>';});
       html+='<th>Total</th></tr></thead><tbody>';
       r.cats.forEach(function(cat,i){
-        html+='<tr class="'+(i%2?'':'alt')+'"><td class="td-label" style="color:#818cf8">'+cat+'</td>';
+        html+='<tr class="'+(i%2?'':'alt')+'"><td class="td-label" style="color:#818cf8">'+escHtml(cat)+'</td>';
         r.mat[i].forEach(function(cell,j){
           var isDiag=i===j;
           html+='<td style="'+(isDiag?'background:rgba(129,140,248,.08);font-weight:700;color:#a5b4fc':'')+'">'+cell+'</td>';
@@ -15062,7 +15094,7 @@ function renderOutput(el){
       for(var fi=0;fi<r.nFactors;fi++) html+='<th>F'+(fi+1)+'</th>';
       html+='<th>Communality h²</th></tr></thead><tbody>';
       o.efaVars.forEach(function(v,i){
-        html+='<tr><td class="td-label">'+v+'</td>';
+        html+='<tr><td class="td-label">'+escHtml(v)+'</td>';
         r.loadings[i].forEach(function(l){
           var absL=Math.abs(parseFloat(l));
           var col=absL>=0.6?'#a5f3fc':absL>=0.4?'#c084fc':'rgba(232,222,255,.38)';
@@ -15133,8 +15165,8 @@ function renderOutput(el){
           var lamCol=Math.abs(lamNum)>=0.7?'#34d399':Math.abs(lamNum)>=0.5?'#a5f3fc':Math.abs(lamNum)>=0.3?'#fbbf24':'#f87171';
           var h2col=h2num>=0.7?'#34d399':h2num>=0.4?'#fbbf24':'#f87171';
           html+='<tr>';
-          if(vi===0) html+='<td class="td-label" rowspan="'+vars.length+'" style="color:'+fcolor+';font-weight:800;vertical-align:middle">'+fn+'</td>';
-          html+='<td class="td-label">'+v+'</td>';
+          if(vi===0) html+='<td class="td-label" rowspan="'+vars.length+'" style="color:'+fcolor+';font-weight:800;vertical-align:middle">'+escHtml(fn)+'</td>';
+          html+='<td class="td-label">'+escHtml(v)+'</td>';
           html+='<td class="td-num" style="color:'+lamCol+';font-weight:'+(Math.abs(lamNum)>=0.5?700:400)+'">'+lam+'</td>';
           html+='<td class="td-num" style="color:'+h2col+'">'+h2+'</td>';
           html+='<td>'+(Math.abs(lamNum)>=0.5?'<span class="tag tag-green" style="font-size:9px">✓ Adequate</span>':'<span class="tag tag-red" style="font-size:9px">✗ Weak</span>')+'</td>';
@@ -15353,7 +15385,7 @@ function renderOutput(el){
       html+='<div class="sb"><div class="sb-label">Method</div><div class="sb-value" style="font-size:11px">'+( r.method==='kmeans'?'K-Means':'Hierarchical')+'</div></div>';
       html+='<div class="sb"><div class="sb-label">k Clusters</div><div class="sb-value" style="color:#4ade80">'+r.k+'</div></div>';
       html+='<div class="sb"><div class="sb-label">N Cases</div><div class="sb-value">'+r.n+'</div></div>';
-      html+='<div class="sb"><div class="sb-label">Silhouette</div><div class="sb-value" style="color:'+silCol+'">'+r.silhouette+'</div><div class="sb-note">'+silLabel+'</div></div>';
+      html+='<div class="sb"><div class="sb-label">Silhouette</div><div class="sb-value" style="color:'+silCol+'">'+r.silhouette+'</div><div class="sb-note">'+escHtml(silLabel)+'</div></div>';
       if(r.method==='kmeans'){
         html+='<div class="sb"><div class="sb-label">Within SS</div><div class="sb-value">'+r.totalWSS+'</div></div>';
         html+='<div class="sb"><div class="sb-label">Between SS</div><div class="sb-value">'+r.totalBSS+'</div></div>';
@@ -16962,7 +16994,7 @@ function _exportOutputDialog(id){
     +'<span style="font-size:18px">⬇</span>'
     +'<div style="font-size:15px;font-weight:700;color:#e8deff;font-family:Playfair Display,serif;font-style:italic">Export to Word</div>'
     +'</div>'
-    +'<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:18px;padding-left:28px">'+o.title+'</div>';
+    +'<div style="font-size:11.5px;color:rgba(232,222,255,.45);margin-bottom:18px;padding-left:28px">'+escHtml(o.title)+'</div>';
 
   // Option cards
   var opts=[
@@ -17922,23 +17954,19 @@ var _ossUnsaved    = false;      // dirty flag
 function ossMarkUnsaved(){
   if(_ossFileName){
     _ossUnsaved = true;
-    var el = document.getElementById('oss-file-bar-unsaved');
-    if(el) el.style.display = '';
+    var el = document.getElementById('oss-unsaved-dot');
+    if(el) el.classList.add('visible');
   }
 }
 
 function ossMarkSaved(){
   _ossUnsaved = false;
-  var el = document.getElementById('oss-file-bar-unsaved');
-  if(el) el.style.display = 'none';
+  var el = document.getElementById('oss-unsaved-dot');
+  if(el) el.classList.remove('visible');
 }
 
 function ossUpdateFileBar(name){
   _ossFileName = name;
-  var bar  = document.getElementById('oss-file-bar');
-  var nameEl = document.getElementById('oss-file-bar-name');
-  if(bar)  bar.classList.add('visible');
-  if(nameEl) nameEl.textContent = name;
   ossMarkSaved();
 }
 

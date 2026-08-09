@@ -366,6 +366,10 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   letter-spacing:1.5px;text-align:center}
 .s-logo-sub{display:none!important}
+.s-logo-unsaved{width:6px;height:6px;border-radius:50%;background:#f472b6;
+  margin-left:6px;display:none;flex-shrink:0;
+  box-shadow:0 0 6px rgba(244,114,182,.7)}
+.s-logo-unsaved.visible{display:inline-block}
 
 .s-body{flex:1;overflow-y:auto;padding:8px 6px 24px;-webkit-overflow-scrolling:touch;position:relative;z-index:1;min-height:0}
 .s-body::-webkit-scrollbar{display:none}
