@@ -5,10 +5,19 @@
 
 // ⚠ Bump this version string setiap kali deploy biar cache lama otomatis dihapus
 const CACHE_NAME = 'oss-v4';
-const APP_SHELL = ['/OSS/', '/OSS/index.html', '/OSS/manifest.json'];
+
+// ✅ DIPERBAIKI: base path DIHITUNG DINAMIS dari scope registrasi service
+// worker (bukan di-hardcode '/OSS/'). `self.registration.scope` selalu
+// berupa URL folder tempat sw.js didaftarkan (lihat `register('./sw.js')`
+// di app.js — scope default = folder sw.js itu sendiri), jadi otomatis
+// menyesuaikan di manapun repo ini di-deploy: '/OSS/' kalau tetap di sini,
+// '/' kalau suatu saat pindah jadi user/org page, atau '/nama-lain/' kalau
+// repo di-rename/di-fork — tanpa perlu ubah kode ini sama sekali.
+const BASE = new URL(self.registration.scope).pathname; // contoh: '/OSS/'
+const APP_SHELL = [BASE, BASE + 'index.html', BASE + 'manifest.json'];
 
 // File-file utama yang harus selalu network-first (langsung ambil dari server)
-const NETWORK_FIRST = ['/OSS/app.js', '/OSS/style.css', '/OSS/index.html', '/OSS/'];
+const NETWORK_FIRST = [BASE + 'app.js', BASE + 'style.css', BASE + 'index.html', BASE];
 
 // ── Install: cache the app shell ──────────────────────────
 self.addEventListener('install', function(e) {
@@ -73,7 +82,7 @@ self.addEventListener('fetch', function(e) {
           // Offline: gunakan cache sebagai fallback
           return caches.match(e.request).then(function(cached) {
             if (cached) return cached;
-            if (e.request.mode === 'navigate') return caches.match('/OSS/');
+            if (e.request.mode === 'navigate') return caches.match(BASE);
             return new Response('Offline', { status: 503 });
           });
         })
@@ -92,7 +101,7 @@ self.addEventListener('fetch', function(e) {
           }
           return res;
         }).catch(function() {
-          if (e.request.mode === 'navigate') return caches.match('/OSS/');
+          if (e.request.mode === 'navigate') return caches.match(BASE);
           return new Response('Offline', { status: 503 });
         });
       })
