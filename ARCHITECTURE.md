@@ -423,6 +423,7 @@ setiap klaim di bawah dicek ulang terhadap kode aktual sebelum diperbaiki
 | **pFmt duplikat (2 lokasi)** | ✅ **DIVERIFIKASI BUKAN BUG** | `stats-core-basic.js` (global) dan `stats-metaanalysis.js` (lokal, closure-scoped) — tidak pernah tabrakan karena scope beda. Tidak ada perubahan. |
 | **B14/B18 polyfill top-level** (`SE.fInv`/`SE.chi2CDF` dkk di app.js) | ➖ **BUKAN BUG, TIDAK DISENTUH** | Ini keputusan arsitektur yang sudah benar (top-level write ke `SE` tidak bisa dipindah ke file pre-app.js) — bukan temuan yang perlu "diperbaiki". |
 | **B26** — `SE.vari` tidak pernah masuk `return {...}` objek `SE`, Time Series Decomposition selalu gagal diam-diam | ✅ **DIPERBAIKI (2026-09-16)** | `vari` ditambahkan ke `return {...}` di `app.js` (baris `validNums, isV, mean, std, vari, quantile, ...`), pola sama persis dengan fix `fCDF`/`chiCDF` (B1) dan `matInv`/`matMul` (temuan sesi ini). Diverifikasi via Node `vm` module: `SE.vari(Y)` sekarang mengembalikan nilai identik dengan implementasi manual (bukan lagi `undefined`), dan `tsDecomp` (dipakai preview & tombol "Run" Time Series) sekarang jalan normal untuk mode additive maupun multiplicative tanpa perlu workaround apa pun. Mode ARIMA (tidak pernah pakai `SE.vari`) dicek tetap sama seperti sebelumnya, tidak ada regresi. |
+| **B25 (temuan susulan)** — `negbinReg`: golden-section search θ tanpa batas atas + IRLS tanpa step-halving (akar masalah sesungguhnya, ditemukan pas verifikasi fix θ) | ✅ **DIPERBAIKI (2026-09-17)** | Detail lengkap di Bagian 10. Ringkas: θ di-clamp ke `[1e-3, 1e4]` (dulu tanpa batas atas → dobel terus jadi ~2⁵⁰), DAN loop IRLS ditambah step-halving supaya Newton step tidak overshoot jadi `NaN` sebelum pencarian θ sempat jalan (akar masalah sesungguhnya — batasi θ saja TIDAK cukup, dibuktikan lewat ~10 skenario test yang semuanya masih "N/A" tanpa fix IRLS ini). Diverifikasi konvergen & tidak `NaN` di data overdispersed maupun Poisson murni, diulang beberapa kali dengan data random berbeda. |
 
 ## 9. B25 — SPLIT SELESAI (2026-09-16)
 
@@ -440,22 +441,10 @@ persis seperti `index.html`):
   vs true 0.30, intercept 0.51 vs true 0.50), `converged:true`. ✅
 - `computeHLMBasics` — ICC & variance partitioning terhitung benar untuk
   10 grup × 15 observasi. ✅
-- `negbinReg` — **ditemukan bug pra-eksisting, TIDAK diperbaiki** (di luar
-  scope B25 yang diminta, murni "split" bukan "fix"): golden-section
-  search untuk parameter dispersi θ di baris `var lo=bestTh*0.5,
-  hi=bestTh*2` tidak punya batas atas, dan loop luar jalan 50x
-  (`for(var outer=0;outer<50;outer++)`). Kalau log-likelihood terus naik
-  ke arah θ besar (umum terjadi kalau data mendekati Poisson / tidak
-  terlalu overdispersed — termasuk pada data sintetis overdispersed yang
-  saya coba), θ dobel terus tiap iterasi tanpa dibatasi → meledak jadi
-  ~2⁵⁰ setelah 50 iterasi, `se` jadi `NaN`, semua koefisien tampil "N/A".
-  Dikonfirmasi ini BUKAN regresi dari pemindahan file (diuji ulang kode
-  identik langsung dari `app.js` versi asli — MUNCUL bug sama, cuma
-  gagal load karena dependency chain, jadi dikonfirmasi lewat pembacaan
-  kode + pola output yang cocok persis 2⁵⁰). Fitur Negative Binomial
-  Regression kemungkinan sering gagal konvergen di app production
-  sekarang — disarankan didiskusikan/diperbaiki di sesi terpisah (bukan
-  bagian dari task split B25 ini).
+- `negbinReg` — bug θ tanpa batas atas yang dicatat di sesi split ini
+  **✅ SUDAH DIPERBAIKI (2026-09-17)**, lihat Bagian 8 baris terbaru dan
+  detail lengkap di bawah (bukan cuma θ — ternyata ada 1 lapis bug lagi
+  yang jadi akar masalah sesungguhnya, ditemukan pas verifikasi fix θ).
 
 **File yang berubah**: `app.js`, `js/stats-engine/stats-core-advanced.js`,
 `js/stats-engine/stats-core-basic.js`, `js/stats-engine/stats-discriminant-cluster.js`,
@@ -463,3 +452,60 @@ persis seperti `index.html`):
 `js/stats-engine/stats-mediation-sem.js`. Semua perubahan lulus `node --check`
 (syntax) dan diverifikasi lewat test langsung (Multiple Regression, EFA,
 Holm-Bonferroni) di luar browser menggunakan Node `vm` module.
+
+## 10. `negbinReg` — FIX SELESAI (2026-09-17)
+
+Bug yang dicatat di Bagian 9 (θ tidak ada batas atas) **benar ada**, tapi
+ternyata cuma **gejala**. Trace lebih dalam pakai debug log (Node `vm`,
+di luar browser) ketemu akar masalah sesungguhnya: loop IRLS
+(`for(var iter=0;iter<30;...)`, sebelum pencarian θ pun mulai) tidak
+punya step-halving/damping. Dengan θ awal ditebak (1.0) dan beta awal 0,
+weight NB2 (`mu/(1+mu/θ)`) sering jauh lebih kecil dari weight Poisson
+biasa (`mu`) — bikin matriks informasi (`X'WX`) "kurang mengerem" Newton
+step, beta lompat jauh (pernah sampai ribuan) dalam 2-3 iterasi lalu
+meledak jadi `NaN`, **sebelum** pencarian θ sempat jalan. Begitu beta
+`NaN`, log-likelihood `NaN` untuk semua kandidat θ → golden-section
+search selalu ambil cabang yang sama → θ dobel terus tiap outer loop →
+persis pola `2⁵⁰` yang sudah didiagnosis sebelumnya. Dibuktikan lewat
+test: pasang batas atas θ saja (tanpa benahi IRLS) **tidak cukup** —
+semua koefisien tetap tampil "N/A" di ~10 skenario data sintetis yang
+dicoba (termasuk kasus paling "jinak": intercept-only, efek nyaris nol,
+mu hampir konstan).
+
+**2 perubahan di `negbinReg` (`js/stats-engine/stats-glm-hlm.js`)**:
+1. **Batas θ**: `THETA_MAX=1e4`, `THETA_MIN=1e-3`. Golden-section search
+   dan hasil akhir tiap outer loop di-clamp ke rentang ini. Kalau θ
+   mentok di plafon (`thetaAtCap`), loop berhenti lebih awal (bukan
+   lanjut 50x sia-sia) dan hasil dapat `warnings` baru: *"Dispersion
+   parameter θ mencapai batas pencarian (10000)... pertimbangkan pakai
+   Poisson saja"* — artinya data memang tidak overdispersed, NB2 dengan
+   θ≥1e4 praktis identik dengan Poisson.
+2. **Step-halving di IRLS** (akar masalah): tiap Newton step dicek dulu
+   apakah benar menaikkan log-likelihood (`nbLogLik`); kalau tidak, step
+   dikecilkan bertahap (dibagi 2, maks 15x) sebelum diterima. Ini yang
+   sebenarnya menghentikan ledakan ke `NaN`.
+
+**Verifikasi** (Node `vm`, load order persis `index.html`, di luar
+browser — file baru `stats-glm-hlm.js` sampai `js/data/weight-cases.js`
+lalu `app.js`):
+- Data overdispersed sintetis (θ_true=1.5–3, campuran gamma-Poisson):
+  konvergen ke θ≈1.7–3.2, koefisien dekat nilai sebenarnya
+  (`converged:true`), diulang 5x dengan data random baru tiap kali —
+  tidak pernah `NaN`. ✅
+- Data Poisson murni (θ_true→∞, tidak overdispersed): benar-benar
+  berhenti di plafon θ=10000 dengan `warnings` yang jelas, koefisien
+  tetap masuk akal (bukan "N/A"). ✅
+- Kasus ekstrem (mu hampir konstan, efek prediktor nyaris nol,
+  intercept-only): tidak `NaN`, walau kadang koefisien prediktor jadi
+  kurang presisi (CI lebar) — ini wajar untuk data hampir tak
+  teridentifikasi, bukan bug. ✅
+- Performa: n=2000, 3 prediktor, ~2–9 detik (bervariasi tergantung draw
+  data) — sekali klik tombol, bukan lupa titik lain, dan yang penting
+  sebelumnya fungsi ini **tidak pernah** selesai konvergen sama sekali.
+- File lolos `node --check` (syntax), tidak ada tabrakan nama baru.
+
+**File yang berubah (sesi ini)**: `js/stats-engine/stats-glm-hlm.js`
+saja. `app.js`/`index.html`/`style.css` tidak disentuh — pemanggilan
+`SE.negbinReg(...)` di `app.js` (baris preview & tombol Run GLM) tidak
+perlu diubah, tetap jalan lewat scope-fallback ke fungsi global baru
+sama seperti pola B1-B26.

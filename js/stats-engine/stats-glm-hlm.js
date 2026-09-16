@@ -287,10 +287,32 @@ function negbinReg(dvName, xNames, dataArr) {
   // Start from Poisson estimates then optimize theta
   var beta = new Array(k).fill(0);
   // IRLS outer loop + golden-section search for theta
+  // THETA_MAX/THETA_MIN: batas pencarian θ. Tanpa batas atas, θ bisa
+  // dobel terus tanpa henti (tiap outer loop hi=bestTh*2) kalau data
+  // mendekati Poisson / tidak overdispersed — lgamma(y+θ) dan lgamma(θ)
+  // jadi dua bilangan raksasa yang nyaris sama, selisihnya (dipakai di
+  // log-likelihood) kehilangan presisi lalu meledak jadi NaN. θ=1e4
+  // sudah jauh lebih dari cukup untuk dibedakan dari Poisson murni
+  // (NB2 dengan θ≥1e4 praktis identik dengan Poisson untuk data nyata),
+  // jadi dijadikan plafon aman sekaligus sinyal "data tidak overdispersed".
+  var THETA_MAX = 1e4, THETA_MIN = 1e-3;
   var theta = 1.0;
-  var converged=false;
+  var converged=false, thetaAtCap=false;
   for(var outer=0;outer<50;outer++){
-    // IRLS step with fixed theta (NB2 variance = mu + mu^2/theta)
+    // IRLS step with fixed theta (NB2 variance = mu + mu^2/theta), dengan
+    // step-halving (line search sederhana). TANPA ini, Newton step bisa
+    // overshoot parah lalu NaN — ditemukan saat verifikasi fix θ di atas:
+    // dengan θ awal ditebak (1.0) dan beta awal 0, weight NB2
+    // (mu/(1+mu/θ)) sering jauh lebih kecil dari weight Poisson biasa
+    // (mu), bikin matriks informasi (X'WX) "kurang mengerem" step —
+    // beta lompat jauh (kadang ke ribuan) dalam 2-3 iterasi lalu meledak
+    // jadi NaN, SEBELUM pencarian θ pun sempat jalan. Begitu beta NaN,
+    // log-likelihood NaN untuk semua kandidat θ → golden-section search
+    // di atas selalu ambil cabang "else" → θ dobel terus tiap outer loop
+    // (persis pola 2^50 yang sudah didiagnosis) — jadi ledakan θ itu
+    // GEJALA, bukan akar masalah. Step-halving di bawah memastikan tiap
+    // Newton step benar-benar menaikkan log-likelihood (kalau tidak,
+    // step dikecilkan bertahap) sebelum diterima.
     for(var iter=0;iter<30;iter++){
       var mu=X.map(function(xi){var xb=0;for(var j=0;j<k;j++) xb+=xi[j]*beta[j];return Math.max(1e-10,Math.exp(xb));});
       var XtWX=[],Xtr=[];
@@ -301,7 +323,15 @@ function negbinReg(dvName, xNames, dataArr) {
         for(var a=0;a<k;a++){Xtr[a]+=X[i][a]*res;for(var b=0;b<k;b++) XtWX[a][b]+=X[i][a]*X[i][b]*w;}
       }
       var delta=solveLinear(XtWX,Xtr,k);
-      var md=0; for(var j=0;j<k;j++){beta[j]+=delta[j];md=Math.max(md,Math.abs(delta[j]));}
+      var llBefore=nbLogLik(beta,theta);
+      var step=1, betaTry=beta, md=0;
+      for(var half=0;half<15;half++){
+        betaTry=beta.map(function(bj,j){return bj+step*delta[j];});
+        var llTry=nbLogLik(betaTry,theta);
+        if(isFinite(llTry)&&(!isFinite(llBefore)||llTry>=llBefore-1e-8)) break;
+        step*=0.5;
+      }
+      for(var j=0;j<k;j++){md=Math.max(md,Math.abs(betaTry[j]-beta[j]));beta[j]=betaTry[j];}
       if(md<1e-7) break;
     }
     // Profile log-likelihood search for theta in [0.01, 1000]
@@ -309,13 +339,20 @@ function negbinReg(dvName, xNames, dataArr) {
     [0.1,0.5,1,2,5,10,20,50,100,500].forEach(function(th){
       var ll=nbLogLik(beta,th); if(ll>bestLL){bestLL=ll;bestTh=th;}
     });
-    // Refine around bestTh
-    var lo=bestTh*0.5, hi=bestTh*2;
+    // Refine around bestTh, diklem ke [THETA_MIN, THETA_MAX] supaya
+    // golden-section tidak bisa lari ke luar batas aman
+    var lo=Math.max(THETA_MIN,bestTh*0.5), hi=Math.min(THETA_MAX,bestTh*2);
     for(var gs=0;gs<40;gs++){
       var m1=lo+(hi-lo)*0.382, m2=lo+(hi-lo)*0.618;
       if(nbLogLik(beta,m1)>nbLogLik(beta,m2)) hi=m2; else lo=m1;
     }
-    var newTh=(lo+hi)/2;
+    var newTh=Math.min(THETA_MAX,Math.max(THETA_MIN,(lo+hi)/2));
+    if(newTh>=THETA_MAX*0.999){
+      // Log-likelihood masih naik terus ke arah θ besar sampai plafon —
+      // artinya data tidak (atau nyaris tidak) overdispersed dibanding
+      // Poisson. Berhenti di sini, JANGAN lanjut dobel tanpa batas.
+      theta=THETA_MAX; thetaAtCap=true; converged=true; break;
+    }
     if(Math.abs(newTh-theta)<1e-5&&outer>3){converged=true;break;}
     theta=newTh;
   }
@@ -354,7 +391,7 @@ function negbinReg(dvName, xNames, dataArr) {
     lrChi2:f4(lrChi2), lrDf:k-1, lrP:pFmt(1-normCDF(Math.sqrt(Math.max(0,lrChi2)))),
     mcFaddenR2:f4(mcFaddenR2),
     pearsonDispersion:f4(pearsonX2/(n-k)),
-    warnings:[]
+    warnings: thetaAtCap?['Dispersion parameter θ mencapai batas pencarian ('+THETA_MAX+'). Ini menandakan data tidak overdispersed — hasil NB2 akan hampir identik dengan Poisson Regression biasa, pertimbangkan pakai Poisson saja.']:[]
   };
 }
 
