@@ -72,10 +72,6 @@ var SE = (() => {
 
 var cmdSelIdx=0;
 
-// ── Field helper functions ──────────────────────────────────
-function numFields(){ return vars.filter(function(v){return v.type==='Numeric';}).map(function(v){return v.name;}); }
-function allFields(){ return vars.map(function(v){return v.name;}); }
-
 // ── Analyze sub-tab state ─────────────────────────────────
 var aState = {
   // Descriptive
