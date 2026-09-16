@@ -172,7 +172,7 @@ Legend status: `⬜ BELUM` · `🟡 SEBAGIAN` · `✅ SUDAH`
 | B22 | Cluster Analysis (K-Means & Hierarchical) computation | baris 13210–13761 | `js/stats-engine/stats-discriminant-cluster.js` | ✅ SUDAH |
 | B23 | Weight Cases (logic non-UI) | baris 13762–13818 | `js/data/weight-cases.js` | ✅ SUDAH |
 | B24 | Hierarchical Regression toggle helper + Logistic Regression | baris 6141–6274, 16789–16849 | `js/stats-engine/stats-core-advanced.js` (hanya `logisticReg`, lihat catatan) | 🟡 SEBAGIAN |
-| B25 | GLM Poisson/NegBin, HLM 2-level/3-level/ICC render+compute (nyampur) | baris 6910–7476 | `js/stats-engine/stats-glm-hlm.js` | ⬜ BELUM |
+| B25 | GLM Poisson/NegBin, HLM 2-level/3-level/ICC render+compute (nyampur) | baris 6910–7476 | `js/stats-engine/stats-glm-hlm.js` | ✅ SUDAH (2026-09-16) |
 | B26 | Time Series Analysis | baris 9323–9656 (di dalam analyze-form-render) | `js/stats-engine/stats-timeseries.js` | ⬜ BELUM |
 | B27 | Chi-Square Test of Independence (Crosstab) — statistic, df, p, Cramér's V, deteksi expected freq <5 | *(tidak tercatat di baseline asli — ditemukan saat scan B4)* | `js/stats-engine/stats-crosstab.js` | ✅ SUDAH |
 
@@ -421,6 +421,39 @@ setiap klaim di bawah dicek ulang terhadap kode aktual sebelum diperbaiki
 | **"f1 duplikat" (disebut di catatan B24)** | ✅ **DIVERIFIKASI BUKAN BUG** | Klaim lama "f1 lokal di app.js jadi dead code" TERNYATA SALAH — dicek ulang, `SE.f1` (versi lokal, return '—' untuk non-finite) masih aktif dipakai di rendering confusion matrix logistic regression (`app.js`). Berbeda dari `f1` global (`stats-core-basic.js`, dipakai internal perhitungan seperti `pairedTTest`/`logisticReg`). Dua-duanya legitimate, diakses lewat path berbeda (`SE.f1` vs `f1` langsung), tidak pernah tabrakan. Tidak ada perubahan. |
 | **pFmt duplikat (2 lokasi)** | ✅ **DIVERIFIKASI BUKAN BUG** | `stats-core-basic.js` (global) dan `stats-metaanalysis.js` (lokal, closure-scoped) — tidak pernah tabrakan karena scope beda. Tidak ada perubahan. |
 | **B14/B18 polyfill top-level** (`SE.fInv`/`SE.chi2CDF` dkk di app.js) | ➖ **BUKAN BUG, TIDAK DISENTUH** | Ini keputusan arsitektur yang sudah benar (top-level write ke `SE` tidak bisa dipindah ke file pre-app.js) — bukan temuan yang perlu "diperbaiki". |
+
+## 9. B25 — SPLIT SELESAI (2026-09-16)
+
+`poissonReg`, `negbinReg`, helper `solveLinear`/`invertMatrix` (sebelumnya
+di dalam IIFE `var SE=(()=>{...})()` di `app.js`), dan `computeHLMBasics`
+(sebelumnya nested di dalam function render sub-tab HLM) sudah dipindah ke
+`js/stats-engine/stats-glm-hlm.js`, mengikuti pola B1-B24 (dipindah keluar
+apa adanya jadi fungsi global, dipanggil balik dari `app.js` tanpa ubah
+call-site). Tidak ada tabrakan nama — `solveLinear`/`invertMatrix` beda
+dari `matMulFlat`/`matInvFlat` (B1) dan dipakai khusus oleh 2 fungsi ini.
+
+Diverifikasi via Node `vm` module (di luar browser, load urutan file
+persis seperti `index.html`):
+- `poissonReg` — koefisien pulih akurat pada data sintetis (`x`-coef 0.30
+  vs true 0.30, intercept 0.51 vs true 0.50), `converged:true`. ✅
+- `computeHLMBasics` — ICC & variance partitioning terhitung benar untuk
+  10 grup × 15 observasi. ✅
+- `negbinReg` — **ditemukan bug pra-eksisting, TIDAK diperbaiki** (di luar
+  scope B25 yang diminta, murni "split" bukan "fix"): golden-section
+  search untuk parameter dispersi θ di baris `var lo=bestTh*0.5,
+  hi=bestTh*2` tidak punya batas atas, dan loop luar jalan 50x
+  (`for(var outer=0;outer<50;outer++)`). Kalau log-likelihood terus naik
+  ke arah θ besar (umum terjadi kalau data mendekati Poisson / tidak
+  terlalu overdispersed — termasuk pada data sintetis overdispersed yang
+  saya coba), θ dobel terus tiap iterasi tanpa dibatasi → meledak jadi
+  ~2⁵⁰ setelah 50 iterasi, `se` jadi `NaN`, semua koefisien tampil "N/A".
+  Dikonfirmasi ini BUKAN regresi dari pemindahan file (diuji ulang kode
+  identik langsung dari `app.js` versi asli — MUNCUL bug sama, cuma
+  gagal load karena dependency chain, jadi dikonfirmasi lewat pembacaan
+  kode + pola output yang cocok persis 2⁵⁰). Fitur Negative Binomial
+  Regression kemungkinan sering gagal konvergen di app production
+  sekarang — disarankan didiskusikan/diperbaiki di sesi terpisah (bukan
+  bagian dari task split B25 ini).
 
 **File yang berubah**: `app.js`, `js/stats-engine/stats-core-advanced.js`,
 `js/stats-engine/stats-core-basic.js`, `js/stats-engine/stats-discriminant-cluster.js`,
