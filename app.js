@@ -33,7 +33,7 @@ var SE = (() => {
   // solveLinear/invertMatrix dan Negative Binomial Regression di bawah.
 
   return {
-    validNums, isV, mean, std, quantile, normInv, sw, normCDF,
+    validNums, isV, mean, std, vari, quantile, normInv, sw, normCDF,
     descriptive, tTest, oneSampleT, pairedTTest, onewayANOVA,
     tukeyHSD, lsdPosthoc, bonferroniPosthoc, holmBonferroni, holmBonferroniPosthoc,
     twowayANOVA, threewayANOVA,
