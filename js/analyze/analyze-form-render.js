@@ -123,3 +123,103 @@ function renderPairedForm(){
     html+='<div class="card"><div class="sec-hd">Scatter A vs B</div>'+svgScatter(data,aState.pairedA,aState.pairedB)+'</div></div>';
   return html;
 }
+
+function renderRmanovaForm(){
+  const nF=numFields();
+  let html='';
+    // RM-ANOVA: 3+ repeated measures time points
+    var rmVars=aState.rmVars||[];
+    // auto-populate if empty and enough numeric vars
+    if(rmVars.length===0&&nF.length>=3) rmVars=nF.slice(0,Math.min(nF.length,3));
+    aState.rmVars=rmVars;
+    var rmPrv=null;
+    if(rmVars.length>=3){
+      rmPrv=tryStats(function(){return SE.repeatedMeasuresAnova(rmVars.map(function(v){return SE.validNums(data.map(function(r){return r[v];}));}),rmVars);});
+    }
+    html+='<div class="grid2">';
+    html+='<div class="card"><div class="sec-hd">Repeated Measures ANOVA</div>';
+    html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-bottom:10px;line-height:1.6">Pilih ≥3 variabel yang mewakili titik waktu berbeda (T1, T2, T3, dst.) dari subjek yang sama.</div>';
+    // Dynamic variable slots
+    html+='<div id="rm-slots">';
+    for(var ri=0;ri<rmVars.length;ri++){
+      html+='<div style="display:flex;gap:5px;align-items:center;margin-bottom:5px">';
+      html+='<span style="font-size:10px;color:rgba(232,222,255,.35);width:22px;flex-shrink:0">T'+(ri+1)+'</span>';
+      html+=mkSelect('rm-v-'+ri,nF,rmVars[ri],'(function(){aState.rmVars['+ri+']=val;renderASub();})()', 'Time point '+(ri+1));
+      html+='<button class="btn btn-ghost btn-sm" style="padding:4px 7px;flex-shrink:0" onclick="aState.rmVars.splice('+ri+',1);renderASub()">✕</button>';
+      html+='</div>';
+    }
+    html+='</div>';
+    html+='<div style="display:flex;gap:5px;margin-top:5px">';
+    html+='<button class="btn btn-ghost btn-sm" onclick="aState.rmVars.push(\'\');renderASub()">+ Tambah titik waktu</button>';
+    html+='</div>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runRmAnova()">▶ Run</button>';
+    if(rmPrv&&!rmPrv._err){
+      html+='<div class="stats-grid2" style="margin-top:11px">';
+      html+=stCard('F',rmPrv.F,'df='+rmPrv.dfB+','+rmPrv.dfE);
+      html+=stCard('p',rmPrv.p_fmt,'');
+      html+=stCard('&#x03b7;&#x00b2;p',rmPrv.etaSq,'Effect size');
+      html+=stCard('k',rmPrv.k,'Time points');
+      html+='</div>';
+      html+='<div class="row" style="margin-top:8px">'+sigBadge(rmPrv.p)+'</div>';
+    }
+    html+='</div>';
+    // Profile / trajectory chart
+    html+='<div class="card"><div class="sec-hd">Profile Plot (Means)</div>';
+    if(rmVars.length>=2&&rmVars.every(function(v){return v&&nF.includes(v);})){
+      var rmMeans=rmVars.map(function(v){
+        var vals=SE.validNums(data.map(function(r){return r[v];}));
+        return vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:0;
+      });
+      var rmMax=Math.max.apply(null,rmMeans);var rmMin=Math.min.apply(null,rmMeans);
+      var rmRange=rmMax-rmMin||1;
+      var svgW=220,svgH=120,padL=30,padB=20,padT=10,padR=10;
+      var plotW=svgW-padL-padR,plotH=svgH-padB-padT;
+      var pts=rmVars.map(function(v,i){
+        var x=padL+(i/(rmVars.length-1))*plotW;
+        var y=padT+plotH-(((rmMeans[i]-rmMin)/rmRange)*plotH*0.85+0.075*plotH);
+        return {x:x,y:y,mean:rmMeans[i],label:'T'+(i+1)};
+      });
+      var polyline=pts.map(function(p){return p.x+','+p.y;}).join(' ');
+      var svgStr='<svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;height:auto">';
+      svgStr+='<polyline points="'+polyline+'" fill="none" stroke="url(#rmGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      svgStr+='<defs><linearGradient id="rmGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs>';
+      pts.forEach(function(p){
+        svgStr+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#34d399" opacity="0.9"/>';
+        svgStr+='<text x="'+p.x+'" y="'+(svgH-5)+'" text-anchor="middle" font-size="9" fill="rgba(232,222,255,0.5)">'+p.label+'</text>';
+        svgStr+='<text x="'+p.x+'" y="'+(p.y-7)+'" text-anchor="middle" font-size="8" fill="#a5f3fc">'+SE.fmt4(p.mean)+'</text>';
+      });
+      svgStr+='</svg>';
+      html+=svgStr;
+    } else {
+      html+='<div class="chart-empty">Pilih ≥2 titik waktu untuk melihat grafik</div>';
+    }
+    // Descriptives per time point
+    if(rmVars.length>=2&&rmVars.every(function(v){return v&&nF.includes(v);})){
+      html+='<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Titik Waktu</th><th>Variabel</th><th>N</th><th>Mean</th><th>SD</th></tr></thead><tbody>';
+      rmVars.forEach(function(v,i){
+        var vals=SE.validNums(data.map(function(r){return r[v];}));
+        if(!vals.length){html+='<tr><td>T'+(i+1)+'</td><td>'+v+'</td><td colspan="3">—</td></tr>';return;}
+        var mean=vals.reduce(function(a,b){return a+b;},0)/vals.length;
+        var sd=Math.sqrt(vals.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/(vals.length-1));
+        html+='<tr><td class="td-label">T'+(i+1)+'</td><td class="td-str">'+escHtml(v)+'</td><td class="td-num">'+vals.length+'</td><td class="td-num">'+SE.fmt4(mean)+'</td><td class="td-num">'+SE.fmt4(sd)+'</td></tr>';
+      });
+      html+='</tbody></table></div>';
+    }
+    // Mauchly & Post-hoc note
+    if(rmPrv&&!rmPrv._err){
+      html+='<div class="assump" style="margin-top:10px"><b style="color:#fbbf24">Catatan Sphericity:</b> Mauchly test tidak diimplementasikan. Jika data melanggar sphericity, pertimbangkan koreksi Greenhouse-Geisser di software seperti SPSS.<br><br>';
+      if(parseFloat(rmPrv.p)<0.05){
+        html+='<b style="color:#34d399">Post-hoc pairwise:</b><br>';
+        for(var pi=0;pi<rmVars.length;pi++){
+          for(var pj=pi+1;pj<rmVars.length;pj++){
+            var phRes=tryStats(function(){return SE.pairedTTest(SE.validNums(data.map(function(r){return r[rmVars[pi]];})),SE.validNums(data.map(function(r){return r[rmVars[pj]];})));});
+            if(phRes&&!phRes._err) html+='T'+(pi+1)+' vs T'+(pj+1)+': t='+phRes.t+', p='+phRes.p_fmt+'&nbsp;&nbsp;';
+          }
+        }
+      }
+      html+='</div>';
+    }
+    html+='</div>';
+    html+='</div>';
+  return html;
+}
