@@ -463,28 +463,11 @@ function svgCorrMatrix(dataArr,fields,W=400,H=400){
   return svg+'</svg>';
 }
 
-// ════════════════════════════════════════════════════════════════════════
-// HTML HELPERS
-// ════════════════════════════════════════════════════════════════════════
-function sigBadge(p){
-  const pf=parseFloat(p);
-  if(!isFinite(pf))return '';
-  if(pf<.001)return '<span class="tag tag-pink">p &lt; .001 ***</span>';
-  if(pf<.01) return '<span class="tag tag-orange">p = '+p+' **</span>';
-  if(pf<.05) return '<span class="tag tag-yellow">p = '+p+' *</span>';
-  return '<span class="tag tag-gray">p = '+p+' ns</span>';
-}
-function stCard(label,value,note=''){
-  return '<div class="sb"><div class="sb-label">'+escHtml(label)+'</div><div class="sb-value">'+(value??'N/A')+'</div>'+(note?'<div class="sb-note">'+note+'</div>':'')+'</div>';
-}
-function mkTable(headers,rows,cls){
-  let h='<div class="tbl-wrap"><table'+(cls?' class="'+cls+'"':'')+'><thead><tr>';
-  headers.forEach(hh=>h+='<th>'+escHtml(hh)+'</th>');
-  h+='</tr></thead><tbody>';
-  rows.forEach((row,ri)=>{h+='<tr class="'+(ri%2?'':'alt')+'">';row.forEach((cell,ci)=>h+='<td class="'+(ci===0?'td-label':'')+'">'+(cell??'—')+'</td>');h+='</tr>';});
-  return h+'</tbody></table></div>';
-}
-function selOpts(fields,current){return fields.map(f=>'<option value="'+f+'"'+(f===current?' selected':'')+'>'+f+'</option>').join('');}
+// ── HTML HELPERS (sigBadge/stCard/mkTable/selOpts) — DIPINDAH ke
+// js/core/html-helpers.js (C4, split roadmap OSS 2.0). File dimuat
+// SEBELUM app.js — stCard/mkTable memanggil escHtml (masih di app.js,
+// dipanggil di runtime setelah app.js dimuat, bukan saat parse), aman
+// via scope-fallback ke global, pola sama file-file pre-app.js lain.
 
 // ════════════════════════════════════════════════════════════════════════
 // CUSTOM SELECT — MODAL BOTTOM SHEET
