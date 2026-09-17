@@ -316,18 +316,24 @@
   <script src="js/data/dataset-manager.js"></script>
   <script src="js/data/weight-cases.js"></script>
 
-  <!-- 4. Sisa monolith (belum dipisah semua) -->
+  <!-- 4. Analyze layer (C2, 2026-09-20): aState object literal murni +
+       field helpers (numFields/allFields/isMiss/missCount) yang baca
+       vars/data di dalam function body (runtime) — aman dimuat sebelum
+       app.js, pola sama data layer di atas -->
+  <script src="js/analyze/analyze-subtab-ui.js"></script>
+
+  <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
-  <!-- 4b. Stats engine yang HARUS dimuat SETELAH app.js (menulis langsung
+  <!-- 5b. Stats engine yang HARUS dimuat SETELAH app.js (menulis langsung
        ke SE saat parse, butuh SE sudah terbentuk oleh app.js — lihat
        catatan B20 di ARCHITECTURE.md) -->
   <script src="js/stats-engine/stats-bayesian.js"></script>
 
-  <!-- 5. UI misc -->
+  <!-- 6. UI misc -->
   <script src="js/ui-misc/badges.js"></script>
 
-  <!-- 6. Router paling akhir — manggil enterApp() & butuh semua fungsi render di atas -->
+  <!-- 7. Router paling akhir — manggil enterApp() & butuh semua fungsi render di atas -->
   <script src="js/core/router.js"></script>
   <script src="js/core/loading-screen.js"></script>
 </body>
