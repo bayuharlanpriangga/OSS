@@ -1,16 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-core-basic.js
-// Fitur (B2, B5): Descriptive, T-Test (independent/paired/one-sample),
-// One-way ANOVA + Tukey HSD, Pearson/Spearman correlation, Linear
-// Regression sederhana, plus format helpers (f4, f1, pFmt, dLabel,
-// effLabel, cohenDCI, eta2CI).
-// Depends on: validNums, req, isV, quantile, mean, std, vari, validPairs,
-// tP, fP, tCrit, normCDF, normInv, lnG (js/stats-engine/stats-distributions.js)
-// Dipindah keluar dari IIFE `SE` sebagai fungsi global biasa (bukan ES
-// module), mengikuti pola yang sudah dipakai di B1 — return object `SE`
-// yang tersisa di app.js tetap jalan lewat global fallback.
-// ════════════════════════════════════════════════════════════
-
 // Shapiro-Wilk
 function sw(arr){
   const x=[...arr].sort((a,b)=>a-b),n=x.length;
@@ -375,14 +362,6 @@ function eta2CI(F,df1,df2){
   return [f4(lo),f4(hi)];
 }
 
-
-
-// ════════════════════════════════════════════════════════════
-// Fitur (B7): Post-hoc test untuk One-Way ANOVA — LSD (Fisher's
-// Least Significant Difference), Bonferroni post-hoc, Holm-Bonferroni
-// correction.
-// ════════════════════════════════════════════════════════════
-
 // ── LSD Post-hoc (Fisher's Least Significant Difference) ──
 // Less conservative than Tukey; uses pooled MSW and t-test
 function lsdPosthoc(groups){
@@ -462,17 +441,7 @@ function holmBonferroni(pValues){
   return adj;
 }
 
-// ✅ TEMUAN B7 DIPERBAIKI (2026-09-15): sebelumnya `holmBonferroni`
-// sudah lengkap & benar tapi tidak pernah dipanggil dari mana pun (dead
-// code) — dropdown metode post-hoc ANOVA di UI cuma punya 3 opsi
-// (Tukey/Bonferroni/LSD), 'holm' tidak pernah jadi pilihan. Ditambah
-// wrapper `holmBonferroniPosthoc(groups)` di sini (pola input/output
-// sama seperti `bonferroniPosthoc`, supaya bisa dipakai render tabel
-// yang sudah ada tanpa perubahan lain) + opsi 'Holm-Bonferroni' di
-// dropdown UI (lihat app.js, `_cR['av-ph']`). Holm-Bonferroni lebih
-// powerful dibanding Bonferroni biasa (step-down, bukan flat multiply)
-// tapi tetap mengontrol familywise error rate dengan ketat, jadi jadi
-// opsi post-hoc valid ke-4 di samping Tukey/Bonferroni/LSD.
+
 function holmBonferroniPosthoc(groups){
   req(groups.length,2,'Holm-Bonferroni post-hoc groups');
   var allVals=[].concat.apply([],groups.map(function(g){return g.vals;}));
@@ -506,12 +475,7 @@ function holmBonferroniPosthoc(groups){
   });
 }
 
-// ════════════════════════════════════════════════════════════
-// Fitur (B10): Two-Way ANOVA (Factorial 2×k) — Type I SS (sequential).
-// Computes: Main Effect A, Main Effect B, Interaction A×B, Error.
-// Depends on: isV, req, mean, fCDF (stats-distributions.js), f4, pFmt
-// (sudah ada di file ini dari B1/B5).
-// ════════════════════════════════════════════════════════════
+//Two-Way ANOVA
 function twowayANOVA(dataArr, depVar, factorA, factorB){
   // Listwise deletion
   var rows = dataArr.filter(function(r){

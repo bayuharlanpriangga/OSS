@@ -1,16 +1,4 @@
-// DIPINDAH dari app.js (C5, split roadmap OSS 2.0) — dipindah apa adanya
-// jadi fungsi/var global biasa, pola sama C1/C2/C4. `varBdg` baca `vars`
-// (dari js/data/dataset-manager.js, C1) di dalam function body (runtime);
-// `mkCsel`/`mkOptCsel` memanggil `escHtml` (masih di app.js, dipanggil
-// saat render, bukan saat parse) — sama seperti dependency C4. Listener
-// `document.addEventListener('keydown',...)` di baris terakhir dieksekusi
-// langsung saat file ini dimuat (bukan ditunda) — aman karena hanya
-// MEMASANG listener; `closeCsel`/`closeCmd` di dalam callback baru betul-
-// betul dipanggil saat user menekan Escape (jauh setelah semua script,
-// termasuk app.js, selesai dimuat). Dimuat SEBELUM app.js.
-// ════════════════════════════════════════════════════════════════════════
 // CUSTOM SELECT — MODAL BOTTOM SHEET
-// ════════════════════════════════════════════════════════════════════════
 var _cR={};  // registry: id -> {fields,current,onChange,showBadge,label}
 var _cActive=null;
 

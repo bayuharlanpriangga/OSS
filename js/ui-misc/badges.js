@@ -1,16 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/ui-misc/badges.js
-// Fitur: updateBadges() — badge N=cases, missing, output, weight cases, dll
-// Catatan: sebelumnya ada 2 versi updateBadges() di app.js (dead code lama
-//   ~baris 3315 dgn target #badge-vars/#badge-out/#wc-badge, dan versi aktif
-//   ini). User sudah konfirmasi (2026-09-13): pakai versi ini, versi lama dihapus.
-// Depends on: missCount(), aState.wcActive, getNEff(), data[], outputs[],
-//   renderDsSidebar() (js/data/dataset-manager.js — belum dipisah)
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // UPDATE BADGES
-// ════════════════════════════════════════════════════════════
 function updateBadges(){
   var mc=missCount().reduce(function(s,v){return s+v.count;},0);
   var nDisp=aState.wcActive?getNEff():data.length;

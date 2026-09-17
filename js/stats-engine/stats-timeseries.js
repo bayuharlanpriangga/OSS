@@ -1,16 +1,4 @@
-// ── TIME SERIES ENGINE (B26) ──────────────────────────────────────────
-// Dipindah dari app.js (nested di dalam render 'timeseries' sub-tab),
-// dijadikan fungsi global apa adanya (tanpa ubah logic), dipanggil balik
-// dari app.js tanpa ubah call-site. Rendering SVG (svgCorrelogram,
-// svgDecompLine, time series plot) TETAP di app.js sesuai konvensi
-// B1-B25 (chart rendering ditunda sampai bagian charts dikerjakan).
-//
-// Catatan: runTimeSeries() di app.js punya implementasi terpisah
-// (tsACF2/tsDiff2 + inline ARIMA/decomp) untuk tombol "Run" — itu bukan
-// bagian dari lokasi B26 di roadmap (yang menyasar khusus lokasi
-// analyze-form-render/preview ini), jadi sengaja TIDAK disentuh/tidak
-// digabung ke sini.
-
+// TIME SERIES ENGINE 
 function tsACF(y, maxLag){
   var n=y.length, mu=SE.mean(y);
   var denom=y.reduce(function(s,v){return s+(v-mu)*(v-mu);},0)/n;

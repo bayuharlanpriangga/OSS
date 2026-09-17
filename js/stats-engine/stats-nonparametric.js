@@ -1,20 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-nonparametric.js
-// Fitur (B4): Mann-Whitney U (+ exact distribution untuk n kecil),
-// Kruskal-Wallis, Wilcoxon Signed-Rank, Cronbach's Alpha, Cohen's
-// Kappa, Fisher Exact Test.
-// Depends on: validNums, req, isV, mean, std, quantile, tCrit,
-// normInv, tP, fP, normCDF (js/stats-engine/stats-distributions.js);
-// f4, f1, pFmt, dLabel, effLabel (js/stats-engine/stats-core-basic.js)
-//
-// Catatan: `chiSquare` (chi-square untuk crosstab) SENGAJA TIDAK
-// diikutkan — fungsi itu belum ada di tabel roadmap Bagian 3
-// (bukan bagian dari B1–B26 manapun yang tercatat). Dibiarkan dulu
-// di app.js sampai ada keputusan mau dipetakan ke B-berapa/file mana.
-// ════════════════════════════════════════════════════════════
-
-
-
 // Mann-Whitney U — exact p for small n (na+nb <= 20), asymptotic otherwise
 function mwExactDist(na,nb){
   // Enumerate all possible U values for na items chosen from na+nb

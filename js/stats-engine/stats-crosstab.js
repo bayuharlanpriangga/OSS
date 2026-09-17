@@ -1,17 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-crosstab.js
-// Fitur: Chi-Square Test of Independence untuk tab Crosstab
-// (chi-square statistic, df, p-value, Cramér's V, deteksi expected
-// frequency <5).
-// Depends on: chi2P (js/stats-engine/stats-distributions.js);
-// f4, pFmt (js/stats-engine/stats-core-basic.js)
-//
-// Catatan: fungsi ini sebelumnya TIDAK punya slot di tabel roadmap
-// Bagian 3 (bukan bagian B1–B26). Dipisah jadi file sendiri di
-// stats-engine/ karena murni fungsi komputasi (tanpa DOM), sama
-// seperti B1-B4. Update tabel roadmap: lihat entri baru "B27".
-// ════════════════════════════════════════════════════════════
-
+// Chi-Square Test of Independence
 function chiSquare(mat,rT,cT,N){
    let chi2=0;
    const exp=mat.map((row,i)=>row.map((_,j)=>rT[i]*cT[j]/N));

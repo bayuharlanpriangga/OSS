@@ -1,20 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-metaanalysis.js
-// Fitur (B12): Meta-Analysis core — effect size pooling (Fixed-Effect
-// Inverse-Variance & Random-Effects DerSimonian-Laird), heterogeneity
-// (Cochran's Q, I², tau²), dan data per-studi (CI, bobot) untuk
-// Forest Plot & Funnel Plot.
-// Fungsi ini self-contained: semua helper (f4, f3, pFmt, pChiSquare,
-// normCDF2) didefinisikan lokal di dalam fungsi, tidak depend ke file
-// lain (tidak pakai isV/req/mean/dll dari stats-distributions.js).
-// Dipindah keluar apa adanya sebagai fungsi global biasa, mengikuti
-// pola B1-B11.
-// Catatan: rendering SVG Forest/Funnel Plot (svgMetaForestPlot,
-// svgMetaFunnelPlot) BUKAN bagian B12 — itu masuk rencana
-// js/charts/forest-funnel-plot.js (belum dipisah), tetap di app.js
-// untuk saat ini.
-// ════════════════════════════════════════════════════════════
-
+//Meta-Analysis core — effect size pooling
 function computeMetaAnalysis(studies, model){
   if(!studies||studies.length<2) throw new Error('Minimal 2 studi diperlukan');
   var k=studies.length;

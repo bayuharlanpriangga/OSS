@@ -16,10 +16,9 @@
 // (itu wrapper render tab Analyze: sidebar grup + sub-tab, dipanggil
 // sebelum `renderASub()`/D1 switch raksasa). `renderAnalyze` TIDAK ADA
 // di tabel roadmap manapun (bukan C8, bukan C9/sliding-pill, bukan D1)
-// — kemungkinan celah dokumentasi lama. **TIDAK ikut dipindah di sesi
-// ini** — dibiarkan di app.js, direkomendasikan didiskusikan mau
-// digabung ke `js/analyze/analyze-form-render.js` (rumah D1) atau jadi
-// file terpisah `js/analyze/analyze-tab-shell.js`, sebelum D1 dikerjakan.
+// — kemungkinan celah dokumentasi lama. **UPDATE 2026-09-20: sudah
+// dipindah** jadi file terpisah `js/analyze/analyze-tab-shell.js`,
+// sesuai keputusan user (bukan digabung ke `analyze-form-render.js`).
 //
 // Semua fungsi di file ini tetap global, dependency (`missCount`,
 // `escHtml`, `IC`, `vars`, `data`, `updateBadges`, `switchTab`,

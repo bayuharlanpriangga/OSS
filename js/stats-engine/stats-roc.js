@@ -1,23 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-roc.js
-// Fitur (B17): ROC Curve computation — kurva TPR/FPR per threshold,
-// AUC (trapezoidal rule), 95% CI AUC (Hanley-McNeil), titik optimal
-// (Youden index), dan DeLong test sederhana untuk membandingkan 2 AUC
-// (ROC Compare).
-// Depends on: global `isMiss` (helper global cek nilai kosong) dan
-// namespace `SE.*` (`isV`, `normInv`, `normCDF`, `f4`, `pFmt`) —
-// semuanya diakses lewat nama global langsung (`isMiss`) atau lewat
-// `SE.` di dalam function body, bukan di top-level, jadi aman dipindah
-// ke file yang dimuat sebelum app.js: `isMiss`/`SE` baru terbentuk
-// saat app.js dieksekusi, tapi computeROC/deLongTest baru benar-benar
-// jalan saat dipanggil user (runtime), bukan saat file di-parse.
-// Dipindah keluar apa adanya sebagai fungsi global biasa, mengikuti
-// pola B1-B16.
-// Catatan: rendering SVG (svgROC, svgROCCompare) dan UI wiring
-// (toggleROCCompare, runROC) BUKAN bagian B17 — tetap di app.js untuk
-// saat ini (rencana masuk bagian charts/section E nanti).
-// ════════════════════════════════════════════════════════════
-
+//ROC Curve computation
 function computeROC(dataArr,probVar,trueVar,posClass){
   var cases=dataArr.filter(function(r){return SE.isV(r[probVar])&&!isMiss(r[trueVar]);});
   var n=cases.length;

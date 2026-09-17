@@ -1,39 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-discriminant-cluster.js
-// [B21] Discriminant Analysis (LDA) computation
-// Fitur: computeLDA — Linear Discriminant Analysis (canonical
-// discriminant functions, eigenvalues, standardized coefficients,
-// structure matrix, Wilks' Lambda + p-value, klasifikasi nearest
-// centroid + confusion table, discriminant scores per kasus).
-// (Rencana: B22 — Cluster Analysis (K-Means & Hierarchical) — akan
-// ditambahkan (append) ke file ini juga, sesuai peta Bagian 2.)
-// Depends on: SE.chi2CDF (dibaca di dalam function body saat
-// dipanggil user, jadi aman dimuat SEBELUM app.js — SE.chi2CDF
-// sendiri baru benar-benar terisi lewat polyfill top-level di
-// app.js, tapi itu tidak masalah karena computeLDA baru jalan
-// setelah user klik Run, bukan saat file di-parse).
-// TIDAK termasuk di sini (tetap di app.js): svgDiscriminantPlot
-// (SVG → rencana js/charts/), runDiscriminant (UI wiring).
-//
-// ✅ TEMUAN B21 DIPERBAIKI (2026-09-15): baris perhitungan awal
-// `wilksP` sebelumnya
-//   pFmt(1-SE.chi2CDF?SE.chi2CDF(chiSq,dfW_chi):NaN)
-// Karena urutan operator (`-` dievaluasi sebelum `?:`), ekspresi ini
-// jadi `(1 - SE.chi2CDF) ? SE.chi2CDF(...) : NaN` — `1 - function` =
-// NaN, dan NaN di posisi kondisi ternary selalu falsy, jadi baris ini
-// selalu balik `pFmt(NaN)` = '—'. Sudah diperbaiki jadi
-//   pFmt(SE.chi2CDF?1-SE.chi2CDF(chiSq,dfW_chi):NaN)
-// (kurung ternary membungkus `1-SE.chi2CDF(...)` dengan benar). Efek
-// praktisnya kecil karena baris ini cuma nilai fallback awal — beberapa
-// baris di bawah ada try/catch yang menghitung ulang `wilksP` dengan
-// `regularizedGammaP` langsung dan menimpanya di kasus normal; fallback
-// yang diperbaiki ini hanya dipakai kalau perhitungan utama itu
-// throw error.
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // DISCRIMINANT ANALYSIS (LDA)
-// ════════════════════════════════════════════════════════════
 function computeLDA(groupVar, predVars, dataArr){
   var f4=function(v){return isFinite(v)?+(+v).toFixed(4):NaN;};
   var pFmt=function(p){if(!isFinite(p))return '—';if(p<.001)return '<.001';return p.toFixed(3);};
@@ -238,25 +203,7 @@ function computeLDA(groupVar, predVars, dataArr){
   };
 }
 
-// ════════════════════════════════════════════════════════════
-// [B22] Cluster Analysis (K-Means & Hierarchical) computation
-// Fitur: computeKMeans (K-Means dengan multiple random init,
-// iterasi Lloyd's algorithm, WSS/BSS, silhouette, ANOVA per
-// variabel, data untuk elbow chart) dan computeHierarchical
-// (Agglomerative Hierarchical Clustering — single/complete/
-// average/ward linkage, dendrogram merge history, cut di k
-// cluster, silhouette, ANOVA per variabel).
-// Depends on: tidak ada — kedua fungsi self-contained murni
-// (Math.random, helper f4/isV lokal di dalam masing-masing
-// fungsi), tidak menyentuh SE/data/vars/aState/DOM sama sekali.
-// TIDAK termasuk di sini (tetap di app.js): svgClusterPlot,
-// svgElbow, svgDendrogram (SVG → rencana js/charts/), runCluster
-// (UI wiring, depends `aState`/`data`/`vars`/`addOutput`).
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // CLUSTER ANALYSIS (K-Means & Hierarchical)
-// ════════════════════════════════════════════════════════════
 function computeKMeans(dataArr, varNames, k, maxIter){
   maxIter=maxIter||100;
   var f4=function(v){return isFinite(v)?+(+v).toFixed(4):NaN;};

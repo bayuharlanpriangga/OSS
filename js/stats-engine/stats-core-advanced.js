@@ -1,35 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-core-advanced.js
-// Fitur (B3): Matrix ops (matMulFlat/matTFlat/matDetFlat/matInvFlat —
-// signature matMulFlat(A,m,n,B,p) dkk, flat-array row-major),
-// Multiple Regression (OLS via normal equations), Repeated Measures
-// ANOVA (one-way within-subjects).
-// Depends on: validNums, validPairs, req, isV, mean, std, vari, tCrit,
-// normInv, tP, fP, fCDF (js/stats-engine/stats-distributions.js);
-// f4, f1, pFmt, dLabel, effLabel, cohenDCI, eta2CI
-// (js/stats-engine/stats-core-basic.js)
-//
-// ✅ TEMUAN B1 DIPERBAIKI (2026-09-15): sebelumnya `matMul`/`matT`/
-// `matDet`/`matInv` di file ini dideklarasikan 2x dengan signature
-// BEDA — versi flat-array di sini (dipakai `multipleReg`) DITIMPA
-// oleh versi 2D-array di bawah (dipakai EFA/CFA/MANOVA/canonicalCorr,
-// B8/B9), karena keduanya berbagi nama yang sama persis di scope
-// global file ini. Efeknya: `multipleReg` diam-diam memanggil versi
-// matriks yang salah (signature tidak cocok) → hasil Multiple
-// Regression rusak/salah. Diperbaiki dengan me-RENAME versi flat-array
-// jadi `matMulFlat`/`matTFlat`/`matDetFlat`/`matInvFlat` (dipakai
-// KHUSUS oleh `multipleReg` di file ini). Versi 2D-array TETAP
-// bernama `matMul`/`matT`/`matDet`/`matInv` (tidak diubah — EFA/CFA/
-// MANOVA/canonicalCorr tidak perlu disentuh). Nilai/rumus perhitungan
-// TIDAK berubah — murni rename untuk hindari tabrakan scope.
-//
-// Root cause yang sama juga bikin `SE.matInv(flat, n)` (dipanggil
-// `stats-imputation.js` & `stats-survival.js`) diam-diam gagal
-// (fallback ke null/mean) karena `matMul`/`matInv` tidak pernah masuk
-// ke `return {...}` objek `SE` di app.js. Sudah diperbaiki juga —
-// lihat catatan di app.js dan di 2 file tsb.
-// ════════════════════════════════════════════════════════════
-
 // ── Matrix Engine (OLS via normal equations) ────────────────────────────
 // Represents matrix as flat array, row-major
 // Dipakai KHUSUS oleh multipleReg di file ini (bukan oleh EFA/CFA/

@@ -1,26 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
-// DATA VIEW — tabel utama, sort/search/select, windowed rendering (C6,
-// split roadmap OSS 2.0). Dipindah sbg var/fungsi global (var sortCol/
-// sortDir/searchQ/selRows/sprMode/_ossDataPageThreshold/_ossDataPageSize/
-// _ossDataShown + function renderData), pola sama C1/C2/C4/C5 — semua
-// dependency (missCount, aState, getNEff, IC, escHtml, escHtmlAttr, vars,
-// data, dan fungsi-fungsi onclick seperti addDataRowInline/searchData/
-// toggleSort/toggleAllRows/toggleRow/deleteSelected/toggleEditMode/
-// enterCombinedEditMode/saveSprMode/exitSprMode/_ossLoadMoreRows, yang
-// SEMUANYA masih di app.js sebagai bagian C7 Spreadsheet Mode yang belum
-// dipisah) dibaca/dipanggil di dalam body renderData() di runtime saat
-// tab Data dirender — bukan top-level saat file di-parse — jadi aman
-// dimuat sebagai file pre-app.js lewat scope-fallback ke global, tanpa
-// ubah call-site di mana pun (pola sama semua split B1-C5 sebelumnya).
-// `sprMode` dideklarasikan di sini (dibaca renderData untuk switch
-// tampilan tabel biasa vs spreadsheet) tapi masih di-SET oleh fungsi
-// enterSprMode/exitSprMode/saveSprMode/enterCombinedEditMode yang tetap
-// di app.js (C7) — aman karena `var` global yang sama diakses dari 2
-// file, bukan re-deklarasi konflik.
-// ════════════════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════════════════
 // DATA VIEW
-// ════════════════════════════════════════════════════════════════════════
 var sortCol=null,sortDir='asc',searchQ='',selRows=new Set();
 
 var sprMode=false; // spreadsheet (bulk edit) mode

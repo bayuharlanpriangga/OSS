@@ -1,31 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-glm-hlm.js
-// Fitur (B6 - bagian GLM): GLM Univariate (Type III SS via regresi,
-// 1 DV + fixed factors + covariates opsional), Bonferroni correction
-// untuk multiple comparisons.
-// Fitur (B25): Poisson Regression (IRLS, log link) + Negative Binomial
-// Regression (NB2, profile likelihood untuk θ) + helper matriks lokal
-// `solveLinear`/`invertMatrix` (dipakai KHUSUS oleh 2 fungsi ini —
-// beda dari matMul/matInv dkk di stats-core-advanced.js, jadi TIDAK
-// di-rename, tidak ada tabrakan nama). Juga `computeHLMBasics`
-// (Hierarchical Linear Model — hitung ICC & variance partitioning lewat
-// one-way ANOVA between/within groups; dipakai untuk tampilan 2-level
-// DAN 3-level HLM di UI, cukup dipanggil 2x dengan grouping var beda).
-// Depends on: validNums, req, isV, mean, std, tCrit, tP, fP, normCDF,
-// fCDF (js/stats-engine/stats-distributions.js); f4, pFmt
-// (js/stats-engine/stats-core-basic.js); matMul, matT, matInv
-// (js/stats-engine/stats-core-advanced.js); global `data` (dataset
-// aktif, dipakai `computeHLMBasics` — diakses langsung by name,
-// bukan lewat parameter, sama seperti pola di file2 lain).
-//
-// Dipindah keluar apa adanya sebagai fungsi global biasa, mengikuti
-// pola B1-B24. Tidak ada perubahan logic — murni potong-tempel dari
-// app.js (poissonReg/negbinReg/solveLinear/invertMatrix sebelumnya di
-// dalam IIFE `var SE = (()=>{...})()`; computeHLMBasics sebelumnya
-// nested di dalam function render sub-tab HLM).
-// ════════════════════════════════════════════════════════════
-
-
 // ── General Linear Model (GLM Univariate) ───────────────
 // One DV + fixed factors + optional covariates
 // Uses Type III SS via regression approach

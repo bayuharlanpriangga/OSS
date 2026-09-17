@@ -1,32 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-bayesian.js
-// [B20] Bayesian Statistics Engine
-// Fitur: SE.bayesTTest (Bayesian Independent T-Test, Cauchy prior
-//        pada effect size, Rouder et al. 2009), SE.bayesPearson
-//        (Bayesian Correlation, JZS prior, Ly et al. 2016
-//        approximation), SE.bayesPosteriorNormal (Bayesian Posterior
-//        via Normal-Inverse-Gamma conjugate prior)
-// Depends on: SE.mean, SE.vari, SE.pearsonR, SE.tP, SE.normInv,
-//             SE.f4 (semua sudah ada di SE sejak B1-B19)
-//
-// ⚠️ PENTING — beda pola dari file stats-engine lain:
-// Blok ini adalah IIFE top-level yang LANGSUNG menulis ke SE
-// (`SE.bayesTTest = function(){...}`, dst) saat file di-parse —
-// BUKAN sekadar mendefinisikan fungsi global biasa yang baru
-// "membaca" SE di dalam function body saat dipanggil user
-// (beda dari pola B13/B15/B19). Karena itu, file ini WAJIB dimuat
-// SETELAH app.js (setelah `var SE = (()=>{...})()` selesai
-// terbentuk) — sama seperti kasus polyfill SE.fInv/SE.chi2CDF di
-// app.js (temuan B14/B18), tapi di sini solusinya beda: alih-alih
-// dibiarkan di app.js, kita pindahkan filenya lalu taruh urutan
-// <script> SETELAH app.js (pola sama js/ui-misc/badges.js di A7).
-// index.html diupdate: dimuat setelah app.js, sebelum router.js.
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════════════════
 // BAYESIAN STATISTICS ENGINE
-// ════════════════════════════════════════════════════════════════════════
-
 // Bayesian T-Test (Rouder et al. 2009) — Cauchy prior on effect size
 // BF10 computed via numerical integration of t-distribution likelihood
 (function(){

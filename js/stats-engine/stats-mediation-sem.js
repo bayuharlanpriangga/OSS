@@ -1,42 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-mediation-sem.js
-// Fitur (B13): Mediation computation core — Baron-Kenny 4-step,
-// Sobel test, Bootstrap CI untuk indirect effect (mendukung
-// multi-mediator).
-// Fitur (B15): Moderation Analysis computation — OLS dengan interaction
-// term (X, W, X×W + covariates), simple slopes (W Mean±1SD), dan
-// Johnson-Neyman region of significance.
-// (Nanti akan ditambah B19 — SEM core + lavaan syntax — sesuai peta
-// Bagian 2, digabung di file yang sama.)
-// Depends on: global `data` (dataset aktif), `SE.pearsonR`, `SE.mean`,
-// `SE.std`, `SE.tP`, `SE.normCDF`, `SE.normInv`, `SE.f4`, `SE.pFmt`,
-// `SE.matInv`, `SE.matInvFlat`, `SE.isV`, `SE.validNums`, `SE.fP` —
-// semuanya diakses lewat namespace SE (bukan pemanggilan langsung),
-// jadi aman dipindah ke file yang dimuat sebelum app.js: SE baru
-// terbentuk saat app.js dieksekusi, tapi computeMediation/
-// computeModeration baru benar-benar jalan saat dipanggil user
-// (runtime), bukan saat file di-parse.
-// Dipindah keluar apa adanya sebagai fungsi global biasa, mengikuti
-// pola B1-B14.
-//
-// ✅ TEMUAN DIPERBAIKI (2026-09-15): `matInv` sebelumnya tidak pernah
-// masuk ke `return {...}` objek `SE` di app.js, jadi `SE.matInv` di
-// sini SELALU `undefined` dan setiap pemanggilan (baris 70 & 246) jatuh
-// ke fallback `matInvLocal(...)` lokal masing-masing — kebetulan aman
-// karena kedua fallback itu benar secara matematis, jadi Mediation &
-// Moderation Analysis TIDAK pernah salah hitung, hanya tidak pernah
-// memakai fungsi matInv bersama seperti niatnya. Sekarang `matInv`
-// (versi 2D-array) DAN `matInvFlat` (versi flat-array, hasil rename B1
-// di stats-core-advanced.js) sudah dimasukkan ke `return {...}` app.js,
-// jadi baris 70 (`SE.matInv(XtX)`, 2D-array) tetap pakai nama `matInv`
-// apa adanya, dan baris 246 (`SE.matInv(flat,p2)`, flat-array) diganti
-// jadi `SE.matInvFlat(flat,p2)` supaya cocok dengan signature-nya.
-// Catatan: rendering SVG (svgMediationPath, svgModerationPlot,
-// svgSimpleSlopesPlot, svgJohnsonNeymanPlot) dan UI wiring
-// (runMediation, runModeration) BUKAN bagian B13/B15 — tetap di app.js
-// untuk saat ini (rencana masuk bagian charts/section E nanti).
-// ════════════════════════════════════════════════════════════
-
 // ── Core mediation computation ──────────────────────────────────────────
 function computeMediation(xName,mNames,yName,bootN){
   var isV=function(v){return typeof v==='number'&&isFinite(v);};
@@ -401,25 +362,6 @@ function computeModeration(xName,wName,yName,covNames,center){
     xArr:xArr,wArr:wArr,yArr:yArr,xC:xC,wC:wC
   };
 }
-
-
-
-
-// ════════════════════════════════════════════════════════════
-// [B19] SEM — Structural Equation Modeling (core computation)
-// Fitur: computeSEM (measurement model via SE.cfa, structural paths OLS
-//        terstandardisasi, fit indices CFI/TLI/RMSEA/SRMR/chi-square,
-//        indirect effects) + generateLavaanSyntax (syntax R lavaan)
-// Helper privat (top-level, hanya dipakai computeSEM): logDet,
-//        traceRinvImpl, pChiSquare
-// Depends on: data[] (dataset aktif, global), SE.cfa, SE.f4, normCDF
-//             (stats-distributions.js) — semua dipanggil di runtime
-//             (di dalam body fungsi), aman dimuat sebelum app.js
-// TIDAK termasuk di sini (tetap di app.js): semAddLatent/semRemoveLatent/
-//        semRenameLatent/semToggleIndicator/semAddPath/semRemovePath
-//        (UI state), svgSEMDiagram (SVG → rencana js/charts/), runSEM
-//        (UI wiring)
-// ════════════════════════════════════════════════════════════
 
 // ── Core SEM computation ─────────────────────────────────────────────────
 function computeSEM(latents,latentMap,paths){

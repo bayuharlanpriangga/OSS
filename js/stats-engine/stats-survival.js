@@ -1,47 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-survival.js
-// Fitur (B18): Survival Analysis computation — Kaplan-Meier estimator
-// (Greenwood SE, 95% CI, median survival) + Log-Rank test
-// (Mantel-Haenszel) untuk multi-grup, dan Cox Proportional-Hazards
-// regression (Newton-Raphson partial likelihood, Hazard Ratio + 95%
-// CI, Harrell's Concordance index C, Likelihood-Ratio test).
-// Depends on: global `isMiss` (helper global cek nilai kosong) dan
-// namespace `SE.*` (`isV`, `mean`, `std`, `matInvFlat`, `normInv`,
-// `normCDF`, `f4`, `pFmt`, `chi2CDF`) — semuanya diakses lewat nama
-// global langsung (`isMiss`) atau lewat `SE.` di dalam function body,
-// bukan di top-level, jadi aman dipindah ke file yang dimuat sebelum
-// app.js: `isMiss`/`SE` baru terbentuk saat app.js dieksekusi, tapi
-// computeKaplanMeier/computeCoxRegression baru benar-benar jalan saat
-// dipanggil user (runtime), bukan saat file di-parse.
-// Dipindah keluar apa adanya sebagai fungsi global biasa, mengikuti
-// pola B1-B17.
-//
-// ✅ TEMUAN DIPERBAIKI (2026-09-15): `SE.matInv(flat,p)` di Newton-
-// Raphson Cox regression TIDAK PERNAH BERHASIL sebelumnya — `matInv`
-// tidak pernah dimasukkan ke `return {...}` objek `SE` di app.js, jadi
-// `SE.matInv` selalu `undefined`. Efeknya: iterasi Newton-Raphson
-// langsung `break` di step pertama (koefisien tidak pernah update dari
-// nilai awal), dan SE koefisien akhir di-hardcode ke placeholder 0.1
-// untuk semua variabel. Artinya Cox regression selama ini menampilkan
-// angka yang TIDAK benar-benar dihitung. Diperbaiki dengan memanggil
-// `SE.matInvFlat` (nama baru versi flat-array setelah B1 di
-// stats-core-advanced.js diperbaiki) DAN memasukkan `matInvFlat` ke
-// `return {...}` di app.js supaya benar-benar terisi saat runtime.
-// **PENTING — TIDAK ikut dipindah**: polyfill `if(!SE.chi2CDF){...}`
-// beserta helper privat `lnGammaSimple` yang dipakainya. Sama seperti
-// temuan B14 (SE.fInv/fCritApprox/chiCritApprox), blok ini top-level
-// statement yang langsung menulis ke objek `SE` itu sendiri saat
-// script diparse (bukan di dalam function body) — kalau dipindah ke
-// file yang dimuat SEBELUM app.js, akan langsung `ReferenceError: SE
-// is not defined` karena `var SE = (() => {...})();` baru terbentuk
-// saat app.js mulai jalan. Keduanya dibiarkan tetap di app.js, posisi
-// sama persis.
-// Catatan lain: rendering SVG (svgKaplanMeier, svgForestPlot) dan UI
-// wiring (toggleSurvCov, runSurvival, runCoxRegression) juga BUKAN
-// bagian B18 — tetap di app.js untuk saat ini (rencana masuk bagian
-// charts/section E nanti).
-// ════════════════════════════════════════════════════════════
-
+//Survival Analysis computation — Kaplan-Meier estimator
 function computeKaplanMeier(dataArr,timeVar,eventVar,groupVar){
   var cases=dataArr.filter(function(r){return SE.isV(r[timeVar])&&!isMiss(r[eventVar])&&Number(r[timeVar])>=0;});
   var n=cases.length;

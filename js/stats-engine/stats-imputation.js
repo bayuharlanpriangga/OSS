@@ -1,35 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-imputation.js
-// Fitur (B16): Multiple Imputation computation — MICE
-// (Multivariate Imputation by Chained Equations), mendukung metode
-// Predictive Mean Matching (PMM) dan Normal (noise dari residual
-// distribution), dengan pooling estimasi lewat Rubin's Rules
-// (Qbar, Ubar, B, T, FMI).
-// Depends on: global `vars` (metadata variabel dataset aktif),
-// `isMiss` (helper global cek nilai kosong), dan namespace `SE.*`
-// (`matInvFlat`, `mean`, `std`, `validNums`, `f4`) — semuanya diakses
-// lewat nama global langsung (`vars`, `isMiss`) atau lewat `SE.` di
-// dalam function body, bukan di top-level, jadi aman dipindah ke file
-// yang dimuat sebelum app.js: `vars`/`isMiss`/`SE` baru terbentuk saat
-// app.js dieksekusi, tapi computeMICE baru benar-benar jalan saat
-// dipanggil user (runtime), bukan saat file di-parse.
-// Dipindah keluar apa adanya sebagai fungsi global biasa, mengikuti
-// pola B1-B15.
-// Catatan: UI wiring (toggleMIVar, runMultipleImputation) BUKAN
-// bagian B16 — tetap di app.js untuk saat ini.
-//
-// ✅ TEMUAN DIPERBAIKI (2026-09-15): `SE.matInv(flat,p2+1)` di baris
-// olsPredict TIDAK PERNAH BERHASIL sebelumnya — `matInv` tidak pernah
-// dimasukkan ke `return {...}` objek `SE` di app.js, jadi `SE.matInv`
-// selalu `undefined` dan cabang ini selalu jatuh ke `:null` →
-// `olsPredict` selalu gagal diam-diam dan MICE diam-diam SELALU
-// fallback ke mean sederhana (lihat bawah), bukan regresi seperti
-// seharusnya. Diperbaiki dengan memanggil `SE.matInvFlat` (nama baru
-// versi flat-array setelah B1 di stats-core-advanced.js diperbaiki)
-// DAN memasukkan `matInvFlat` ke `return {...}` di app.js supaya
-// benar-benar terisi saat runtime.
-// ════════════════════════════════════════════════════════════
-
+//Multiple Imputation computation — MICE
 function computeMICE(dataArr,targetVars,M,method){
   var n=dataArr.length;
   if(n<5) throw new Error('Need ≥5 cases for MI');

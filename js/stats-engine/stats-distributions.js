@@ -1,24 +1,9 @@
-// ════════════════════════════════════════════════════════════
-// js/stats-engine/stats-distributions.js
-// Fitur: Helper distribusi & statistik dasar murni komputasi (B1):
+// Fitur: Helper distribusi & statistik dasar murni komputasi 
 //   isV, validNums, validPairs, req, tCrit, lnG, betaCF, incBeta,
 //   gammaSer, gammaCF, gammaP, tP, fP, chi2P, erf, normCDF, normInv,
 //   sum, mean, vari, std, quantile, chiCDF, fCDF, incompleteBeta
-// Depends on: tidak ada (pure math, tidak sentuh DOM, tidak depend file lain)
-//
-// Catatan migrasi (2026-09-13):
-// - Ditemukan 2 implementasi fCDF berbeda di app.js lama (dead code di
-//   ~baris lama 788 pakai betaInc/lnGamma lokal, vs versi aktif ini pakai
-//   incompleteBeta/lnG). User konfirmasi: pakai versi ini saja, versi lama
-//   (beserta helper betaInc & lnGamma yang cuma dipakai olehnya) DIHAPUS
-//   permanen dari app.js, bukan dipindah.
-// - fCDF & chiCDF sebelumnya dipakai di banyak tempat via `SE.fCDF(...)`
-//   dan `SE.chiCDF(...)` TAPI tidak pernah dimasukkan ke return object
-//   `SE` di app.js (kemungkinan bug lama — SE.fCDF/SE.chiCDF undefined
-//   saat dipanggil dari luar closure-nya). User konfirmasi: perbaiki saat
-//   pemisahan ini — `fCDF, chiCDF` sekarang ditambahkan ke return object
-//   SE di app.js supaya SE.fCDF / SE.chiCDF benar-benar terisi.
-// ════════════════════════════════════════════════════════════
+// Depends on: tidak ada (pure math, tidak sentuh DOM)
+
 
   const isV = v => typeof v === 'number' && isFinite(v);
 

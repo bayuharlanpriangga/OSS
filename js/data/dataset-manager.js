@@ -1,15 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// MULTI-DATASET SYSTEM  (C1 — dipindah dari app.js, 2026-09-18)
-// Strategy: keep global var data/vars/outputs as-is.
-// On dataset switch, sync globals ↔ active dataset, then re-assign.
-//
-// Dependency ke fungsi lain (escDlg, escHtml, escHtmlAttr, ossDialog,
-// showToast, switchTab, updateBadges) semua diakses di dalam function
-// body (runtime, dipicu interaksi user), bukan top-level — aman
-// dipindah ke file yang dimuat SEBELUM app.js, pola sama B13/B15/B19/
-// B21/B23 (lihat ARCHITECTURE.md Bagian 3 & 6). Tidak ada pemanggilan
-// top-level (parse-time) terhadap fungsi manapun di file ini.
-// ════════════════════════════════════════════════════════════
+// MULTI-DATASET SYSTEM 
 var datasets = [
   { id: 1, name: 'Dataset 1', data: [], vars: [], outputs: [] }
 ];
