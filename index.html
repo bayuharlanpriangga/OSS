@@ -290,11 +290,16 @@
   </div>
 </div>
 
-  <!-- 1. Core & state paling awal (roadmap: ARCHITECTURE.md Bagian 4) -->
+  <!-- 1. Core & state paling awal (roadmap: ARCHITECTURE.md Bagian 4).
+       custom-select.js (kategori direktori "ui-misc") sengaja ditaruh di
+       sini, BUKAN di kategori 6 seperti badges.js — tidak ada dependency
+       top-level ke SE/app.js (beda kasus B20/badges.js), semua fungsinya
+       cuma dipanggil saat render (runtime), aman dimuat paling awal. -->
   <script src="js/core/icons.js"></script>
   <script src="js/core/dialog.js"></script>
   <script src="js/core/watercolor-bg.js"></script>
   <script src="js/core/html-helpers.js"></script>
+  <script src="js/ui-misc/custom-select.js"></script>
 
   <!-- 2. Stats engine (murni komputasi, tidak butuh DOM) — dimuat sebelum
        app.js karena app.js (var SE = ...) memanggil fCDF/chiCDF dari sini -->
