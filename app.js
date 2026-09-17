@@ -753,41 +753,14 @@ function renderAnalyze(el){
   renderASub();
 }
 
-// ── Sliding pill indicator for .sub-tabs groups ──
-var _subTabAnim={grp:null,left:0,width:0};
-function positionSubTabIndicator(el,grp){
-  var wrap=el.querySelector('.sub-tabs');
-  var ind=wrap&&wrap.querySelector('.sub-tab-indicator');
-  var activeBtn=wrap&&wrap.querySelector('.sub-btn.active');
-  if(!wrap||!ind||!activeBtn) return;
-  var targetLeft=activeBtn.offsetLeft;
-  var targetWidth=activeBtn.offsetWidth;
-  var sameGroup=_subTabAnim.grp===grp;
-  ind.style.transition='none';
-  ind.style.left=(sameGroup?_subTabAnim.left:targetLeft)+'px';
-  ind.style.width=(sameGroup?_subTabAnim.width:targetWidth)+'px';
-  // force reflow so the browser registers the start position before animating
-  void ind.offsetWidth;
-  ind.style.transition='';
-  ind.style.left=targetLeft+'px';
-  ind.style.width=targetWidth+'px';
-  _subTabAnim={grp:grp,left:targetLeft,width:targetWidth};
-}
-// Keep the pill aligned if the window/sidebar is resized (no slide animation, just snap)
-window.addEventListener('resize',function(){
-  var el=document.getElementById('app-content');
-  if(!el) return;
-  var wrap=el.querySelector('.sub-tabs');
-  var ind=wrap&&wrap.querySelector('.sub-tab-indicator');
-  var activeBtn=wrap&&wrap.querySelector('.sub-btn.active');
-  if(!wrap||!ind||!activeBtn) return;
-  ind.style.transition='none';
-  ind.style.left=activeBtn.offsetLeft+'px';
-  ind.style.width=activeBtn.offsetWidth+'px';
-  void ind.offsetWidth;
-  ind.style.transition='';
-  _subTabAnim={grp:currentGroup,left:activeBtn.offsetLeft,width:activeBtn.offsetWidth};
-});
+// ── Sliding pill indicator for .sub-tabs groups (var _subTabAnim +
+// positionSubTabIndicator + listener resize) — DIPINDAH ke
+// js/analyze/analyze-subtab-ui.js (C9, split roadmap OSS 2.0, file
+// TARGET SAMA dengan C2). File itu belum ikut diupload sesi ini, jadi
+// isinya sementara ada di fragmen js/analyze/_C9_append_to_analyze-
+// subtab-ui.js — perlu digabung manual ke analyze-subtab-ui.js yang
+// sudah ada (pola sama _B24_append_to_stats-core-advanced.js dulu).
+
 
 
 

@@ -103,3 +103,57 @@ var numFields=()=>vars.filter(v=>v.type==='Numeric'&&v.name!=='id').map(v=>v.nam
 var allFields=()=>vars.map(v=>v.name);
 var isMiss=v=>v===null||v===undefined||v==='';
 var missCount=()=>vars.map(v=>({name:v.name,count:data.filter(r=>isMiss(r[v.name])).length}));
+
+// ════════════════════════════════════════════════════════════════════════
+// SLIDING PILL INDICATOR untuk .sub-tabs groups (C9, split roadmap OSS
+// 2.0, digabung ke file ini sesuai rencana sejak C2). Dipindah apa
+// adanya, pola sama semua split lain: `var _subTabAnim` (state posisi/
+// lebar pill terakhir per grup) + `positionSubTabIndicator(el,grp)`
+// (menempatkan & menganimasikan pill di bawah sub-tab aktif) + 1 baris
+// top-level `window.addEventListener('resize', ...)` (snap ulang posisi
+// pill tanpa animasi saat window/sidebar di-resize) — top-level call ini
+// aman (pola sama listener keydown di custom-select.js/C5): cuma
+// memasang listener, dependency baru dibaca beneran di dalam callback
+// saat event resize benar-benar terjadi.
+//
+// Dependency: `currentGroup` (dibaca listener resize) — var global yang
+// di app.js tidak pernah dideklarasikan dengan `var` eksplisit (cuma
+// ditulis lewat assignment biasa `currentGroup=grp;` di dalam
+// `renderAnalyze()`) — perilaku pre-existing di monolith, bukan bug
+// baru dari split ini, tetap aman lewat scope-fallback.
+// ════════════════════════════════════════════════════════════════════════
+// ── Sliding pill indicator for .sub-tabs groups ──
+var _subTabAnim={grp:null,left:0,width:0};
+function positionSubTabIndicator(el,grp){
+  var wrap=el.querySelector('.sub-tabs');
+  var ind=wrap&&wrap.querySelector('.sub-tab-indicator');
+  var activeBtn=wrap&&wrap.querySelector('.sub-btn.active');
+  if(!wrap||!ind||!activeBtn) return;
+  var targetLeft=activeBtn.offsetLeft;
+  var targetWidth=activeBtn.offsetWidth;
+  var sameGroup=_subTabAnim.grp===grp;
+  ind.style.transition='none';
+  ind.style.left=(sameGroup?_subTabAnim.left:targetLeft)+'px';
+  ind.style.width=(sameGroup?_subTabAnim.width:targetWidth)+'px';
+  // force reflow so the browser registers the start position before animating
+  void ind.offsetWidth;
+  ind.style.transition='';
+  ind.style.left=targetLeft+'px';
+  ind.style.width=targetWidth+'px';
+  _subTabAnim={grp:grp,left:targetLeft,width:targetWidth};
+}
+// Keep the pill aligned if the window/sidebar is resized (no slide animation, just snap)
+window.addEventListener('resize',function(){
+  var el=document.getElementById('app-content');
+  if(!el) return;
+  var wrap=el.querySelector('.sub-tabs');
+  var ind=wrap&&wrap.querySelector('.sub-tab-indicator');
+  var activeBtn=wrap&&wrap.querySelector('.sub-btn.active');
+  if(!wrap||!ind||!activeBtn) return;
+  ind.style.transition='none';
+  ind.style.left=activeBtn.offsetLeft+'px';
+  ind.style.width=activeBtn.offsetWidth+'px';
+  void ind.offsetWidth;
+  ind.style.transition='';
+  _subTabAnim={grp:currentGroup,left:activeBtn.offsetLeft,width:activeBtn.offsetWidth};
+});
