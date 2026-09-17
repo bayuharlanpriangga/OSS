@@ -555,49 +555,7 @@ function renderASub(){
   }
 
   else if(currentASub==='anova'){
-    const gl=[...new Set(data.map(r=>r[aState.avG]))].filter(v=>v!==null);
-    const groups=gl.map(g=>({label:String(g),vals:SE.validNums(data.filter(r=>r[aState.avG]===g).map(r=>r[aState.avV]))})).filter(g=>g.vals.length>=2);
-    const prv=groups.length>=2?tryStats(()=>SE.onewayANOVA(groups)):null;
-    html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd">One-Way ANOVA</div>';
-    html+=mkSelect('av-v',nF,aState.avV,'aState.avV=val;renderASub()','Dependent Variable');
-    html+='<div style="margin-top:8px">'+mkSelect('av-g',aF,aState.avG,'aState.avG=val;renderASub()','Factor')+'</div>';
-    html+='<div style="margin-top:10px">';
-    html+='<label class="lbl">Post-hoc Test</label>';
-    html+='<div style="display:flex;align-items:center;gap:7px;margin-top:4px">';
-    // Toggle switch
-    html+='<div onclick="aState.avPost=!aState.avPost;renderASub()" style="cursor:pointer;width:34px;height:19px;border-radius:99px;background:'+(aState.avPost?'linear-gradient(135deg,#7c3aed,#db2777)':'rgba(124,58,237,.18)')+';position:relative;flex-shrink:0;transition:background .2s;border:1px solid '+(aState.avPost?'transparent':'rgba(124,58,237,.25)')+'"><div style="position:absolute;top:2px;left:'+(aState.avPost?'16px':'2px')+';width:13px;height:13px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div></div>';
-    // Picker trigger — only active when toggle is on
-    var phLabels={'tukey':'Tukey HSD','bonferroni':'Bonferroni','lsd':'LSD (Fisher)','holm':'Holm-Bonferroni'};
-    var phCurrent=phLabels[aState.avPostMethod||'tukey']||'Tukey HSD';
-    html+='<div class="csel-wrap" id="cw-av-ph" style="flex:1'+(aState.avPost?'':';opacity:.4;pointer-events:none')+'">'
-      +'<div class="csel-trigger" onclick="openCselById(\'av-ph\')">'
-      +'<span class="csel-val" id="cv-av-ph">'+phCurrent+'</span>'
-      +'<span class="csel-arrow">▾</span>'
-      +'</div></div>';
-    html+='</div></div>';
-    // Register csel for post-hoc picker
-    _cR['av-ph']={
-      fields:['Tukey HSD','Bonferroni','LSD (Fisher)','Holm-Bonferroni'],
-      current:phCurrent,
-      label:'Post-hoc Method',
-      showBadge:false,
-      onChange:'aState.avPostMethod={\'Tukey HSD\':\'tukey\',\'Bonferroni\':\'bonferroni\',\'LSD (Fisher)\':\'lsd\',\'Holm-Bonferroni\':\'holm\'}[val]||\'tukey\';renderASub()'
-    };
-    if(aState.avPost){
-      var phHint={'tukey':'Conservative · Controls familywise α · Recommended for most cases',
-        'bonferroni':'Very conservative · α divided by # comparisons · Best for few tests',
-        'lsd':'Liberal · No familywise correction · Use only when F is significant',
-        'holm':'Step-down Bonferroni · More powerful than Bonferroni, same strict α control'}[aState.avPostMethod||'tukey'];
-      html+='<div style="margin-top:5px;font-size:10px;color:rgba(232,222,255,.35);padding:0 2px">'+phHint+'</div>';
-    }
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA()">▶ Run</button>';
-    if(prv&&!prv._err){
-      html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:11px">'+stCard('F',prv.F)+stCard('p',prv.p_fmt)+stCard('&#x03b7;&#x00b2;',prv.eta2,prv.eta2Interp)+'</div>';
-      html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.p)+'</div>';
-    }
-    html+='</div>';
-    html+='<div class="card"><div class="sec-hd">Group Distributions</div>'+svgBoxplot(data,aState.avV,aState.avG)+'</div></div>';
+    html+=renderAnovaForm();
   }
 
   else if(currentASub==='anova2'){
