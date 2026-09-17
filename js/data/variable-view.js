@@ -1,35 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
-// VARIABLE VIEW — edit mode, inline add/change, picker TYPE/MEASURE/ROLE
-// (C8, split roadmap OSS 2.0). Dipindah sbg var/fungsi global apa
-// adanya, pola sama C1-C7: var `_varTableEditMode`/`_varChecked` +
-// `renderVars`, `addVarInline`, `_varInlineChange`, `_varCheckAll`,
-// `_varUpdateHeaderChk`, `_varToggleCheck`, `_varSyncDeleteBtn`,
-// `_varPickerOpen`, `_varDeleteSelected`, `_varSaveEditMode`,
-// `editVarField`, `cycleVarType`, `cycleMeasure`, `cycleRole`,
-// `moveVar`, `deleteVar`, `clearAllData`, `addVarModal`, `confirmAddVar`.
-//
-// CATATAN — beda dari C6/C7: kali ini header komentar "VARIABLE VIEW" di
-// baseline TERNYATA membungkus lebih dari sekadar isi C8 (blok fisiknya
-// terus sampai baris ~1297 di app.js snapshot sesi ini, hampir 800
-// baris) — tapi begitu `confirmAddVar` selesai (baris 1053), fungsi
-// berikutnya adalah `renderAnalyze(el)` yang JELAS bukan Variable View
-// (itu wrapper render tab Analyze: sidebar grup + sub-tab, dipanggil
-// sebelum `renderASub()`/D1 switch raksasa). `renderAnalyze` TIDAK ADA
-// di tabel roadmap manapun (bukan C8, bukan C9/sliding-pill, bukan D1)
-// — kemungkinan celah dokumentasi lama. **UPDATE 2026-09-20: sudah
-// dipindah** jadi file terpisah `js/analyze/analyze-tab-shell.js`,
-// sesuai keputusan user (bukan digabung ke `analyze-form-render.js`).
-//
-// Semua fungsi di file ini tetap global, dependency (`missCount`,
-// `escHtml`, `IC`, `vars`, `data`, `updateBadges`, `switchTab`,
-// `showToast`, `aState`, dll — sebagian dari file lain, sebagian masih
-// di app.js) dibaca di dalam function body (runtime), bukan top-level —
-// aman dimuat sbg file pre-app.js lewat scope-fallback ke global, tidak
-// ada top-level call di blok ini.
-// ════════════════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════════════════
 // VARIABLE VIEW
-// ════════════════════════════════════════════════════════════════════════
 var _varTableEditMode = false;
 var _varChecked = new Set();
 
