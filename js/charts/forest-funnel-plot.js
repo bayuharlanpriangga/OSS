@@ -2,7 +2,7 @@
 // js/charts/forest-funnel-plot.js
 // Fitur: Forest Plot & Funnel Plot SVG untuk Meta-Analysis
 // (E4 + E5, split roadmap OSS 2.0)
-// Berisi: svgMetaForestPlot(studies, res, effectType), svgFunnelPlot(studies, res)
+// Berisi: svgMetaForestPlot(studies, res, effectType), svgFunnelPlot(res)
 // Depends on: escHtml (app.js — dibaca di runtime, bukan saat parse);
 //   data dari computeMetaAnalysis (stats-metaanalysis.js): res.studyData,
 //   res.pooledEffect, res.ci_lo/ci_hi, res.model. Tidak ada top-level call.
@@ -30,7 +30,6 @@ function svgMetaForestPlot(studies, res, effectType){
   var x0=tx(0);
 
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:'+Math.min(H,420)+'px;overflow:visible">';
-  svg+='<defs><marker id="fp-arrow" markerWidth="5" markerHeight="5" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#64748b" opacity=".5"/></marker></defs>';
 
   // Background grid
   for(var xi=-2;xi<=2;xi+=0.5){
@@ -87,14 +86,14 @@ function svgMetaForestPlot(studies, res, effectType){
 
   // X-axis
   svg+='<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(padL+cw)+'" y2="'+(H-padB)+'" stroke="rgba(255,255,255,.15)" stroke-width="1"/>';
-  svg+='<text x="'+tx(0)+'" y="'+(H-padB+28)+'" text-anchor="middle" font-size="9.5" fill="rgba(232,222,255,.4)" font-family="Inter,sans-serif">Effect Size ('+effectType+')</text>';
+  svg+='<text x="'+tx(0)+'" y="'+(H-padB+28)+'" text-anchor="middle" font-size="9.5" fill="rgba(232,222,255,.4)" font-family="Inter,sans-serif">Effect Size ('+escHtml(effectType)+')</text>';
 
   svg+='</svg>';
   return svg;
 }
 
 // ── Funnel Plot SVG ─────────────────────────────────────────────────────
-function svgFunnelPlot(studies, res){
+function svgFunnelPlot(res){
   var sd=res.studyData;
   var W=420,H=220,padL=45,padR=20,padT=20,padB=40;
   var cw=W-padL-padR,ch=H-padT-padB;

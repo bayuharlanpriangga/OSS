@@ -3695,7 +3695,7 @@ function renderMetaanalysisForm(){
 
       // Funnel Plot
       html+='<div class="card"><div class="sec-hd">Funnel Plot <span style="font-size:10px;font-weight:400;color:rgba(232,222,255,.3)">(uji publication bias)</span></div>';
-      html+=svgFunnelPlot(aState.metaStudies,metaRes);
+      html+=svgFunnelPlot(metaRes);
       html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:6px;line-height:1.55">Funnel plot simetris → tidak ada publication bias. Asimetri → kemungkinan ada bias. Gunakan Egger\'s test untuk konfirmasi.</div>';
       html+='</div>';
     }
