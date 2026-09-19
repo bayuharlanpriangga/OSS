@@ -1884,140 +1884,9 @@ function renderEfaForm(){
   return html;
 }
 
-function renderASub(){
-  const el=document.getElementById('a-content');
-  if(!el)return;
-  const nF=numFields(),aF=allFields();
+function renderCfaForm(){
+  const nF=numFields();
   let html='';
-
-  if(currentASub==='descriptive'){
-    html+=renderDescriptiveForm();
-  }
-
-  else if(currentASub==='ttest'){
-    html+=renderTtestForm();
-  }
-
-  else if(currentASub==='onesamp'){
-    html+=renderOnesampForm();
-  }
-
-  else if(currentASub==='paired'){
-    html+=renderPairedForm();
-  }
-
-  else if(currentASub==='rmanova'){
-    html+=renderRmanovaForm();
-  }
-
-  else if(currentASub==='anova'){
-    html+=renderAnovaForm();
-  }
-
-  else if(currentASub==='anova2'){
-    html+=renderAnova2Form();
-  }
-
-  else if(currentASub==='anova3'){
-    html+=renderAnova3Form();
-  }
-  else if(currentASub==='correlation'){
-    html+=renderCorrelationForm();
-  }
-
-  else if(currentASub==='regression'){
-    html+=renderRegressionForm();
-  }
-
-  else if(currentASub==='multipleReg'){
-    html+=renderMultipleRegForm();
-  }
-
-  else if(currentASub==='hierarchicalReg'){
-    html+=renderHierarchicalRegForm();
-  }
-
-  else if(currentASub==='logistic'){
-    html+=renderLogisticForm();
-  }
-
-  else if(currentASub==='nonparam'){
-    html+=renderNonparamForm();
-  }
-
-  else if(currentASub==='reliability'){
-    html+=renderReliabilityForm();
-  }
-
-  else if(currentASub==='kappa'){
-    html+=renderKappaForm();
-  }
-
-  else if(currentASub==='crosstab'){
-    html+=renderCrosstabForm();
-  }
-
-  else if(currentASub==='transform'){
-    html+=renderTransformForm();
-  }
-
-  else if(currentASub==='recode'){
-    html+=renderRecodeForm();
-  }
-
-  else if(currentASub==='filter'){
-    html+=renderFilterForm();
-  }
-
-  // ── WEIGHT CASES ──────────────────────────────────────────────────────
-  else if(currentASub==='weightcases'){
-    html+=renderWeightcasesForm();
-  }
-
-  else if(currentASub==='impute'){
-    html+=renderImputeForm();
-  }
-
-  // ── MULTIPLE IMPUTATION ────────────────────────────────────────────────
-  else if(currentASub==='mi'){
-    html+=renderMiForm();
-  }
-
-  else if(currentASub==='corrmatrix'){
-    html+=renderCorrmatrixForm();
-  }
-
-  else if(currentASub==='partialcorr'){
-    html+=renderPartialcorrForm();
-  }
-
-  else if(currentASub==='canonicalcorr'){
-    html+=renderCanonicalcorrForm();
-  }
-
-  else if(currentASub==='charts'){
-    html+=renderChartsForm();
-  }
-
-  else if(currentASub==='glm-poisson'||currentASub==='glm-negbin'){
-    html+=renderGlmCountForm();
-  }
-
-  else if(currentASub==='glm'||currentASub==='glm-multi'||currentASub==='glm-rep'){
-    html+=renderGlmForm();
-  }
-  // ══════════════════════════════════════════════════════════════
-  // HLM – Hierarchical Linear Model
-  // ══════════════════════════════════════════════════════════════
-  else if(currentASub==='hlm-2level'||currentASub==='hlm-3level'||currentASub==='hlm-icc'){
-    html+=renderHlmForm();
-  }
-
-  else if(currentASub==='efa'){
-    html+=renderEfaForm();
-  }
-
-  else if(currentASub==='cfa'){
     // Initialize CFA state
     if(!aState.cfaVars||!Array.isArray(aState.cfaVars)) aState.cfaVars=nF.slice(0,Math.min(6,nF.length));
     if(!aState.cfaFactors||aState.cfaFactors<1) aState.cfaFactors=1;
@@ -2169,9 +2038,12 @@ function renderASub(){
       html+='<div style="font-size:10px;color:rgba(232,222,255,.3);margin-top:6px">Residual &gt; 0.10 (merah) mengindikasikan misfitting item pairs.</div>';
       html+='</div>';
     }
-  }
+  return html;
+}
 
-    else if(currentASub==='mediation'){
+function renderMediationForm(){
+  const nF=numFields();
+  let html='';
     if(!aState.medM) aState.medM=[];
     if(!aState.medBootN) aState.medBootN=5000;
 
@@ -2273,14 +2145,19 @@ function renderASub(){
     html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#f87171">No Mediation</b><br>a atau b tidak signifikan → M tidak memediasi X→Y.</div>';
     html+='<div style="background:rgba(124,58,237,.06);border-radius:7px;padding:9px 11px"><b style="color:#a5f3fc">Bootstrap CI</b><br>Jika 95% CI dari indirect effect tidak melewati 0, maka mediasi signifikan (lebih akurat dari Sobel).</div>';
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='sem'){
+function renderSemForm(){
+  const nF=numFields();
+  let html='';
     // ── SEM State Defaults ──
     if(!aState.semLatents) aState.semLatents=[];
     if(aState.semLatentMap===undefined||aState.semLatentMap===null) aState.semLatentMap={};
     if(!aState.semPaths) aState.semPaths=[];   // array of {from,to} latent→latent or lat→observed
     if(!aState.semMode) aState.semMode='measurement'; // 'measurement' | 'structural'
+    // Palet warna konstruk — dipakai di ketiga mode (measurement/structural/results), jadi harus di-declare di level atas cabang
+    var semColors=['#e879f9','#818cf8','#34d399','#fbbf24','#67e8f9','#f472b6','#fb923c','#a78bfa'];
 
     // Ensure every latent has an entry
     aState.semLatents.forEach(function(ln){
@@ -2322,7 +2199,6 @@ function renderASub(){
       if(!aState.semLatents.length){
         html+='<div class="chart-empty" style="padding:24px 0">Belum ada konstruk laten.<br>Tambah minimal 2 konstruk untuk SEM.</div>';
       }
-      var semColors=['#e879f9','#818cf8','#34d399','#fbbf24','#67e8f9','#f472b6','#fb923c','#a78bfa'];
       aState.semLatents.forEach(function(ln,li){
         var col=semColors[li%semColors.length];
         var indics=aState.semLatentMap[ln]||[];
@@ -2577,12 +2453,12 @@ function renderASub(){
         html+='<div style="text-align:center;margin-top:6px"><button class="btn btn-primary btn-sm" onclick="runSEM()" style="padding:11px 36px">▶ Run</button></div>';
       }
     }
-  }
+  return html;
+}
 
-  // ══════════════════════════════════════════════════════════════
-  // DISCRIMINANT ANALYSIS (LDA)
-  // ══════════════════════════════════════════════════════════════
-  else if(currentASub==='discriminant'){
+function renderDiscriminantForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     if(!aState.ldaGroup) aState.ldaGroup='';
     if(!aState.ldaPreds) aState.ldaPreds=[];
     var ldaResult=aState.ldaResult||null;
@@ -2684,12 +2560,12 @@ function renderASub(){
         html+='</div>';
       }
     }
-  }
+  return html;
+}
 
-  // ══════════════════════════════════════════════════════════════
-  // CLUSTER ANALYSIS (K-Means & Hierarchical)
-  // ══════════════════════════════════════════════════════════════
-  else if(currentASub==='cluster'){
+function renderClusterForm(){
+  const nF=numFields();
+  let html='';
     if(!aState.clMethod) aState.clMethod='kmeans';
     if(!aState.clK) aState.clK=3;
     if(!aState.clVars) aState.clVars=[];
@@ -2792,22 +2668,12 @@ function renderASub(){
       });
       html+='</tbody></table><div style="margin-top:6px;font-size:10px;color:rgba(232,222,255,.35)">Variables with significant F contribute most to cluster separation.</div></div></div>';
     }
-  }
+  return html;
+}
 
-  // ══════════════════════════════════════════════════════════════
-  // MISSING DATA ANALYSIS — Little's MCAR + Pattern Matrix — badan
-  // cabang ini DIPINDAH & DIBUNGKUS jadi function renderMissingDataAnalysis()
-  // di js/data/missing-data.js (C11, split roadmap OSS 2.0). Cabang
-  // if/else-if di sini TETAP ADA (perlu tetap ada supaya renderASub()
-  // jalan benar), tapi badannya sekarang cuma 1 baris pemanggilan.
-  // ══════════════════════════════════════════════════════════════
-  else if(currentASub==='missinganalysis'){
-    html+=renderMissingDataAnalysis();
-  }
-
-
-  // ── ROC CURVE ──────────────────────────────────────────────────────────
-  else if(currentASub==='roc'||currentASub==='roc_compare'){
+function renderRocForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     if(!aState.rocProb&&nF.length) aState.rocProb=nF[0];
     if(!aState.rocTrue&&aF.length) aState.rocTrue=aF[aF.length>1?aF.length-1:0];
     if(!aState.rocCompare) aState.rocCompare=[];
@@ -2904,10 +2770,12 @@ function renderASub(){
       }
       html+='</div>';
     }
-  }
+  return html;
+}
 
-  // ── SURVIVAL ANALYSIS ──────────────────────────────────────────────────
-  else if(currentASub==='survival'||currentASub==='km'||currentASub==='logrank'||currentASub==='cox'){
+function renderSurvivalForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     if(!aState.survTime&&nF.length) aState.survTime=nF[0];
     if(!aState.survEvent&&nF.length>1) aState.survEvent=nF[1];
     if(!aState.survGroup) aState.survGroup='';
@@ -3038,9 +2906,11 @@ function renderASub(){
 
     html+='</div>'; // end right col
     html+='</div>'; // end grid2
-  }
-  // ─────────────────────────────────────────────────────────────────────
-  else if(currentASub==='poweranalysis'||currentASub==='powerplot'||currentASub==='sensitivity'){
+  return html;
+}
+
+function renderPoweranalysisForm(){
+  let html='';
     var pw=aState;
     var testOptions=['ttest_2samp','ttest_1samp','ttest_paired','anova_oneway','correlation','regression_r2','chisq'];
     var testLabels={'ttest_2samp':'Independent Samples T-Test','ttest_1samp':'One-Sample T-Test','ttest_paired':'Paired T-Test','anova_oneway':'One-Way ANOVA (F-test)','correlation':'Correlation (r)','regression_r2':'Multiple Regression (R²)','chisq':'Chi-Square'};
@@ -3218,12 +3088,11 @@ function renderASub(){
       html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runPowerAnalysis()">▶ Run</button>';
       html+='</div>';
     }
-  }
+  return html;
+}
 
-  // ─────────────────────────────────────────────────────────────────────
-  // MODERATION ANALYSIS
-  // ─────────────────────────────────────────────────────────────────────
-  else if(currentASub==='moderation'||currentASub==='simpleslopes'||currentASub==='jn'){
+function renderModerationForm(){
+  let html='';
     var modData=data;
     var nF2=numFields(),aF2=allFields();
     if(!aState.modX&&nF2.length>0) aState.modX=nF2[0];
@@ -3350,10 +3219,12 @@ function renderASub(){
       }
       html+='</div>';
     }
-  }
+  return html;
+}
 
-  // ── BAYESIAN ANALYSIS ──────────────────────────────────────────────────
-  else if(currentASub==='bayesian'){
+function renderBayesianForm(){
+  let html='';
+  const nF=numFields(),aF=allFields();
     var bV=aState.bayV||nF[0]||'';
     var bG=aState.bayG||aF[aF.length>1?aF.length-1:0]||'';
     var bPrior=aState.bayPrior||0.707;
@@ -3426,9 +3297,12 @@ function renderASub(){
       html+='</div>';
     }
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='bayesian_corr'){
+function renderBayesianCorrForm(){
+  let html='';
+  const nF=numFields();
     var bcX=aState.bcX||nF[0]||'';
     var bcY=aState.bcY||(nF.length>1?nF[1]:'');
     var bcPrior=aState.bcPrior||1;
@@ -3468,9 +3342,12 @@ function renderASub(){
     html+='<div class="card"><div class="sec-hd">Scatter Plot</div>';
     html+=svgScatter(data,bcX,bcY);
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='bayesian_posterior'){
+function renderBayesianPosteriorForm(){
+  let html='';
+  const nF=numFields();
     var bpV=aState.bpV||nF[0]||'';
     var bpMu0=aState.bpMu0!==undefined?aState.bpMu0:0;
     var bpKappa=aState.bpKappa||1;
@@ -3511,10 +3388,12 @@ function renderASub(){
       html+='<div class="chart-empty">Select variable with ≥3 values</div>';
     }
     html+='</div></div>';
-  }
+  return html;
+}
 
-  // ── TIME SERIES (ARIMA + Decomposition) ────────────────────────────────
-  else if(currentASub==='timeseries'){
+function renderTimeseriesForm(){
+  let html='';
+  const nF=numFields();
     var tsV  = aState.tsV  || nF[0] || '';
     var tsMod= aState.tsMod|| 'arima';
     var tsP  = aState.tsP  !== undefined ? aState.tsP  : 1;
@@ -3695,10 +3574,11 @@ function renderASub(){
 
     html+='</div>'; // end right col
     html+='</div>'; // end grid2
-  }
+  return html;
+}
 
-  // ── META-ANALYSIS ─────────────────────────────────────────────────────────
-  else if(currentASub==='metaanalysis'){
+function renderMetaanalysisForm(){
+  let html='';
     // Initialize state
     if(!aState.metaStudies||!Array.isArray(aState.metaStudies)) aState.metaStudies=[];
     if(!aState.metaModel) aState.metaModel='random';
@@ -3821,6 +3701,222 @@ function renderASub(){
     }
     html+='</div>'; // end right col
     html+='</div>'; // end grid2
+  return html;
+}
+
+function renderASub(){
+  const el=document.getElementById('a-content');
+  if(!el)return;
+  const nF=numFields(),aF=allFields();
+  let html='';
+
+  if(currentASub==='descriptive'){
+    html+=renderDescriptiveForm();
+  }
+
+  else if(currentASub==='ttest'){
+    html+=renderTtestForm();
+  }
+
+  else if(currentASub==='onesamp'){
+    html+=renderOnesampForm();
+  }
+
+  else if(currentASub==='paired'){
+    html+=renderPairedForm();
+  }
+
+  else if(currentASub==='rmanova'){
+    html+=renderRmanovaForm();
+  }
+
+  else if(currentASub==='anova'){
+    html+=renderAnovaForm();
+  }
+
+  else if(currentASub==='anova2'){
+    html+=renderAnova2Form();
+  }
+
+  else if(currentASub==='anova3'){
+    html+=renderAnova3Form();
+  }
+  else if(currentASub==='correlation'){
+    html+=renderCorrelationForm();
+  }
+
+  else if(currentASub==='regression'){
+    html+=renderRegressionForm();
+  }
+
+  else if(currentASub==='multipleReg'){
+    html+=renderMultipleRegForm();
+  }
+
+  else if(currentASub==='hierarchicalReg'){
+    html+=renderHierarchicalRegForm();
+  }
+
+  else if(currentASub==='logistic'){
+    html+=renderLogisticForm();
+  }
+
+  else if(currentASub==='nonparam'){
+    html+=renderNonparamForm();
+  }
+
+  else if(currentASub==='reliability'){
+    html+=renderReliabilityForm();
+  }
+
+  else if(currentASub==='kappa'){
+    html+=renderKappaForm();
+  }
+
+  else if(currentASub==='crosstab'){
+    html+=renderCrosstabForm();
+  }
+
+  else if(currentASub==='transform'){
+    html+=renderTransformForm();
+  }
+
+  else if(currentASub==='recode'){
+    html+=renderRecodeForm();
+  }
+
+  else if(currentASub==='filter'){
+    html+=renderFilterForm();
+  }
+
+  // ── WEIGHT CASES ──────────────────────────────────────────────────────
+  else if(currentASub==='weightcases'){
+    html+=renderWeightcasesForm();
+  }
+
+  else if(currentASub==='impute'){
+    html+=renderImputeForm();
+  }
+
+  // ── MULTIPLE IMPUTATION ────────────────────────────────────────────────
+  else if(currentASub==='mi'){
+    html+=renderMiForm();
+  }
+
+  else if(currentASub==='corrmatrix'){
+    html+=renderCorrmatrixForm();
+  }
+
+  else if(currentASub==='partialcorr'){
+    html+=renderPartialcorrForm();
+  }
+
+  else if(currentASub==='canonicalcorr'){
+    html+=renderCanonicalcorrForm();
+  }
+
+  else if(currentASub==='charts'){
+    html+=renderChartsForm();
+  }
+
+  else if(currentASub==='glm-poisson'||currentASub==='glm-negbin'){
+    html+=renderGlmCountForm();
+  }
+
+  else if(currentASub==='glm'||currentASub==='glm-multi'||currentASub==='glm-rep'){
+    html+=renderGlmForm();
+  }
+  // ══════════════════════════════════════════════════════════════
+  // HLM – Hierarchical Linear Model
+  // ══════════════════════════════════════════════════════════════
+  else if(currentASub==='hlm-2level'||currentASub==='hlm-3level'||currentASub==='hlm-icc'){
+    html+=renderHlmForm();
+  }
+
+  else if(currentASub==='efa'){
+    html+=renderEfaForm();
+  }
+
+  else if(currentASub==='cfa'){
+    html+=renderCfaForm();
+  }
+
+  else if(currentASub==='mediation'){
+    html+=renderMediationForm();
+  }
+
+  else if(currentASub==='sem'){
+    html+=renderSemForm();
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // DISCRIMINANT ANALYSIS (LDA)
+  // ══════════════════════════════════════════════════════════════
+  else if(currentASub==='discriminant'){
+    html+=renderDiscriminantForm();
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // CLUSTER ANALYSIS (K-Means & Hierarchical)
+  // ══════════════════════════════════════════════════════════════
+  else if(currentASub==='cluster'){
+    html+=renderClusterForm();
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // MISSING DATA ANALYSIS — Little's MCAR + Pattern Matrix — badan
+  // cabang ini DIPINDAH & DIBUNGKUS jadi function renderMissingDataAnalysis()
+  // di js/data/missing-data.js (C11, split roadmap OSS 2.0). Cabang
+  // if/else-if di sini TETAP ADA (perlu tetap ada supaya renderASub()
+  // jalan benar), tapi badannya sekarang cuma 1 baris pemanggilan.
+  // ══════════════════════════════════════════════════════════════
+  else if(currentASub==='missinganalysis'){
+    html+=renderMissingDataAnalysis();
+  }
+
+
+  // ── ROC CURVE ──────────────────────────────────────────────────────────
+  else if(currentASub==='roc'||currentASub==='roc_compare'){
+    html+=renderRocForm();
+  }
+
+  // ── SURVIVAL ANALYSIS ──────────────────────────────────────────────────
+  else if(currentASub==='survival'||currentASub==='km'||currentASub==='logrank'||currentASub==='cox'){
+    html+=renderSurvivalForm();
+  }
+  // ─────────────────────────────────────────────────────────────────────
+  else if(currentASub==='poweranalysis'||currentASub==='powerplot'||currentASub==='sensitivity'){
+    html+=renderPoweranalysisForm();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // MODERATION ANALYSIS
+  // ─────────────────────────────────────────────────────────────────────
+  else if(currentASub==='moderation'||currentASub==='simpleslopes'||currentASub==='jn'){
+    html+=renderModerationForm();
+  }
+
+  // ── BAYESIAN ANALYSIS ──────────────────────────────────────────────────
+  else if(currentASub==='bayesian'){
+    html+=renderBayesianForm();
+  }
+
+  else if(currentASub==='bayesian_corr'){
+    html+=renderBayesianCorrForm();
+  }
+
+  else if(currentASub==='bayesian_posterior'){
+    html+=renderBayesianPosteriorForm();
+  }
+
+  // ── TIME SERIES (ARIMA + Decomposition) ────────────────────────────────
+  else if(currentASub==='timeseries'){
+    html+=renderTimeseriesForm();
+  }
+
+  // ── META-ANALYSIS ─────────────────────────────────────────────────────────
+  else if(currentASub==='metaanalysis'){
+    html+=renderMetaanalysisForm();
   }
 
   el.innerHTML=html;
