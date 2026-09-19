@@ -273,37 +273,8 @@ function renderRmanovaForm(){
   return html;
 }
 
-function renderASub(){
-  const el=document.getElementById('a-content');
-  if(!el)return;
-  const nF=numFields(),aF=allFields();
+function renderAnova2Form(){
   let html='';
-
-  if(currentASub==='descriptive'){
-    html+=renderDescriptiveForm();
-  }
-
-  else if(currentASub==='ttest'){
-    html+=renderTtestForm();
-  }
-
-  else if(currentASub==='onesamp'){
-    html+=renderOnesampForm();
-  }
-
-  else if(currentASub==='paired'){
-    html+=renderPairedForm();
-  }
-
-  else if(currentASub==='rmanova'){
-    html+=renderRmanovaForm();
-  }
-
-  else if(currentASub==='anova'){
-    html+=renderAnovaForm();
-  }
-
-  else if(currentASub==='anova2'){
     // Two-Way ANOVA
     const nF2=numFields(),aF2=allFields();
     if(!aState.av2V&&nF2.length) aState.av2V=nF2[0];
@@ -339,9 +310,11 @@ function renderASub(){
       html+='<div style="color:#64748b;font-size:11px;padding:20px;text-align:center">Select variables and Run to see interaction plot</div>';
     }
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='anova3'){
+function renderAnova3Form(){
+  let html='';
     // Three-Way ANOVA
     const nF3=numFields(),aF3=allFields();
     if(!aState.av3V&&nF3.length) aState.av3V=nF3[0];
@@ -381,8 +354,12 @@ function renderASub(){
       html+='<div style="color:#64748b;font-size:11px;padding:20px;text-align:center">Select variables and Run to see interaction plot</div>';
     }
     html+='</div></div>';
-  }
-  else if(currentASub==='correlation'){
+  return html;
+}
+
+function renderCorrelationForm(){
+  const nF=numFields();
+  let html='';
     const prv=tryStats(()=>{const ax=data.map(r=>r[aState.crX]),ay=data.map(r=>r[aState.crY]);return aState.crType==='spearman'?SE.spearmanR(ax,ay):SE.pearsonR(ax,ay);});
     // Partial correlation preview
     const pcPrv=aState.crType==='partial'&&aState.pcX&&aState.pcY&&aState.pcZ?tryStats(()=>SE.partialCorr(data.map(r=>r[aState.pcX]),data.map(r=>r[aState.pcY]),data.map(r=>r[aState.pcZ]))):null;
@@ -416,9 +393,12 @@ function renderASub(){
       html+='<div class="card"><div class="sec-hd">Scatter Plot</div>'+svgScatter(data,aState.crX,aState.crY)+'</div>';
     }
     html+='</div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='regression'){
+function renderRegressionForm(){
+  const nF=numFields();
+  let html='';
     const prv=tryStats(()=>SE.linearReg(data.map(r=>r[aState.regX]),data.map(r=>r[aState.regY])));
     html+='<div class="grid2">';
     html+='<div class="card"><div class="sec-hd">Simple Regression</div>';
@@ -434,9 +414,12 @@ function renderASub(){
     html+=svgScatter(data,aState.regX,aState.regY);
     if(prv&&!prv._err)html+='<div style="margin-top:10px">'+svgResidual(prv)+'</div>';
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='multipleReg'){
+function renderMultipleRegForm(){
+  const nF=numFields();
+  let html='';
     const prv=aState.mrXs.length?tryStats(()=>SE.multipleReg(aState.mrXs,aState.mrY,data)):null;
     html+='<div class="grid2">';
     html+='<div class="card"><div class="sec-hd">Multiple Regression</div>';
@@ -457,9 +440,47 @@ function renderASub(){
     if(prv&&!prv._err)html+=mkTable(['Variable','B','SE','β','t','p','VIF'],prv.coefs.map((c,i)=>[c.name,c.B,c.SE,i===0?'—':c.beta,c.t,c.p_fmt,i===0?'—':prv.vif[i-1]]));
     else html+='<div style="color:#64748b;font-size:12px;padding:12px">Select ≥1 predictor and run.</div>';
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='hierarchicalReg'){
+function renderNonparamForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
+    html+='<div class="grid2">';
+    html+='<div class="card"><div class="sec-hd">Nonparametric Tests</div>';
+    html+=mkCsel('np-type',['mannwhitney','kruskal','wilcoxon'],aState.npType,'aState.npType=val;renderASub()','Test');
+    html+='<div style="margin-top:8px">'+mkSelect('np-v',nF,aState.npV,'aState.npV=val;renderASub()','Variable')+'</div>';
+    if(aState.npType!=='wilcoxon')html+='<div style="margin-top:8px">'+mkSelect('np-g',aF,aState.npG,'aState.npG=val;renderASub()','Grouping Variable')+'</div>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runNP()">▶ Run</button>';
+    html+='<div class="assump" style="margin-top:11px"><b style="color:#818cf8">When to use:</b><br>· Non-normal distribution (SW p≤.05)<br>· Ordinal data · Small n · Many outliers</div>';
+    html+='</div>';
+    html+='<div class="card"><div class="sec-hd">Distribution Preview</div>'+svgBoxplot(data,aState.npV,aState.npType!=='wilcoxon'?aState.npG:null)+'</div></div>';
+  return html;
+}
+
+function renderTransformForm(){
+  const nF=numFields();
+  let html='';
+    html+='<div class="grid2">';
+    html+='<div class="card"><div class="sec-hd">Transform Variable</div>';
+    html+=mkSelect('tr-fld',nF,aState.trFld,'aState.trFld=val;renderASub()','Source Variable');
+    html+='<div style="margin-top:8px">'+mkCsel('tr-type',['zscore','minmax','log','log10','sqrt','square','center','rank'],aState.trType,'aState.trType=val;renderASub()','Transformation')+'</div>';
+    html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.trNewName+'" oninput="aState.trNewName=this.value"/></div>';
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runTransform()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
+    html+='<div class="assump" style="margin-top:11px">Z-score · Min-Max · Log · Sqrt · Square · Center · Rank</div>';
+    html+='</div>';
+    html+='<div class="card"><div class="sec-hd">Compute Variable</div>';
+    html+='<div style="margin-bottom:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.computeName+'" oninput="aState.computeName=this.value"/></div>';
+    html+='<div style="margin-bottom:8px"><label class="lbl">Expression</label><input class="inp" style="font-family:monospace" value="'+aState.computeExpr+'" oninput="aState.computeExpr=this.value" placeholder="e.g. age * 2 + score / 10"/></div>';
+    html+='<button class="btn btn-primary btn-sm" onclick="runCompute()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
+    html+='<div class="assump" style="margin-top:10px">Vars · +−×÷^% · abs/sqrt/log/exp/round/floor/ceil</div>';
+    html+='</div></div>';
+  return html;
+}
+
+function renderHierarchicalRegForm(){
+  const nF=numFields();
+  let html='';
     // ── Init state ──────────────────────────────────────────────────────
     if(!aState.hrY) aState.hrY = nF[0]||'';
     if(!aState.hrBlocks) aState.hrBlocks = [[],[]]; // Block1, Block2 arrays
@@ -591,9 +612,12 @@ function renderASub(){
     }
     html += '</div>'; // end right col
     html += '</div></div>'; // end grid2, card
-  }
+  return html;
+}
 
-  else if(currentASub==='logistic'){
+function renderLogisticForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     var lgType=aState.lgType||'binary';
     var lgY=aState.lgY||'';
     var lgXs=aState.lgXs||[];
@@ -687,21 +711,12 @@ function renderASub(){
       html+='<div style="color:#64748b;font-size:12px;padding:16px;text-align:center">Pilih DV kategorikal dan minimal 1 prediktor numerik, lalu klik Run.</div>';
     }
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='nonparam'){
-    html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd">Nonparametric Tests</div>';
-    html+=mkCsel('np-type',['mannwhitney','kruskal','wilcoxon'],aState.npType,'aState.npType=val;renderASub()','Test');
-    html+='<div style="margin-top:8px">'+mkSelect('np-v',nF,aState.npV,'aState.npV=val;renderASub()','Variable')+'</div>';
-    if(aState.npType!=='wilcoxon')html+='<div style="margin-top:8px">'+mkSelect('np-g',aF,aState.npG,'aState.npG=val;renderASub()','Grouping Variable')+'</div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runNP()">▶ Run</button>';
-    html+='<div class="assump" style="margin-top:11px"><b style="color:#818cf8">When to use:</b><br>· Non-normal distribution (SW p≤.05)<br>· Ordinal data · Small n · Many outliers</div>';
-    html+='</div>';
-    html+='<div class="card"><div class="sec-hd">Distribution Preview</div>'+svgBoxplot(data,aState.npV,aState.npType!=='wilcoxon'?aState.npG:null)+'</div></div>';
-  }
-
-  else if(currentASub==='reliability'){
+function renderReliabilityForm(){
+  const nF=numFields();
+  let html='';
     const cols=aState.alphaVars.filter(v=>nF.includes(v)).map(v=>SE.validNums(data.map(r=>r[v])));
     const minN=cols.length?Math.min(...cols.map(c=>c.length)):0;
     const aRes=(cols.length>=2&&minN>=2)?tryStats(()=>SE.cronbachAlpha(cols.map(c=>c.slice(0,minN)))):null;
@@ -724,9 +739,11 @@ function renderASub(){
       html+='<div style="display:flex;align-items:center;gap:9px;padding:6px 10px;background:rgba(255,255,255,.018);border-radius:7px;border:1px solid rgba(255,255,255,.04);margin-bottom:4px"><span style="font-family:monospace;font-size:11px;color:#94a3b8;width:40px">'+rng+'</span><span class="tag '+cls+'">'+escHtml(lbl)+'</span></div>';
     });
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='kappa'){
+function renderKappaForm(){
+  let html='';
     var aF2=allFields(); var nF2=numFields();
     html+='<div class="grid2">';
     // ── Input card ──
@@ -782,9 +799,12 @@ function renderASub(){
     html+='<div class="assump" style="margin-top:10px"><b style="color:#818cf8">vs Cronbach α:</b><br>Cronbach α = internal consistency of a scale (same construct, multiple items).<br>Cohen κ = agreement between independent raters/coders (different judges, same items).</div>';
     html+='</div>';
     html+='</div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='crosstab'){
+function renderCrosstabForm(){
+  const aF=allFields();
+  let html='';
     const ctRows=[...new Set(data.map(r=>String(r[aState.ctRow])))].sort();
     const ctCols=[...new Set(data.map(r=>String(r[aState.ctCol])))].sort();
     const ctN=data.length;
@@ -809,26 +829,12 @@ function renderASub(){
     ctCT.forEach(v=>html+='<td style="font-weight:700;color:#94a3b8">'+v+'</td>');
     html+='<td style="font-weight:800;color:#c7d2fe">'+ctN+'</td></tr>';
     html+='</tbody></table></div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='transform'){
-    html+='<div class="grid2">';
-    html+='<div class="card"><div class="sec-hd">Transform Variable</div>';
-    html+=mkSelect('tr-fld',nF,aState.trFld,'aState.trFld=val;renderASub()','Source Variable');
-    html+='<div style="margin-top:8px">'+mkCsel('tr-type',['zscore','minmax','log','log10','sqrt','square','center','rank'],aState.trType,'aState.trType=val;renderASub()','Transformation')+'</div>';
-    html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.trNewName+'" oninput="aState.trNewName=this.value"/></div>';
-    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runTransform()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
-    html+='<div class="assump" style="margin-top:11px">Z-score · Min-Max · Log · Sqrt · Square · Center · Rank</div>';
-    html+='</div>';
-    html+='<div class="card"><div class="sec-hd">Compute Variable</div>';
-    html+='<div style="margin-bottom:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.computeName+'" oninput="aState.computeName=this.value"/></div>';
-    html+='<div style="margin-bottom:8px"><label class="lbl">Expression</label><input class="inp" style="font-family:monospace" value="'+aState.computeExpr+'" oninput="aState.computeExpr=this.value" placeholder="e.g. age * 2 + score / 10"/></div>';
-    html+='<button class="btn btn-primary btn-sm" onclick="runCompute()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
-    html+='<div class="assump" style="margin-top:10px">Vars · +−×÷^% · abs/sqrt/log/exp/round/floor/ceil</div>';
-    html+='</div></div>';
-  }
-
-  else if(currentASub==='recode'){
+function renderRecodeForm(){
+  const aF=allFields();
+  let html='';
     const rcUniq=[...new Set(data.map(r=>r[aState.recodeFld]).filter(v=>v!==null))].slice(0,20);
     html+='<div class="grid2">';
     html+='<div class="card"><div class="sec-hd">Recode Variable</div>';
@@ -854,9 +860,11 @@ function renderASub(){
     if(rcV.length)html+='<div class="stats-grid2">'+stCard('Min',Math.min(...rcV).toFixed(2))+stCard('Max',Math.max(...rcV).toFixed(2))+stCard('Mean',SE.mean(rcV).toFixed(2))+stCard('N Valid',rcV.length)+'</div>';
     html+='<div style="margin-top:9px;font-size:11px;color:#64748b">'+rcUniq.length+' unique values</div>';
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='filter'){
+function renderFilterForm(){
+  let html='';
     html+='<div class="grid2">';
     html+='<div class="card"><div class="sec-hd">Filter Cases</div>';
     html+='<div style="margin-bottom:9px"><label class="lbl">Filter Expression</label><input class="inp" style="font-family:monospace" value="'+aState.filterExpr+'" oninput="aState.filterExpr=this.value" placeholder="e.g. age > 25"/></div>';
@@ -873,10 +881,12 @@ function renderASub(){
     html+='</div>';
     html+='<div style="margin-top:12px;font-size:11.5px;color:#64748b">Total rows: '+data.length+'<br>With any missing: '+data.filter(r=>vars.some(v=>isMiss(r[v.name]))).length+'</div>';
     html+='</div></div>';
-  }
+  return html;
+}
 
-  // ── WEIGHT CASES ──────────────────────────────────────────────────────
-  else if(currentASub==='weightcases'){
+function renderWeightcasesForm(){
+  const nF=numFields();
+  let html='';
     var wcNF=nF.filter(function(f){return f!=='';}); // all numeric fields
     var wcPreview=null;
     var wcVar=aState.wcVar;
@@ -1003,9 +1013,12 @@ function renderASub(){
     html+='</div>';
 
     html+='</div>'; // close grid2
-  }
+  return html;
+}
 
-  else if(currentASub==='impute'){
+function renderImputeForm(){
+  const nF=numFields();
+  let html='';
     const impV=SE.validNums(data.map(r=>r[aState.imputeFld]));
     const impM=data.filter(r=>isMiss(r[aState.imputeFld])).length;
     let impVal='N/A';
@@ -1029,10 +1042,12 @@ function renderASub(){
       html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:65px;font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis">'+escHtml(v.name)+'</span><div style="flex:1;height:7px;background:rgba(255,255,255,.055);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:'+(pct>20?'#f87171':pct>5?'#fbbf24':'#34d399')+';border-radius:3px"></div></div><span style="font-size:10px;color:'+(mc>0?'#f87171':'#34d399')+';width:22px;text-align:right">'+mc+'</span></div>';
     });
     html+='</div></div>';
-  }
+  return html;
+}
 
-  // ── MULTIPLE IMPUTATION ────────────────────────────────────────────────
-  else if(currentASub==='mi'){
+function renderMiForm(){
+  const nF=numFields();
+  let html='';
     if(!aState.miVars) aState.miVars=[];
     if(!aState.miM) aState.miM=5;
     if(!aState.miMethod) aState.miMethod='pmm';
@@ -1095,9 +1110,12 @@ function renderASub(){
       html+='</div>';
     });
     html+='</div></div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='corrmatrix'){
+function renderCorrmatrixForm(){
+  const nF=numFields();
+  let html='';
     // Filter out any stale fields that no longer exist in current vars
     aState.cmFields=aState.cmFields.filter(function(f){return nF.includes(f);});
     if(!aState.cmFields.length)aState.cmFields=[...nF.slice(0,6)];
@@ -1115,9 +1133,12 @@ function renderASub(){
       }
       html+='<div class="card">'+mkTable(['Pair','r','p','Strength','Sig'],pairs)+'</div>';
     }
-  }
+  return html;
+}
 
-  else if(currentASub==='partialcorr'){
+function renderPartialcorrForm(){
+  const nF=numFields();
+  let html='';
     if(!aState.pcX) aState.pcX=nF[0]||'';
     if(!aState.pcY) aState.pcY=nF[1]||nF[0]||'';
     if(!aState.pcZ) aState.pcZ=nF[2]||nF[0]||'';
@@ -1143,9 +1164,12 @@ function renderASub(){
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Scatter X vs Y</div>'+svgScatter(data,aState.pcX,aState.pcY)+'</div>';
     html+='</div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='canonicalcorr'){
+function renderCanonicalcorrForm(){
+  const nF=numFields();
+  let html='';
     if(!aState.ccaXs) aState.ccaXs=[];
     if(!aState.ccaYs) aState.ccaYs=[];
     aState.ccaXs=aState.ccaXs.filter(function(f){return nF.includes(f);});
@@ -1207,9 +1231,12 @@ function renderASub(){
     });
     html+='</div></div>';
     html+='</div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='charts'){
+function renderChartsForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     html+='<div class="grid2">';
     html+='<div class="card"><div class="sec-hd">Chart Settings</div>';
     html+=mkCsel('ch-type',['histogram','boxplot','scatter','qq'],aState.chType,'aState.chType=val;renderASub()','Chart Type');
@@ -1226,9 +1253,12 @@ function renderASub(){
     else if(aState.chType==='scatter')html+=svgScatter(data,aState.scX,aState.scY);
     else if(aState.chType==='qq')html+=svgQQ(data,aState.chV);
     html+='</div></div>';
-  }
+  return html;
+}
 
-  else if(currentASub==='glm-poisson'||currentASub==='glm-negbin'){
+function renderGlmCountForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     var isNB = currentASub==='glm-negbin';
     var modelLabel = isNB ? 'Negative Binomial Regression' : 'Poisson Regression';
     var modelColor = isNB ? '#fb923c' : '#34d399';
@@ -1318,9 +1348,12 @@ function renderASub(){
     } else if(cntPreview&&cntPreview._err){
       html+='<div class="card"><div style="color:#f87171;font-size:12px">⚠ '+cntPreview._err+'</div></div>';
     }
-  }
+  return html;
+}
 
-  else if(currentASub==='glm'||currentASub==='glm-multi'||currentASub==='glm-rep'){
+function renderGlmForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
     // Sync glmSubType from currentASub
     aState.glmSubType = currentASub==='glm-multi' ? 'multivariate' : currentASub==='glm-rep' ? 'repeated' : 'univariate';
     if(!aState.glmMultiDeps) aState.glmMultiDeps=[];
@@ -1544,11 +1577,12 @@ function renderASub(){
         }
       }
     }
-  }
-  // ══════════════════════════════════════════════════════════════
-  // HLM – Hierarchical Linear Model
-  // ══════════════════════════════════════════════════════════════
-  else if(currentASub==='hlm-2level'||currentASub==='hlm-3level'||currentASub==='hlm-icc'){
+  return html;
+}
+
+function renderHlmForm(){
+  const nF=numFields(),aF=allFields();
+  let html='';
 
     // ── State init ──────────────────────────────────────────────
     if(!aState.hlmDep)   aState.hlmDep   = nF[0]||'';
@@ -1750,9 +1784,12 @@ function renderASub(){
         html+='</div>';
       }
     }
-  }
+  return html;
+}
 
-  else if(currentASub==='efa'){
+function renderEfaForm(){
+  const nF=numFields();
+  let html='';
     if(aState.efaVars===null||aState.efaVars===undefined) aState.efaVars=nF.slice(0,Math.min(5,nF.length));
     if(!aState.efaFactors) aState.efaFactors=2;
     if(!aState.efaRotation) aState.efaRotation='varimax';
@@ -1844,6 +1881,140 @@ function renderASub(){
       html+='<div style="margin-top:8px;font-size:11px;color:rgba(232,222,255,.35)">Cyan = strong (≥0.60) · Purple = moderate (≥0.40) · Total variance explained: '+efaPreview.cumVar[efaPreview.nFactors-1]+'%</div>';
       html+='</div>';
     }
+  return html;
+}
+
+function renderASub(){
+  const el=document.getElementById('a-content');
+  if(!el)return;
+  const nF=numFields(),aF=allFields();
+  let html='';
+
+  if(currentASub==='descriptive'){
+    html+=renderDescriptiveForm();
+  }
+
+  else if(currentASub==='ttest'){
+    html+=renderTtestForm();
+  }
+
+  else if(currentASub==='onesamp'){
+    html+=renderOnesampForm();
+  }
+
+  else if(currentASub==='paired'){
+    html+=renderPairedForm();
+  }
+
+  else if(currentASub==='rmanova'){
+    html+=renderRmanovaForm();
+  }
+
+  else if(currentASub==='anova'){
+    html+=renderAnovaForm();
+  }
+
+  else if(currentASub==='anova2'){
+    html+=renderAnova2Form();
+  }
+
+  else if(currentASub==='anova3'){
+    html+=renderAnova3Form();
+  }
+  else if(currentASub==='correlation'){
+    html+=renderCorrelationForm();
+  }
+
+  else if(currentASub==='regression'){
+    html+=renderRegressionForm();
+  }
+
+  else if(currentASub==='multipleReg'){
+    html+=renderMultipleRegForm();
+  }
+
+  else if(currentASub==='hierarchicalReg'){
+    html+=renderHierarchicalRegForm();
+  }
+
+  else if(currentASub==='logistic'){
+    html+=renderLogisticForm();
+  }
+
+  else if(currentASub==='nonparam'){
+    html+=renderNonparamForm();
+  }
+
+  else if(currentASub==='reliability'){
+    html+=renderReliabilityForm();
+  }
+
+  else if(currentASub==='kappa'){
+    html+=renderKappaForm();
+  }
+
+  else if(currentASub==='crosstab'){
+    html+=renderCrosstabForm();
+  }
+
+  else if(currentASub==='transform'){
+    html+=renderTransformForm();
+  }
+
+  else if(currentASub==='recode'){
+    html+=renderRecodeForm();
+  }
+
+  else if(currentASub==='filter'){
+    html+=renderFilterForm();
+  }
+
+  // ── WEIGHT CASES ──────────────────────────────────────────────────────
+  else if(currentASub==='weightcases'){
+    html+=renderWeightcasesForm();
+  }
+
+  else if(currentASub==='impute'){
+    html+=renderImputeForm();
+  }
+
+  // ── MULTIPLE IMPUTATION ────────────────────────────────────────────────
+  else if(currentASub==='mi'){
+    html+=renderMiForm();
+  }
+
+  else if(currentASub==='corrmatrix'){
+    html+=renderCorrmatrixForm();
+  }
+
+  else if(currentASub==='partialcorr'){
+    html+=renderPartialcorrForm();
+  }
+
+  else if(currentASub==='canonicalcorr'){
+    html+=renderCanonicalcorrForm();
+  }
+
+  else if(currentASub==='charts'){
+    html+=renderChartsForm();
+  }
+
+  else if(currentASub==='glm-poisson'||currentASub==='glm-negbin'){
+    html+=renderGlmCountForm();
+  }
+
+  else if(currentASub==='glm'||currentASub==='glm-multi'||currentASub==='glm-rep'){
+    html+=renderGlmForm();
+  }
+  // ══════════════════════════════════════════════════════════════
+  // HLM – Hierarchical Linear Model
+  // ══════════════════════════════════════════════════════════════
+  else if(currentASub==='hlm-2level'||currentASub==='hlm-3level'||currentASub==='hlm-icc'){
+    html+=renderHlmForm();
+  }
+
+  else if(currentASub==='efa'){
+    html+=renderEfaForm();
   }
 
   else if(currentASub==='cfa'){
