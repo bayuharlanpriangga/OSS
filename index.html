@@ -336,7 +336,13 @@
   <script src="js/analyze/analyze-tab-shell.js"></script>
   <script src="js/charts/svg-charts-core.js"></script>
   <script src="js/charts/interaction-plot.js"></script>
+  <script src="js/charts/forest-funnel-plot.js"></script>
   <script src="js/analyze/analyze-form-render.js"></script>
+
+  <!-- 4b. Output layer (E3, 2026-09-19): renderAnovaTable = murni string
+       builder, tanpa dependency & tanpa top-level call — aman dimuat sebelum
+       app.js. F3 (renderOutput basic) nantinya menyusul di file yang sama. -->
+  <script src="js/output/output-render-basic.js"></script>
 
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
