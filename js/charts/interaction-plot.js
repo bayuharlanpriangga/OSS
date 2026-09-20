@@ -1,9 +1,3 @@
-// ════════════════════════════════════════════════════════════════════════
-// INTERACTION PLOT — Two-Way / Three-Way ANOVA (E2, split roadmap OSS 2.0)
-// Dipisah dari app.js. Pakai PAL2 dari js/charts/svg-charts-core.js —
-// file itu HARUS dimuat SEBELUM file ini di index.html.
-// ════════════════════════════════════════════════════════════════════════
-
 // ── Interaction Plot (Two-Way or Three-Way ANOVA) ──────────────────────
 // cellMeansTable: [{level:A_level, byB:[{level:B_level, mean, n}]}]
 // xLabel: Factor B levels (x-axis), lineLabel: Factor A levels (lines)
@@ -44,7 +38,7 @@ function svgInteractionPlot(cellMeansTable, xLabel, lineLabel, depLabel, W, H){
   // X axis title
   svg+='<text x="'+(P.l+cw/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9.5" fill="#64748b">'+escHtml(xLabel)+'</text>';
   // Y axis title
-  svg+='<text x="11" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9.5" fill="#64748b" transform="rotate(-90 11 '+(P.t+ch/2)+')">'+depLabel+'</text>';
+  svg+='<text x="11" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9.5" fill="#64748b" transform="rotate(-90 11 '+(P.t+ch/2)+')">'+escHtml(depLabel)+'</text>';
 
   // Lines per Factor A level
   cellMeansTable.forEach(function(row,ri){
@@ -60,19 +54,19 @@ function svgInteractionPlot(cellMeansTable, xLabel, lineLabel, depLabel, W, H){
     svg+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>';
     // Dots + tooltips
     pts.forEach(function(p){
-      svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="5" fill="'+col+'" stroke="rgba(14,6,24,.7)" stroke-width="1.5" opacity="0.95"><title>'+row.level+' / '+p.lbl+': M='+p.m.toFixed(3)+' (n='+p.n+')</title></circle>';
+      svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="5" fill="'+col+'" stroke="rgba(14,6,24,.7)" stroke-width="1.5" opacity="0.95"><title>'+escHtml(row.level)+' / '+escHtml(p.lbl)+': M='+p.m.toFixed(3)+' (n='+p.n+')</title></circle>';
       svg+='<text x="'+p.x+'" y="'+(p.y-9)+'" text-anchor="middle" font-size="7.5" fill="'+col+'" opacity="0.85">'+p.m.toFixed(2)+'</text>';
     });
   });
 
   // Legend (Factor A)
   var legX=P.l, legY=P.t-2;
-  svg+='<text x="'+legX+'" y="'+legY+'" font-size="8" fill="#64748b">'+lineLabel+': </text>';
+  svg+='<text x="'+legX+'" y="'+legY+'" font-size="8" fill="#64748b">'+escHtml(lineLabel)+': </text>';
   cellMeansTable.forEach(function(row,ri){
     var lx=legX+50+ri*80, col=PAL2[ri%PAL2.length];
     svg+='<line x1="'+lx+'" y1="'+(legY-3.5)+'" x2="'+(lx+14)+'" y2="'+(legY-3.5)+'" stroke="'+col+'" stroke-width="2.2"/>';
     svg+='<circle cx="'+(lx+7)+'" cy="'+(legY-3.5)+'" r="3.5" fill="'+col+'"/>';
-    svg+='<text x="'+(lx+18)+'" y="'+legY+'" font-size="8.5" fill="#94a3b8">'+row.level+'</text>';
+    svg+='<text x="'+(lx+18)+'" y="'+legY+'" font-size="8.5" fill="#94a3b8">'+escHtml(row.level)+'</text>';
   });
 
   svg+='</svg>';

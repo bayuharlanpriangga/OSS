@@ -1,11 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// SVG CHARTS — CORE / UMUM (E1, split roadmap OSS 2.0)
-// Palet warna PAL2 + fungsi chart generik (scree, histogram, boxplot,
-// scatter, QQ plot, residual plot, correlation matrix). Dipisah dari
-// app.js. File ini dimuat SEBELUM app.js dan analyze-form-render.js —
-// dependency (PAL2, svgHistogram, svgBoxplot, dll dipanggil dari
-// analyze-form-render.js) dibaca di runtime, aman lewat scope-fallback
-// ke global.
+// SVG CHARTS — CORE
 // ════════════════════════════════════════════════════════════════════════
 var PAL2=['#818cf8','#34d399','#fbbf24','#f472b6','#60a5fa','#a78bfa','#fb923c','#2dd4bf'];
 

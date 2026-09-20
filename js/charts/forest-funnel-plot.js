@@ -1,16 +1,3 @@
-// ════════════════════════════════════════════════════════════════════════
-// js/charts/forest-funnel-plot.js
-// Fitur: Forest Plot & Funnel Plot SVG untuk Meta-Analysis
-// (E4 + E5, split roadmap OSS 2.0)
-// Berisi: svgMetaForestPlot(studies, res, effectType), svgFunnelPlot(res)
-// Depends on: escHtml (app.js — dibaca di runtime, bukan saat parse);
-//   data dari computeMetaAnalysis (stats-metaanalysis.js): res.studyData,
-//   res.pooledEffect, res.ci_lo/ci_hi, res.model. Tidak ada top-level call.
-// Dipanggil dari: renderMetaanalysisForm (analyze-form-render.js, preview) dan
-//   renderOutput (app.js, kasus metaanalysis). Beda dari svgForestPlot (Cox,
-//   app.js) — nama mirip tapi fungsi lain.
-// File ini dimuat SEBELUM analyze-form-render.js dan app.js.
-// ════════════════════════════════════════════════════════════════════════
 // ── Forest Plot SVG ─────────────────────────────────────────────────────
 function svgMetaForestPlot(studies, res, effectType){
   var k=studies.length;
