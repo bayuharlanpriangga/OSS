@@ -233,8 +233,8 @@ function tryStats(fn){try{return fn();}catch(e){return{_err:true,msg:e.message};
 // pemanggil di renderOutput() kasus 'mediation' resolve lewat
 // scope-fallback ke global, tidak diubah. Temuan escHtml (xName/mName/
 // yName tanpa escape) sudah DIPERBAIKI di file target (2026-09-20).
-// svgSEMDiagram (E7) masih di app.js, target file sama, menyusul sesi
-// berikutnya.
+// svgSEMDiagram (E7) juga sudah dipindah ke file yang sama — lihat
+// pointer comment di bekas lokasinya (dulu sekitar baris 992).
 
 function toggleModCov(f,checked){
   if(!aState.modCovs) aState.modCovs=[];
@@ -274,109 +274,18 @@ if(!SE.chiCritApprox){
   };
 }
 
-function svgPowerCurve(test,alpha,tails,W,H){
-  W=W||420; H=H||220;
-  var effectSets={
-    'ttest_2samp':[[0.2,'Small'],[0.5,'Medium'],[0.8,'Large']],
-    'ttest_1samp':[[0.2,'Small'],[0.5,'Medium'],[0.8,'Large']],
-    'ttest_paired':[[0.2,'Small'],[0.5,'Medium'],[0.8,'Large']],
-    'anova_oneway':[[0.10,'Small'],[0.25,'Medium'],[0.40,'Large']],
-    'correlation':[[0.10,'Small'],[0.30,'Medium'],[0.50,'Large']],
-    'regression_r2':[[0.02,'Small'],[0.15,'Medium'],[0.35,'Large']],
-    'chisq':[[0.10,'Small'],[0.30,'Medium'],[0.50,'Large']]
-  };
-  var effs=effectSets[test]||effectSets['ttest_2samp'];
-  var Ns=[]; for(var n=5;n<=200;n+=5) Ns.push(n);
-  var P={l:38,r:16,t:14,b:42};
-  var cw=W-P.l-P.r, ch=H-P.t-P.b;
-  var colors=['#f472b6','#fbbf24','#34d399'];
-  var xMin=Ns[0],xMax=Ns[Ns.length-1];
-  function tx(n){return P.l+(n-xMin)/(xMax-xMin)*cw;}
-  function ty(p){return P.t+ch*(1-p);}
-
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">';
-  svg+='<defs>';
-  for(var ci=0;ci<3;ci++) svg+='<linearGradient id="pwGrad'+ci+'" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="'+colors[ci]+'" stop-opacity="0.5"/><stop offset="100%" stop-color="'+colors[ci]+'" stop-opacity="1"/></linearGradient>';
-  svg+='</defs>';
-
-  // Grid
-  [0.5,0.7,0.8,0.9,1.0].forEach(function(p){
-    var y=ty(p);
-    svg+='<line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,255,255,'+(p===0.8?'.15':'.05')+')" stroke-width="'+(p===0.8?1.5:1)+'"/>';
-    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="#64748b">'+SE.f4(p)+'</text>';
-    if(p===0.8) svg+='<text x="'+(P.l+cw+2)+'" y="'+(y+4)+'" font-size="8" fill="rgba(251,191,36,.8)">0.80</text>';
-  });
-  // Reference line at 0.80
-  var y80=ty(0.80);
-  svg+='<line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+y80+'" y2="'+y80+'" stroke="rgba(251,191,36,.6)" stroke-width="1.5" stroke-dasharray="5,3"/>';
-
-  // Curves
-  effs.forEach(function(ef,idx){
-    var pts=Ns.map(function(n){
-      try{var r=computePower(test,alpha,(aState.pwPower||0.8),ef[0],2,tails,'power',n);return{x:tx(n),y:ty(Math.min(1,parseFloat(r.power)||0))};} catch{return null;}
-    }).filter(Boolean);
-    if(pts.length<2) return;
-    var d=pts.map(function(p,i){return (i===0?'M':'L')+p.x+' '+p.y;}).join('');
-    svg+='<path d="'+d+'" fill="none" stroke="'+colors[idx]+'" stroke-width="2.2" opacity="0.9" stroke-linecap="round" stroke-linejoin="round"/>';
-    // Label
-    var last=pts[pts.length-1];
-    svg+='<text x="'+(last.x+3)+'" y="'+(last.y+4)+'" font-size="9" fill="'+colors[idx]+'">'+ef[1]+'</text>';
-  });
-
-  // Axes
-  svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
-  svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
-  // X labels
-  [10,50,100,150,200].forEach(function(n){svg+='<text x="'+tx(n)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8.5" fill="#64748b">'+n+'</text>';});
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">N per group</text>';
-  svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(-90,12,'+(P.t+ch/2)+')">Power</text>';
-  return svg+'</svg>';
-}
-
-function svgSensitivityCurve(test,alpha,power,tails,nHighlight,W,H){
-  W=W||420; H=H||180;
-  var Ns=[]; for(var n=5;n<=300;n+=5) Ns.push(n);
-  var P={l:40,r:16,t:14,b:40};
-  var cw=W-P.l-P.r, ch=H-P.t-P.b;
-  var xMin=Ns[0],xMax=Ns[Ns.length-1];
-  function tx(n){return P.l+(n-xMin)/(xMax-xMin)*cw;}
-  var allEffs=Ns.map(function(n){try{var r=computePower(test,alpha,power,null,2,tails,'effect',n);return parseFloat(r.effect)||null;}catch{return null;}});
-  var validEffs=allEffs.filter(Boolean);
-  if(!validEffs.length) return '';
-  var eMin=Math.min.apply(null,validEffs),eMax=Math.max.apply(null,validEffs);
-  var eRange=eMax-eMin||1;
-  function ty(e){return P.t+ch*(1-(e-eMin)/eRange);}
-
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;margin-top:12px;display:block">';
-  // Grid
-  [eMin,eMin+eRange/2,eMax].forEach(function(e){
-    var y=ty(e);
-    svg+='<line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
-    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="#64748b">'+SE.f4(e)+'</text>';
-  });
-  // Curve
-  var pts=Ns.map(function(n,i){var e=allEffs[i];return e?{x:tx(n),y:ty(e)}:null;}).filter(Boolean);
-  if(pts.length>=2){
-    var d=pts.map(function(p,i){return (i===0?'M':'L')+p.x+' '+p.y;}).join('');
-    svg+='<path d="'+d+'" fill="none" stroke="#c084fc" stroke-width="2" opacity="0.9" stroke-linecap="round"/>';
-    // Highlight current N
-    if(nHighlight&&nHighlight>=Ns[0]&&nHighlight<=Ns[Ns.length-1]){
-      var ni=Math.round((nHighlight-Ns[0])/5);
-      if(ni>=0&&ni<allEffs.length&&allEffs[ni]){
-        var hx=tx(nHighlight),hy=ty(allEffs[ni]);
-        svg+='<line x1="'+hx+'" y1="'+P.t+'" x2="'+hx+'" y2="'+(P.t+ch)+'" stroke="#f472b6" stroke-width="1.2" stroke-dasharray="4,3"/>';
-        svg+='<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#f472b6" opacity="0.9"/>';
-        svg+='<text x="'+(hx+6)+'" y="'+(hy-4)+'" font-size="9" fill="#f472b6">N='+nHighlight+'</text>';
-      }
-    }
-  }
-  svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
-  svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
-  [20,50,100,200,300].forEach(function(n){if(n<=Ns[Ns.length-1]) svg+='<text x="'+tx(n)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8.5" fill="#64748b">'+n+'</text>';});
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">N per group</text>';
-  svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(-90,12,'+(P.t+ch/2)+')">Min Det. Effect</text>';
-  return svg+'</svg>';
-}
+// ── Power Analysis chart (svgPowerCurve, svgSensitivityCurve) —
+// DIPINDAH ke js/charts/power-plot.js (E8, split roadmap OSS 2.0, baru
+// dipetakan 2026-09-19 — lihat Temuan E). Dimuat SEBELUM app.js
+// (kategori 4, setelah sem-mediation-diagram.js) — dependency
+// computePower() sudah ada di js/stats-engine/stats-poweranalysis.js
+// yang dimuat lebih dulu (kategori 3), jadi aman. Pemanggil:
+// svgPowerCurve 2 titik (preview renderPowerForm() di
+// analyze-form-render.js + output renderOutput() kasus 'poweranalysis'
+// di app.js, tidak diubah); svgSensitivityCurve 1 titik (preview saja,
+// tidak dipakai renderOutput(), pola sama seperti svgSEMDiagram/E7).
+// Tidak ada temuan escHtml — tidak ada nama variabel dataset yang
+// dirender ke SVG di kedua fungsi ini.
 
 function runPowerAnalysis(){
   runSafe(function(){
@@ -988,91 +897,15 @@ function semRemovePath(idx){
 // ── Core SEM computation + helper (logDet, traceRinvImpl, pChiSquare) ───
 // DIPINDAH ke js/stats-engine/stats-mediation-sem.js (B19, 2026-09-15)
 
-// ── SEM Path Diagram SVG ─────────────────────────────────────────────────
-function svgSEMDiagram(latents,latentMap,paths,semResult,semColors){
-  var nL=latents.length;
-  if(!nL) return '<div class="chart-empty">Belum ada konstruk laten</div>';
-  var W=500,H=Math.max(240,nL*80+60);
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:380px">';
-
-  // Defs
-  svg+='<defs><marker id="arrowSEM" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#e879f9" opacity="0.8"/></marker>';
-  svg+='<filter id="glowSEM"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
-
-  // Position latents in a circle/column layout
-  var cx=W/2,r=Math.min((H-80)/2,W/3);
-  var positions={};
-  latents.forEach(function(ln,i){
-    var angle=(2*Math.PI*i/nL)-Math.PI/2;
-    var x=nL===1?cx:cx+r*Math.cos(angle);
-    var y=nL===1?H/2:H/2+r*Math.sin(angle);
-    if(nL===2){x=i===0?120:W-120;y=H/2;}
-    if(nL===3){
-      if(i===0){x=cx;y=50;}
-      else if(i===1){x=80;y=H-50;}
-      else{x=W-80;y=H-50;}
-    }
-    positions[ln]={x:Math.round(x),y:Math.round(y)};
-  });
-
-  // Draw structural paths
-  paths.forEach(function(path){
-    var from=positions[path.from],to=positions[path.to];
-    if(!from||!to) return;
-    var dx=to.x-from.x,dy=to.y-from.y,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<1) return;
-    var ux=dx/dist,uy=dy/dist;
-    var x1=from.x+ux*32,y1=from.y+uy*32;
-    var x2=to.x-ux*32,y2=to.y-uy*32;
-    // Curved path
-    var mx=(x1+x2)/2,my=(y1+y2)/2-20;
-    svg+='<path d="M'+x1+','+y1+' Q'+mx+','+my+' '+x2+','+y2+'" fill="none" stroke="#e879f9" stroke-width="2" opacity="0.7" marker-end="url(#arrowSEM)"/>';
-    // Beta label
-    if(semResult&&semResult.paths){
-      var pr=semResult.paths.find(function(p){return p.from===path.from&&p.to===path.to;});
-      if(pr){
-        var lx=(x1+x2)/2,ly=(y1+y2)/2-18;
-        var psig=parseFloat(pr.p)<0.05;
-        svg+='<rect x="'+(lx-16)+'" y="'+(ly-9)+'" width="32" height="14" rx="4" fill="rgba(14,6,24,.8)" stroke="rgba(232,121,249,.3)" stroke-width="1"/>';
-        svg+='<text x="'+lx+'" y="'+(ly+3)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+(psig?'#34d399':'#f87171')+'">β='+pr.beta+'</text>';
-      }
-    }
-  });
-
-  // Draw latent variable ellipses
-  latents.forEach(function(ln,li){
-    var pos=positions[ln];
-    var col=semColors[li%semColors.length];
-    // Ellipse for latent
-    svg+='<ellipse cx="'+pos.x+'" cy="'+pos.y+'" rx="35" ry="22" fill="'+col.replace('#','rgba(').replace(/(.{6})/,'$1,.12)')+'" stroke="'+col+'" stroke-width="1.8" filter="url(#glowSEM)"/>';
-    svg+='<text x="'+pos.x+'" y="'+(pos.y+4)+'" text-anchor="middle" font-size="9.5" font-weight="800" fill="'+col+'">'+ln.slice(0,9)+'</text>';
-
-    // Draw indicator lines
-    var indics=latentMap[ln]||[];
-    var nI=indics.length;
-    indics.forEach(function(v,vi){
-      var angle2=(2*Math.PI*vi/nI)-Math.PI/2;
-      var ix=pos.x+70*Math.cos(angle2),iy=pos.y+70*Math.sin(angle2);
-      // Adjust for nI===1
-      if(nI===1){ix=pos.x;iy=pos.y+72;}
-      if(nI===2){ix=pos.x+(vi===0?-55:55);iy=pos.y+55;}
-      // Clamp to SVG bounds
-      ix=Math.max(22,Math.min(W-22,ix));
-      iy=Math.max(18,Math.min(H-18,iy));
-      // Arrow from latent to indicator
-      var dx2=ix-pos.x,dy2=iy-pos.y,dist2=Math.sqrt(dx2*dx2+dy2*dy2);
-      if(dist2<1) return;
-      var ux2=dx2/dist2,uy2=dy2/dist2;
-      svg+='<line x1="'+(pos.x+ux2*22)+'" y1="'+(pos.y+uy2*22)+'" x2="'+(ix-ux2*14)+'" y2="'+(iy-uy2*14)+'" stroke="'+col+'" stroke-width="1.2" opacity="0.5"/>';
-      // Indicator rect
-      svg+='<rect x="'+(ix-18)+'" y="'+(iy-10)+'" width="36" height="18" rx="4" fill="rgba(14,6,24,.7)" stroke="'+col+'" stroke-width="1" opacity="0.8"/>';
-      svg+='<text x="'+ix+'" y="'+(iy+4)+'" text-anchor="middle" font-size="8" fill="'+col+'" opacity="0.9">'+v.slice(0,6)+'</text>';
-    });
-  });
-
-  svg+='</svg>';
-  return svg;
-}
+// ── SEM Path Diagram SVG (svgSEMDiagram) — DIPINDAH ke
+// js/charts/sem-mediation-diagram.js (E7, split roadmap OSS 2.0, file
+// sama dengan svgMediationPath/E6). Dimuat SEBELUM app.js (kategori 4,
+// bareng E6) — 1 pemanggil (preview) di renderSEMForm(),
+// js/analyze/analyze-form-render.js; tidak ada pemanggil di app.js
+// (grep 2026-09-20, tidak dipakai renderOutput). Signature tidak
+// berubah, resolve lewat scope-fallback ke global. Temuan escHtml
+// (nama konstruk laten & indikator tanpa escape) sudah DIPERBAIKI di
+// file target (2026-09-20).
 
 // ── Generate lavaan syntax ──────────────────────────────────────────────
 // DIPINDAH ke js/stats-engine/stats-mediation-sem.js (B19, 2026-09-15)
