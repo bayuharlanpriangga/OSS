@@ -1317,203 +1317,17 @@ function renderPivot(el){
 // ════════════════════════════════════════════════════════════════════════
 // OUTPUT VIEW
 // ════════════════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════════════════
-// OUTPUT VIEW — Tab Group System
-// ════════════════════════════════════════════════════════════════════════
 
-// ── Interpretation box helper ─────────────────────────────────────────
-// Renders a subtle, theme-consistent conclusion line at the bottom of each output card
-function _interpBox(text){
-  return '<div style="margin-top:14px;padding:9px 13px;border-top:1px solid rgba(124,58,237,.1);font-size:11.5px;color:rgba(232,222,255,.45);line-height:1.65;font-style:italic">'+text+'</div>';
-}
-
-// Build interpretation string per output type
-function _buildInterp(o){
-  var r=o.res;
-  var p=r?parseFloat(r.p||r.p_fmt||r.pF||r.lrP||1):1;
-  var sig=p<.05;
-
-  if(o.type==='descriptive'){
-    var sk=parseFloat(o.stats&&o.stats.skewness)||0;
-    var swp=parseFloat(o.stats&&o.stats.shapiroP)||1;
-    var norm=swp>.05;
-    return 'Distribusi '+o.field+' '+(norm?'normal (SW p='+o.stats.shapiroP+')'
-      :'tidak normal (SW p='+o.stats.shapiroP+')')
-      +', skewness '+Math.abs(sk).toFixed(2)+(Math.abs(sk)<1?' (simetris)':(sk>0?' (condong kanan)':' (condong kiri)'))+'.';
-  }
-  if(o.type==='ttest'){
-    var d=parseFloat(r.cohensD)||0;
-    var mag=Math.abs(d)<.2?'trivial':Math.abs(d)<.5?'kecil':Math.abs(d)<.8?'sedang':'besar';
-    return (sig
-      ?'Terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (t='+r.t+', p='+r.p_fmt+'). Ukuran efek Cohen\'s d='+r.cohensD+' ('+mag+').'
-      :'Tidak terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (t='+r.t+', p='+r.p_fmt+'). Efek d='+r.cohensD+' ('+mag+').');
-  }
-  if(o.type==='onesamp'){
-    return (sig
-      ?'Rata-rata sampel (x̄='+r.mean+') berbeda signifikan dari nilai uji μ₀='+o.mu0+' (t='+r.t+', p='+r.p_fmt+').'
-      :'Rata-rata sampel (x̄='+r.mean+') tidak berbeda signifikan dari nilai uji μ₀='+o.mu0+' (t='+r.t+', p='+r.p_fmt+').');
-  }
-  if(o.type==='paired'){
-    return (sig
-      ?'Terdapat perbedaan signifikan antara dua kondisi (mean diff='+r.meanDiff+', t='+r.t+', p='+r.p_fmt+'). Efek d='+r.cohensD+' ('+r.dInterp+').'
-      :'Tidak terdapat perbedaan signifikan antara dua kondisi (mean diff='+r.meanDiff+', p='+r.p_fmt+').');
-  }
-  if(o.type==='rmanova'){
-    return (sig
-      ?'Terdapat perbedaan signifikan antar time point (F='+r.F+', p='+r.p_fmt+'). Ukuran efek η²p='+r.etaSq+' ('+r.etaInterp+').'
-      :'Tidak terdapat perbedaan signifikan antar time point (F='+r.F+', p='+r.p_fmt+').');
-  }
-  if(o.type==='anova'){
-    return (sig
-      ?'Terdapat perbedaan signifikan antar grup (F='+r.F+', p='+r.p_fmt+'). Ukuran efek η²='+r.eta2+' ('+r.eta2Interp+'). Lanjutkan dengan post-hoc untuk mengetahui pasangan yang berbeda.'
-      :'Tidak terdapat perbedaan signifikan antar grup (F='+r.F+', p='+r.p_fmt+'). η²='+r.eta2+'.');
-  }
-  if(o.type==='anova2'){
-    var sigEffects=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return escHtml(e.source);});
-    return sigEffects.length
-      ?'Efek signifikan: '+sigEffects.join(', ')+'. Perhatikan interaksi jika '+escHtml(r.factorA)+'×'+escHtml(r.factorB)+' signifikan.'
-      :'Tidak ada efek utama maupun interaksi yang signifikan.';
-  }
-  if(o.type==='anova3'){
-    var sigEff3=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return escHtml(e.source);});
-    return sigEff3.length
-      ?'Efek signifikan: '+sigEff3.join(', ')+'.'
-      :'Tidak ada efek utama maupun interaksi yang signifikan.';
-  }
-  if(o.type==='correlation'){
-    return (sig
-      ?'Terdapat korelasi '+r.direction+' yang signifikan antara kedua variabel (r='+r.r+', p='+r.p_fmt+'). Kekuatan: '+r.strength+'. Variabel berbagi '+r.r2+' varians bersama.'
-      :'Tidak terdapat korelasi signifikan antara kedua variabel (r='+r.r+', p='+r.p_fmt+').');
-  }
-  if(o.type==='partialCorrelation'){
-    return (sig
-      ?'Setelah mengontrol '+escHtml(o.pcZ)+', korelasi antara '+escHtml(o.pcX)+' dan '+escHtml(o.pcY)+' tetap signifikan (r='+r.rp+', p='+r.p_fmt+').'
-      :'Setelah mengontrol '+escHtml(o.pcZ)+', korelasi antara '+escHtml(o.pcX)+' dan '+escHtml(o.pcY)+' tidak signifikan (r='+r.rp+', p='+r.p_fmt+').');
-  }
-  if(o.type==='regression'){
-    var pF=parseFloat(r.pF_fmt||1);
-    return (pF<.05
-      ?'Model regresi signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' menjelaskan '+r.R2+' varians '+escHtml(o.yF)+'. Setiap +1 '+escHtml(o.xF)+' → '+escHtml(o.yF)+' berubah '+r.b1+'.'
-      :'Model regresi tidak signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' tidak cukup menjelaskan varians '+escHtml(o.yF)+'.');
-  }
-  if(o.type==='multipleReg'){
-    var pF2=parseFloat(r.pF||1);
-    var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&parseFloat(c.p_fmt)<.05;}).map(function(c){return escHtml(c.name);});
-    return (pF2<.05
-      ?'Model signifikan (R²='+r.R2+', p='+SE.f4(r.pF)+'). Prediktor signifikan: '+(sigPreds.length?sigPreds.join(', '):'tidak ada')+'.'
-      :'Model tidak signifikan secara keseluruhan (R²='+r.R2+').');
-  }
-  if(o.type==='logistic'){
-    return (parseFloat(r.nagelkerke)>.3
-      ?'Model logistik menjelaskan ~'+r.nagelkerke+' varians (Nagelkerke R²). Akurasi klasifikasi: '+r.accuracy+'%. Periksa OR prediktor signifikan untuk arah pengaruh.'
-      :'Model logistik dengan Nagelkerke R²='+r.nagelkerke+'. Akurasi: '+r.accuracy+'%.');
-  }
-  if(o.type==='mannwhitney'){
-    return (sig
-      ?'Terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (U='+r.U+', p='+r.p_fmt+'). Ukuran efek r='+r.r_eff+'.'
-      :'Tidak terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (U='+r.U+', p='+r.p_fmt+').');
-  }
-  if(o.type==='kruskal'){
-    return (sig
-      ?'Terdapat perbedaan signifikan antar grup (H='+r.H+', p='+r.p_fmt+'). Lanjutkan dengan uji post-hoc nonparametrik.'
-      :'Tidak terdapat perbedaan signifikan antar grup (H='+r.H+', p='+r.p_fmt+').');
-  }
-  if(o.type==='wilcoxon'){
-    return (sig
-      ?'Terdapat perbedaan signifikan antara dua kondisi (W='+r.Wplus+', p='+r.p_fmt+').'
-      :'Tidak terdapat perbedaan signifikan antara dua kondisi (p='+r.p_fmt+').');
-  }
-  if(o.type==='chiSquare'||o.type==='nonparam'){
-    return (sig
-      ?'Terdapat hubungan signifikan antar variabel (χ²='+r.chi2+', p='+r.p_fmt+'). Kekuatan asosiasi V='+r.V+' ('+r.Vinterp+').'
-      :'Tidak terdapat hubungan signifikan antar variabel (χ²='+r.chi2+', p='+r.p_fmt+').');
-  }
-  if(o.type==='alpha'){
-    return 'Cronbach α='+r.alpha+' ('+r.interp+'). '+(parseFloat(r.alpha)>=.7?'Reliabilitas internal diterima.':'Reliabilitas di bawah standar minimum (α < .70).');
-  }
-  if(o.type==='kappa'){
-    return 'Cohen\'s κ='+r.kappa+' ('+r.interp+'). '+(parseFloat(r.kappa)>.6?'Kesepakatan antar-rater dapat diterima.':'Kesepakatan antar-rater rendah.');
-  }
-  if(o.type==='efa'){
-    var nf=r&&r.nFactors||'?';
-    return 'EFA mengekstrak '+nf+' faktor. Periksa loading ≥ |.40| untuk interpretasi setiap faktor. Variabel dengan cross-loading tinggi perlu diperhatikan.';
-  }
-  if(o.type==='mediation'){
-    var ab=r&&r.ab;
-    var abSig=r&&r.abSig;
-    return (abSig
-      ?'Mediasi signifikan — indirect effect (ab='+ab+') berbeda dari nol berdasarkan bootstrap CI. '+(r&&parseFloat(r.c_prime_p)>=.05?'Full mediation (c\' tidak signifikan).':'Partial mediation (c\' masih signifikan).')
-      :'Efek indirect tidak signifikan (ab='+ab+'). Mediasi tidak terbukti pada α=.05.');
-  }
-  if(o.type==='moderation'){
-    return (sig
-      ?'Efek interaksi signifikan (p='+r.p_fmt+') — hubungan antara X dan Y dimoderasi oleh W. Lihat interaction plot untuk pola.'
-      :'Efek interaksi tidak signifikan (p='+r.p_fmt+') — W tidak memoderasi hubungan X→Y.');
-  }
-  if(o.type==='survival'||o.type==='cox'){
-    return 'Analisis survival selesai. Periksa kurva Kaplan-Meier dan hazard ratio untuk interpretasi perbedaan antar grup.';
-  }
-  if(o.type==='roc'){
-    var auc=r&&r.auc||0;
-    var aucInterp=auc>.9?'excellent':auc>.8?'good':auc>.7?'fair':auc>.6?'poor':'tidak informatif';
-    return 'AUC='+auc+' ('+aucInterp+'). '+(auc>.7?'Model memiliki kemampuan diskriminasi yang memadai.':'Kemampuan diskriminasi model terbatas.');
-  }
-  if(o.type==='bayesian'||o.type==='bayes_ttest'){
-    return 'Interpretasi Bayesian: BF₁₀ > 3 menunjukkan dukungan moderat untuk H₁; BF₁₀ < 1/3 mendukung H₀. Posterior distribution merangkum estimasi parameter.';
-  }
-  if(o.type==='hlm'){
-    var icc=r&&r.ICC;
-    return icc!==undefined
-      ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+escHtml(o.depVar)+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')
-      :'Model HLM selesai. Periksa random effects untuk variasi antar kelompok.';
-  }
-  if(o.type==='sem'){
-    var cfi=r&&r.CFI||0;
-    var rmsea=r&&r.RMSEA||1;
-    return 'Model fit: CFI='+cfi+' ('+( parseFloat(cfi)>=.95?'good':parseFloat(cfi)>=.90?'acceptable':'poor')+'), RMSEA='+rmsea+' ('+(parseFloat(rmsea)<=.05?'excellent':parseFloat(rmsea)<=.08?'acceptable':'poor')+').';
-  }
-  if(o.type==='discriminant'){
-    return 'Analisis diskriminan selesai. Periksa canonical discriminant functions dan struktur koefisien untuk mengidentifikasi variabel pembeda utama.';
-  }
-  if(o.type==='cluster'){
-    return 'Cluster analysis selesai. Interpretasikan profil setiap cluster berdasarkan centroid dan ukuran cluster untuk memberikan label deskriptif.';
-  }
-  if(o.type==='metaanalysis'){
-    return 'Meta-analysis selesai. Periksa pooled effect size, heterogeneity (I²), dan funnel plot untuk menilai publication bias.';
-  }
-  if(o.type==='timeseries'){
-    return 'Analisis time series selesai. Periksa ACF/PACF dan diagnostik residual untuk memastikan model sudah memadai.';
-  }
-  if(o.type==='poweranalysis'){
-    return 'Power analysis selesai. Power ≥ 0.80 umumnya dianggap memadai untuk mendeteksi efek yang diharapkan.';
-  }
-  if(o.type==='glm'){
-    return 'General Linear Model selesai. Periksa partial η² untuk ukuran efek setiap faktor.';
-  }
-  if(o.type==='manova'){
-    return 'MANOVA selesai. Jika uji multivariat signifikan, lanjutkan dengan univariat ANOVA per DV dengan koreksi Bonferroni.';
-  }
-  if(o.type==='hierarchicalReg'){
-    var lastBlock=(r&&r.blocks)?r.blocks[r.blocks.length-1]:null;
-    return lastBlock
-      ?'Model final (Block '+lastBlock.block+'): R²='+lastBlock.R2+'. ΔR² setiap blok menunjukkan kontribusi inkremental prediktor baru.'
-      :'Hierarchical regression selesai. Bandingkan ΔR² antar blok untuk menilai kontribusi setiap set prediktor.';
-  }
-  if(o.type==='corrmatrix'){
-    return 'Matriks korelasi selesai. Perhatikan korelasi tinggi (|r| > .70) yang bisa mengindikasikan multikollinearitas jika variabel digunakan bersama dalam regresi.';
-  }
-  return null;
-}
-
-// ── Output Tab Group System (F1) — DIPINDAH ke js/output/output-view-shell.js
-// (split roadmap OSS 2.0, F-series baru 1/7). Dimuat SEBELUM app.js (kategori
-// 4c, setelah output-render-basic.js). State (_outMode, _outActiveGroup,
-// _outGrid) + _outGroup/_outGroupColor/_outGroupIcon/_outGroups. Pemanggil:
-// semua di app.js — renderOutput() di bawah (beberapa titik) dan Export Word
-// Dialog (2 titik, baris ~4513 & ~4585-4586 & ~4724, Section G, belum
-// dipindah). Call-site tidak diubah. _interpBox/_buildInterp (F2, ringkasan
-// per-tipe output) ada di ATAS blok ini, belum dipindah — akan menyusul ke
-// file yang sama.
+// ── Output Tab Group System (F1) + Ringkasan per-tipe output (F2) — DIPINDAH
+// ke js/output/output-view-shell.js (split roadmap OSS 2.0, F-series 1–2/7).
+// Dimuat SEBELUM app.js (kategori 4c, setelah output-render-basic.js).
+//   F1: state (_outMode, _outActiveGroup, _outGrid) + _outGroup/_outGroupColor/
+//       _outGroupIcon/_outGroups.
+//   F2: _interpBox(text) + _buildInterp(o) — kotak interpretasi di bawah tiap
+//       kartu output. Satu-satunya pemanggil: renderOutput() di bawah (blok
+//       "Interpretation summary", dibungkus try/catch).
+// Pemanggil F1: renderOutput() (beberapa titik) dan Export Word Dialog (Section G,
+// belum dipindah). Call-site tidak diubah.
 
 function renderOutput(el){
   if(!outputs.length){
@@ -1843,15 +1657,15 @@ function renderOutput(el){
       html+='<div class="row" style="margin-bottom:10px">'+sigBadge(o.res.p)+'<span class="tag tag-gray">'+o.res.strength+' '+o.res.direction+'</span></div>';
       html+=svgScatter(data,o.crX,o.crY);
     }
-    else if(o.type==='partialCorrelation'){
-      html+='<div style="margin-bottom:8px;padding:7px 11px;background:rgba(103,232,249,.06);border-radius:8px;border:1px solid rgba(103,232,249,.15);font-size:11px;color:rgba(232,222,255,.55)">Correlation between <b style="color:#67e8f9">'+o.pcX+'</b> and <b style="color:#67e8f9">'+o.pcY+'</b> controlling for <b style="color:#c084fc">'+o.pcZ+'</b></div>';
+    else if(o.type==='partialCorr'){
+      html+='<div style="margin-bottom:8px;padding:7px 11px;background:rgba(103,232,249,.06);border-radius:8px;border:1px solid rgba(103,232,249,.15);font-size:11px;color:rgba(232,222,255,.55)">Correlation between <b style="color:#67e8f9">'+escHtml(o.pcX)+'</b> and <b style="color:#67e8f9">'+escHtml(o.pcY)+'</b> controlling for <b style="color:#c084fc">'+escHtml(o.pcZ)+'</b></div>';
       html+='<div class="stats-grid" style="margin-bottom:10px">'+stCard('Partial r',o.res.rp)+stCard('r²',o.res.r2,'Variance explained')+stCard('p',o.res.p_fmt)+stCard('95% CI',o.res.ci95)+'</div>';
       html+='<div class="row" style="margin-bottom:10px">'+sigBadge(o.res.p)+'<span class="tag tag-gray">'+o.res.strength+' '+(parseFloat(o.res.rp)>=0?'positive':'negative')+'</span></div>';
       html+=mkTable(['','r','Note'],[
-        [o.pcX+' × '+o.pcY+' (zero-order)',o.res.rxy,'Before controlling for '+o.pcZ],
-        [o.pcX+' × '+o.pcY+' (partial)',o.res.rp,'After controlling for '+o.pcZ],
-        [o.pcX+' × '+o.pcZ,o.res.rxz,'Control correlation'],
-        [o.pcY+' × '+o.pcZ,o.res.ryz,'Control correlation'],
+        [escHtml(o.pcX)+' × '+escHtml(o.pcY)+' (zero-order)',o.res.rxy,'Before controlling for '+escHtml(o.pcZ)],
+        [escHtml(o.pcX)+' × '+escHtml(o.pcY)+' (partial)',o.res.rp,'After controlling for '+escHtml(o.pcZ)],
+        [escHtml(o.pcX)+' × '+escHtml(o.pcZ),o.res.rxz,'Control correlation'],
+        [escHtml(o.pcY)+' × '+escHtml(o.pcZ),o.res.ryz,'Control correlation'],
       ]);
       html+='<div style="margin-top:9px;padding:8px 11px;background:rgba(255,255,255,.018);border-radius:8px;font-size:11px;color:rgba(232,222,255,.5)">n='+o.res.n+' &nbsp;·&nbsp; df='+o.res.df+' &nbsp;·&nbsp; t='+o.res.t+'</div>';
       html+=svgScatter(data,o.pcX,o.pcY);
