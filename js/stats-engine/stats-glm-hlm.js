@@ -1,4 +1,4 @@
-// ── General Linear Model (GLM Univariate) ───────────────
+// - General Linear Model (GLM Univariate) -
 // One DV + fixed factors + optional covariates
 // Uses Type III SS via regression approach
 function glmUnivariate(data, depVar, factors, covariates){
@@ -93,7 +93,7 @@ function bonferroni(pValues){
 }
 
 
-// ── Poisson Regression (via IRLS, log link) ─────────────────────────
+// Poisson Regression (via IRLS, log link)
 function poissonReg(dvName, xNames, dataArr) {
   var rows = dataArr.filter(function(r){
     if(!isV(r[dvName])) return false;
@@ -227,7 +227,7 @@ function invertMatrix(A, k){
   return I;
 }
 
-// ── Negative Binomial Regression (log link, NB2 parameterization) ────
+// Negative Binomial Regression (log link, NB2 parameterization)
 function negbinReg(dvName, xNames, dataArr) {
   var rows = dataArr.filter(function(r){
     if(!isV(r[dvName])) return false;
@@ -367,7 +367,7 @@ function negbinReg(dvName, xNames, dataArr) {
   };
 }
 
-// ── Hierarchical Linear Model — ICC & Variance Partitioning ──────────
+// - Hierarchical Linear Model — ICC & Variance Partitioning -
 // Dipakai untuk tampilan 2-level (grp) DAN 3-level (dipanggil ulang
 // dengan grouping var Level-3) — one-way ANOVA between/within groups
 // buat mengestimasi ICC, tanpa fit model mixed-effects penuh.

@@ -1,4 +1,4 @@
-// ── Power Analysis (computation) ─────────────────────────────────────────
+// - Power Analysis (computation) -
 // Normal distribution utilities
 function normCDFpw(z){return SE.normCDF(z);}
 function normInvpw(p){return SE.normInv(p);}

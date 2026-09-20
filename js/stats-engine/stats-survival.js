@@ -1,4 +1,4 @@
-//Survival Analysis computation — Kaplan-Meier estimator
+// Survival Analysis computation — Kaplan-Meier estimator
 function computeKaplanMeier(dataArr,timeVar,eventVar,groupVar){
   var cases=dataArr.filter(function(r){return SE.isV(r[timeVar])&&!isMiss(r[eventVar])&&Number(r[timeVar])>=0;});
   var n=cases.length;

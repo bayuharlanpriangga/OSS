@@ -1,4 +1,4 @@
-// ── Core mediation computation ──────────────────────────────────────────
+// Core mediation computation
 function computeMediation(xName,mNames,yName,bootN){
   var isV=function(v){return typeof v==='number'&&isFinite(v);};
   if(!xName||!yName||!mNames||!mNames.length) throw new Error('Select X, Y, and at least 1 Mediator');
@@ -175,7 +175,7 @@ function computeMediation(xName,mNames,yName,bootN){
   };
 }
 
-// ── Moderation Analysis computation ─────────────────────────────────────
+// Moderation Analysis computation
 function computeModeration(xName,wName,yName,covNames,center){
   covNames=covNames||[];
   var cases=data.filter(function(r){
@@ -363,7 +363,7 @@ function computeModeration(xName,wName,yName,covNames,center){
   };
 }
 
-// ── Core SEM computation ─────────────────────────────────────────────────
+// Core SEM computation
 function computeSEM(latents,latentMap,paths){
   var f4=SE.f4||function(x){return isFinite(x)?parseFloat(x.toFixed(4)):NaN;};
   var f3=function(x){return isFinite(x)?parseFloat(x.toFixed(3)):NaN;};
@@ -481,7 +481,7 @@ function computeSEM(latents,latentMap,paths){
     });
   });
 
-  // ── Model fit indices (adapted from SE.cfa) ──
+  // - Model fit indices (adapted from SE.cfa) -
   // Build implied correlation matrix Σ̂ from loadings
   var impliedR=[];
   for(var i=0;i<p;i++){
@@ -544,7 +544,7 @@ function computeSEM(latents,latentMap,paths){
   var RMSEAinterp=RMSEA_raw<=0.05?'Excellent (≤.05)':RMSEA_raw<=0.08?'Acceptable (≤.08)':'Poor (>.08)';
   var SRMRinterp=SRMR_raw<=0.05?'Excellent (≤.05)':SRMR_raw<=0.08?'Acceptable (≤.08)':'Poor (>.08)';
 
-  // ── Structural Paths ──
+  // Structural Paths 
   var computedPaths=[];
   if(paths&&paths.length){
     // Compute latent factor scores (weighted sum of standardized indicators)
@@ -590,7 +590,7 @@ function computeSEM(latents,latentMap,paths){
       });
     });
 
-    // ── Indirect effects (simple mediation chains) ──
+    // Indirect effects (simple mediation chains)
     var indirectEffects=[];
     latents.forEach(function(xLat){
       latents.forEach(function(yLat){
@@ -668,7 +668,7 @@ function pChiSquare(chi,df){
   return 1-normCDF(z);
 }
 
-// ── Generate lavaan syntax ──────────────────────────────────────────────
+// Generate lavaan syntax
 function generateLavaanSyntax(latents,latentMap,paths){
   var lines=['# lavaan R syntax untuk model ini','# library(lavaan)','# fit <- sem(model, data = df_anda)','','model <- \''];
   lines.push('  # === Measurement Model (CFA) ===');

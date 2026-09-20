@@ -10,14 +10,14 @@ function computeMetaAnalysis(studies, model){
   var f4=function(x){return isFinite(x)?parseFloat(x.toFixed(4)):NaN;};
   var f3=function(x){return isFinite(x)?parseFloat(x.toFixed(3)):NaN;};
 
-  // ── Fixed-Effect (Inverse-Variance Weighting) ──
+  // Fixed-Effect (Inverse-Variance Weighting)
   var wi_fe=vi.map(function(v){return 1/v;});
   var W_fe=wi_fe.reduce(function(s,w){return s+w;},0);
   var mu_fe=wi_fe.reduce(function(s,w,i){return s+w*yi[i];},0)/W_fe;
   var var_fe=1/W_fe;
   var se_fe=Math.sqrt(var_fe);
 
-  // ── Cochran's Q ──
+  // Cochran's Q
   var Q=yi.reduce(function(s,y,i){return s+wi_fe[i]*(y-mu_fe)*(y-mu_fe);},0);
   var df=k-1;
   var Q_p=pChiSquare(Q,df);
@@ -31,7 +31,7 @@ function computeMetaAnalysis(studies, model){
     return z>0?1-(1-p):p;
   }
 
-  // ── I² ──
+  // - I² -
   var C=W_fe-wi_fe.reduce(function(s,w){return s+w*w;},0)/W_fe;
   var tau2=Math.max(0,(Q-df)/C);
   var I2=Math.max(0,Math.min(100,100*(Q-df)/Q));
@@ -39,14 +39,14 @@ function computeMetaAnalysis(studies, model){
   var I2label=I2<25?'Low (I²<25%)':I2<50?'Moderate (I²<50%)':I2<75?'Substantial (I²<75%)':'High (I²≥75%)';
   var tau=Math.sqrt(tau2);
 
-  // ── Random-Effects (DerSimonian-Laird) ──
+  // Random-Effects (DerSimonian-Laird)
   var wi_re=vi.map(function(v){return 1/(v+tau2);});
   var W_re=wi_re.reduce(function(s,w){return s+w;},0);
   var mu_re=wi_re.reduce(function(s,w,i){return s+w*yi[i];},0)/W_re;
   var var_re=1/W_re;
   var se_re=Math.sqrt(var_re);
 
-  // ── Final model ──
+  // Final model
   var mu=model==='fixed'?mu_fe:mu_re;
   var se=model==='fixed'?se_fe:se_re;
   var z=mu/se;

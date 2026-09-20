@@ -1,4 +1,4 @@
-// ── SPREADSHEET (BULK EDIT) MODE ──────────────────────────────────────
+// SPREADSHEET (BULK EDIT) MODE 
 var sprBuffer={}; // {rowId: {field: value}} — pending changes
 
 function escHtmlAttr(s){

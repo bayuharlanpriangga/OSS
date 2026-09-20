@@ -1,4 +1,4 @@
-// ── LOADING SCREEN DISMISS ──
+// LOADING SCREEN DISMISS
 (function(){
   var ls = document.getElementById('loading-screen');
   var bar = document.getElementById('load-bar');
