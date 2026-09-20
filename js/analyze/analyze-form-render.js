@@ -2897,10 +2897,12 @@ function renderPoweranalysisForm(){
     var effectLabels={'ttest_2samp':"Cohen's d",'ttest_1samp':"Cohen's d",'ttest_paired':"Cohen's dz",'anova_oneway':"Cohen's f",'correlation':"Pearson r",'regression_r2':"Cohen's f²",'chisq':'w (Cohen)'};
     var effectConventions={'ttest_2samp':['0.20','0.50','0.80'],'ttest_1samp':['0.20','0.50','0.80'],'ttest_paired':['0.20','0.50','0.80'],'anova_oneway':['0.10','0.25','0.40'],'correlation':['0.10','0.30','0.50'],'regression_r2':['0.02','0.15','0.35'],'chisq':['0.10','0.30','0.50']};
     var effConvNames=['Small','Medium','Large'];
+    // Input jumlah prediktor (u) — hanya untuk Multiple Regression (R²)
+    var predsInput=function(){return (pw.pwTest||'')==='regression_r2'?'<div style="margin-bottom:9px"><label class="lbl">Number of Predictors (u)</label><input type="number" class="inp" value="'+(pw.pwPreds||1)+'" min="1" max="50" oninput="aState.pwPreds=Math.max(1,parseInt(this.value)||1)" onblur="renderASub()" style="margin-top:5px;width:130px" placeholder="u"/></div>':'';};
 
     if(currentASub==='poweranalysis'){
       var pwRes=null;
-      try{ pwRes=computePower(pw.pwTest,parseFloat(pw.pwAlpha),parseFloat(pw.pwPower),parseFloat(pw.pwEffect),parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),pw.pwSolve,parseInt(pw.pwN||30)); }catch(e){ pwRes={err:e.message}; }
+      try{ pwRes=computePower(pw.pwTest,parseFloat(pw.pwAlpha),parseFloat(pw.pwPower),parseFloat(pw.pwEffect),parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),pw.pwSolve,parseInt(pw.pwN||30),parseInt(pw.pwPreds||1)); }catch(e){ pwRes={err:e.message}; }
 
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Power Analysis — Sample Size Calculator</div>';
@@ -2967,6 +2969,7 @@ function renderPoweranalysisForm(){
         html+='</div>';
       }
 
+      html+=predsInput();
       html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runPowerAnalysis()">▶ Run</button>';
       html+='</div>';
 
@@ -3010,7 +3013,8 @@ function renderPoweranalysisForm(){
       html+=mkOptCsel('pw-alpha-plot', [{val:0.001,label:'α = 0.001'},{val:0.01,label:'α = 0.01'},{val:0.05,label:'α = 0.05'},{val:0.10,label:'α = 0.10'}], pw.pwAlpha, 'aState.pwAlpha=parseFloat(_cR["pw-alpha-plot"]._vals[_cR["pw-alpha-plot"].fields.indexOf(val)]);renderASub()', 'Alpha (α)');
       html+='</div>';
       html+='</div>';
-      html+=svgPowerCurve(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseInt(pw.pwTails||2));
+      html+=predsInput();
+      html+=svgPowerCurve(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseInt(pw.pwTails||2),undefined,undefined,parseInt(pw.pwPreds||1));
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">N Table — Required Sample Size</div>';
       html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:10px">N per group untuk tiap kombinasi power dan effect size (α='+pw.pwAlpha+')</div>';
@@ -3019,7 +3023,7 @@ function renderPoweranalysisForm(){
       convRef2.forEach(function(eff,ei){
         html+='<tr><td class="td-label">'+eff+' ('+effConvNames[ei]+')</td>';
         [0.70,0.80,0.90,0.95].forEach(function(pwr2){
-          try{var r2=computePower(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,pwr2,parseFloat(eff),parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),'n',30);html+='<td class="td-num" style="color:'+(pwr2>=0.8?'#34d399':'#fbbf24')+'">'+r2.n+'</td>';}
+          try{var r2=computePower(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,pwr2,parseFloat(eff),parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),'n',30,parseInt(pw.pwPreds||1));html+='<td class="td-num" style="color:'+(pwr2>=0.8?'#34d399':'#fbbf24')+'">'+r2.n+'</td>';}
           catch(e2){html+='<td class="td-num">—</td>';}
         });
         html+='</tr>';
@@ -3045,8 +3049,9 @@ function renderPoweranalysisForm(){
       html+='</div>';
       html+='</div>';
 
+      html+=predsInput();
       var mde=null;
-      try{ mde=computePower(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseFloat(pw.pwPower)||0.80,null,parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),'effect',parseInt(pw.pwN||30)); }catch(e){}
+      try{ mde=computePower(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseFloat(pw.pwPower)||0.80,null,parseInt(pw.pwGroups||2),parseInt(pw.pwTails||2),'effect',parseInt(pw.pwN||30),parseInt(pw.pwPreds||1)); }catch(e){}
 
       if(mde&&!mde.err){
         html+='<div class="stats-grid2" style="margin:12px 0">';
@@ -3063,7 +3068,7 @@ function renderPoweranalysisForm(){
         else if(mdeV<=parseFloat(convRef3[1])) html+=' Hanya bisa mendeteksi efek medium ke atas.';
         else html+=' Hanya bisa mendeteksi efek besar. Pertimbangkan menambah sampel.';
         html+='</div>';
-        html+=svgSensitivityCurve(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseFloat(pw.pwPower)||0.80,parseInt(pw.pwTails||2),parseInt(pw.pwN||30));
+        html+=svgSensitivityCurve(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseFloat(pw.pwPower)||0.80,parseInt(pw.pwTails||2),parseInt(pw.pwN||30),undefined,undefined,parseInt(pw.pwPreds||1));
       }
       html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runPowerAnalysis()">▶ Run</button>';
       html+='</div>';

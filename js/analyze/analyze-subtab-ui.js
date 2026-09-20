@@ -69,6 +69,7 @@ var aState = {
   pwTest: 'ttest_2samp', pwAlpha: 0.05, pwPower: 0.80, pwEffect: 0.5,
   pwEffectType: 'd', pwGroups: 2, pwTails: 2, pwSolve: 'n',
   pwN: 30, pwN1: null, pwN2: null,
+  pwPreds: 1, // jumlah prediktor u (hanya regression_r2)
   // Moderation
   modX: '', modW: '', modY: '', modCovs: [], modCenter: true,
   modBootN: 5000, modFloodlight: true,
@@ -92,31 +93,12 @@ var aState = {
 
 // UTILITIES — field helpers (dipakai lintas fitur: Data View, Pivot,
 // Missing Data Analysis, Transform, dll)
-// ════════════════════════════════════════════════════════════════════════
 var numFields=()=>vars.filter(v=>v.type==='Numeric'&&v.name!=='id').map(v=>v.name);
 var allFields=()=>vars.map(v=>v.name);
 var isMiss=v=>v===null||v===undefined||v==='';
 var missCount=()=>vars.map(v=>({name:v.name,count:data.filter(r=>isMiss(r[v.name])).length}));
 
-// ════════════════════════════════════════════════════════════════════════
-// SLIDING PILL INDICATOR untuk .sub-tabs groups (C9, split roadmap OSS
-// 2.0, digabung ke file ini sesuai rencana sejak C2). Dipindah apa
-// adanya, pola sama semua split lain: `var _subTabAnim` (state posisi/
-// lebar pill terakhir per grup) + `positionSubTabIndicator(el,grp)`
-// (menempatkan & menganimasikan pill di bawah sub-tab aktif) + 1 baris
-// top-level `window.addEventListener('resize', ...)` (snap ulang posisi
-// pill tanpa animasi saat window/sidebar di-resize) — top-level call ini
-// aman (pola sama listener keydown di custom-select.js/C5): cuma
-// memasang listener, dependency baru dibaca beneran di dalam callback
-// saat event resize benar-benar terjadi.
-//
-// Dependency: `currentGroup` (dibaca listener resize) — var global yang
-// di app.js tidak pernah dideklarasikan dengan `var` eksplisit (cuma
-// ditulis lewat assignment biasa `currentGroup=grp;` di dalam
-// `renderAnalyze()`) — perilaku pre-existing di monolith, bukan bug
-// baru dari split ini, tetap aman lewat scope-fallback.
-// ════════════════════════════════════════════════════════════════════════
-// ── Sliding pill indicator for .sub-tabs groups ──
+//  Sliding pill indicator for .sub-tabs groups 
 var _subTabAnim={grp:null,left:0,width:0};
 function positionSubTabIndicator(el,grp){
   var wrap=el.querySelector('.sub-tabs');

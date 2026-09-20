@@ -359,6 +359,13 @@
        dibaca runtime — aman dimuat sebelum app.js. -->
   <script src="js/output/output-render-advanced.js"></script>
 
+  <!-- 4b''. Output layer (F6, 2026-09-21): renderPowerOutput (kartu hasil
+       Power Analysis) — string builder murni, dependency (stCard, SE.f4,
+       svgPowerCurve) dibaca runtime, tanpa top-level call — aman dimuat
+       sebelum app.js. svgPowerCurve dari power-plot.js (kategori 4) sudah
+       dimuat lebih dulu. -->
+  <script src="js/output/output-power-render.js"></script>
+
   <!-- 4c. Output layer lanjutan (F1, 2026-09-21): Tab Group System — state +
        helper (_outGroup dkk), baca variabel global `outputs` saat runtime,
        tanpa top-level call — aman dimuat sebelum app.js. F2 (ringkasan

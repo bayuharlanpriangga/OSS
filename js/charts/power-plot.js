@@ -1,5 +1,6 @@
 // Power Analysis chart
-function svgPowerCurve(test,alpha,tails,W,H){
+// preds = jumlah prediktor u (hanya regression_r2; default 1)
+function svgPowerCurve(test,alpha,tails,W,H,preds){
   W=W||420; H=H||220;
   var effectSets={
     'ttest_2samp':[[0.2,'Small'],[0.5,'Medium'],[0.8,'Large']],
@@ -38,7 +39,7 @@ function svgPowerCurve(test,alpha,tails,W,H){
   // Curves
   effs.forEach(function(ef,idx){
     var pts=Ns.map(function(n){
-      try{var r=computePower(test,alpha,(aState.pwPower||0.8),ef[0],2,tails,'power',n);return{x:tx(n),y:ty(Math.min(1,parseFloat(r.power)||0))};} catch{return null;}
+      try{var r=computePower(test,alpha,(aState.pwPower||0.8),ef[0],2,tails,'power',n,preds);return{x:tx(n),y:ty(Math.min(1,parseFloat(r.power)||0))};} catch{return null;}
     }).filter(Boolean);
     if(pts.length<2) return;
     var d=pts.map(function(p,i){return (i===0?'M':'L')+p.x+' '+p.y;}).join('');
@@ -58,14 +59,14 @@ function svgPowerCurve(test,alpha,tails,W,H){
   return svg+'</svg>';
 }
 
-function svgSensitivityCurve(test,alpha,power,tails,nHighlight,W,H){
+function svgSensitivityCurve(test,alpha,power,tails,nHighlight,W,H,preds){
   W=W||420; H=H||180;
   var Ns=[]; for(var n=5;n<=300;n+=5) Ns.push(n);
   var P={l:40,r:16,t:14,b:40};
   var cw=W-P.l-P.r, ch=H-P.t-P.b;
   var xMin=Ns[0],xMax=Ns[Ns.length-1];
   function tx(n){return P.l+(n-xMin)/(xMax-xMin)*cw;}
-  var allEffs=Ns.map(function(n){try{var r=computePower(test,alpha,power,null,2,tails,'effect',n);return parseFloat(r.effect)||null;}catch{return null;}});
+  var allEffs=Ns.map(function(n){try{var r=computePower(test,alpha,power,null,2,tails,'effect',n,preds);return parseFloat(r.effect)||null;}catch{return null;}});
   var validEffs=allEffs.filter(Boolean);
   if(!validEffs.length) return '';
   var eMin=Math.min.apply(null,validEffs),eMax=Math.max.apply(null,validEffs);
