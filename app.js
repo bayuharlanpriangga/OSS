@@ -3015,7 +3015,7 @@ function renderOutput(el){
       // Conclusion badge
       html+='<div style="margin-bottom:12px;padding:10px 14px;border-radius:9px;border:1px solid '+medTypeColor+';background:rgba('+medTypeColor.replace('#','')+',0.06)">';
       html+='<span style="font-size:13px;font-weight:800;color:'+medTypeColor+'">'+r.medType+'</span>';
-      html+='<span style="font-size:11.5px;color:rgba(232,222,255,.6);margin-left:10px">n='+r.n+' · X: '+r.xName+' → ['+r.mNames.join(', ')+'] → Y: '+r.yName+'</span>';
+      html+='<span style="font-size:11.5px;color:rgba(232,222,255,.6);margin-left:10px">n='+r.n+' · X: '+escHtml(r.xName)+' → ['+r.mNames.map(function(m){return escHtml(m);}).join(', ')+'] → Y: '+escHtml(r.yName)+'</span>';
       html+='</div>';
 
       // Path diagram
@@ -3041,7 +3041,7 @@ function renderOutput(el){
         var ci=boot?('['+boot.lo+', '+boot.hi+']'):'—';
         var ciSig=boot?boot.sig:null;
         return [
-          med.name,
+          escHtml(med.name),
           SE.f4(med.indirect),
           SE.f4(med.sobel_z),
           parseFloat(med.sobel_p).toFixed(3),

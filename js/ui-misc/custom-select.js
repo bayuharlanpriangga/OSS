@@ -49,7 +49,7 @@ function _buildCselList(fields,current,onChange,showBadge,filter){
     const d=document.createElement('div');
     d.className='csel-opt'+(f===current?' selected':'');
     const chk='<span class="csel-opt-check">'+(f===current?'✓':'')+'</span>';
-    d.innerHTML=chk+'<span style="flex:1">'+f+'</span>'+(showBadge?varBdg(f):'');
+    d.innerHTML=chk+'<span style="flex:1">'+escHtml(f)+'</span>'+(showBadge?varBdg(f):'');
     d.onclick=()=>{
       const id=_cActive?.id;
       const valEl=document.getElementById('cv-'+id);

@@ -2077,8 +2077,8 @@ function renderMediationForm(){
         +(sel?'background:rgba(244,114,182,.12);color:#f472b6;border:1px solid rgba(244,114,182,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.12);')
         +'">'
         +'<input type="checkbox" '+(sel?'checked':'')
-        +' onchange="toggleMedM(this.dataset.fld,this.checked)" data-fld="'+f
-        +'" style="accent-color:#f472b6;width:12px;height:12px"/>'+f+'</label>';
+        +' onchange="toggleMedM(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+        +'" style="accent-color:#f472b6;width:12px;height:12px"/>'+escHtml(f)+'</label>';
     });
     html+='</div></div>';
     html+='<div style="margin-bottom:9px"><label class="lbl">Bootstrap Samples</label>';
@@ -2126,7 +2126,7 @@ function renderMediationForm(){
         medPreview.mediators.forEach(function(med){
           var sobelSig=parseFloat(med.sobel_p)<0.05;
           html+='<div style="background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.15);border-radius:7px;padding:8px 10px;margin-bottom:5px">';
-          html+='<div style="font-size:11px;font-weight:700;color:#f472b6">via '+med.name+'</div>';
+          html+='<div style="font-size:11px;font-weight:700;color:#f472b6">via '+escHtml(med.name)+'</div>';
           html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px">';
           html+='<div class="sb"><div class="sb-label">Indirect (a×b)</div><div class="sb-value" style="font-size:13px">'+SE.f4(med.indirect)+'</div></div>';
           html+='<div class="sb"><div class="sb-label">Sobel z</div><div class="sb-value" style="font-size:13px;color:'+(sobelSig?'#34d399':'#f87171')+'">'+SE.f4(med.sobel_z)+'</div><div class="sb-note">p='+parseFloat(med.sobel_p).toFixed(3)+'</div></div>';
@@ -3115,7 +3115,7 @@ function renderModerationForm(){
       nF2.forEach(function(f){
         if(f===aState.modX||f===aState.modW||f===aState.modY) return;
         var checked=(aState.modCovs||[]).includes(f);
-        html+='<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(232,222,255,.6);cursor:pointer"><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleModCov(\''+f+'\',this.checked)" style="accent-color:#c084fc"/>'+f+'</label>';
+        html+='<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(232,222,255,.6);cursor:pointer"><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleModCov(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)+'" style="accent-color:#c084fc"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
 
@@ -3137,7 +3137,7 @@ function renderModerationForm(){
         // Interaction significance
         var intSig=parseFloat(modPrv.interaction.p)<0.05;
         html+='<div style="padding:9px 12px;border-radius:8px;border-left:3px solid '+(intSig?'#34d399':'#f87171')+';background:rgba(0,0,0,.15);font-size:11.5px;color:rgba(232,222,255,.75);line-height:1.6">';
-        html+='Interaction ('+aState.modX+'×'+aState.modW+'): <b style="color:'+(intSig?'#34d399':'#f87171')+'">b='+modPrv.interaction.b+', t='+modPrv.interaction.t+', p='+modPrv.interaction.p_fmt+'</b>';
+        html+='Interaction ('+escHtml(aState.modX)+'×'+escHtml(aState.modW)+'): <b style="color:'+(intSig?'#34d399':'#f87171')+'">b='+modPrv.interaction.b+', t='+modPrv.interaction.t+', p='+modPrv.interaction.p_fmt+'</b>';
         html+=(intSig?' ✓ Significant moderation detected':' ✗ Moderation not significant')+'. ΔR²='+modPrv.deltaR2+'</div>';
         html+='</div>';
       }
@@ -3151,7 +3151,7 @@ function renderModerationForm(){
         html+='<div style="margin-top:10px"><div class="sec-hd">Coefficient Table</div>';
         html+='<div class="tbl-wrap"><table><thead><tr><th>Variable</th><th>b</th><th>SE</th><th>β</th><th>t</th><th>p</th></tr></thead><tbody>';
         modPrv.coefs.forEach(function(c){
-          html+='<tr><td class="td-label">'+c.name+'</td><td class="td-num">'+c.b+'</td><td class="td-num">'+c.SE+'</td><td class="td-num">'+c.beta+'</td><td class="td-num">'+c.t+'</td><td><span class="tag '+(parseFloat(c.p)<0.05?'tag-green':'tag-gray')+'">'+c.p_fmt+'</span></td></tr>';
+          html+='<tr><td class="td-label">'+escHtml(c.name)+'</td><td class="td-num">'+c.b+'</td><td class="td-num">'+c.SE+'</td><td class="td-num">'+c.beta+'</td><td class="td-num">'+c.t+'</td><td><span class="tag '+(parseFloat(c.p)<0.05?'tag-green':'tag-gray')+'">'+c.p_fmt+'</span></td></tr>';
         });
         html+='</tbody></table></div></div>';
       } else {
