@@ -18,6 +18,9 @@
 //   pernah cocok (tipe output aslinya 'partialCorr'); sudah diganti jadi 'partialCorr'.
 //   Cabang render kartunya di renderOutput() (app.js) diperbaiki bersamaan.
 // - (F2, DIPERBAIKI 2026-09-21) o.field di cabang 'descriptive' sekarang di-escHtml.
+// - (F2, DIPERBAIKI 2026-09-21) cabang 'regression'/'multipleReg' memakai parseFloat(p_fmt) → NaN untuk
+//   p<.001 ('< .001') sehingga model sangat signifikan dilaporkan tidak signifikan; SE.f4(string) juga
+//   melempar TypeError di multipleReg. Sekarang pakai .sig (boolean) dan pF_fmt untuk tampilan.
 // ════════════════════════════════════════════════════════════
 
 // Output tab group state
@@ -186,16 +189,20 @@ function _buildInterp(o){
       :'Setelah mengontrol '+escHtml(o.pcZ)+', korelasi antara '+escHtml(o.pcX)+' dan '+escHtml(o.pcY)+' tidak signifikan (r='+r.rp+', p='+r.p_fmt+').');
   }
   if(o.type==='regression'){
-    var pF=parseFloat(r.pF_fmt||1);
-    return (pF<.05
+    // Keputusan signifikansi pakai r.sig (boolean, eksak dari engine) — BUKAN parseFloat(pF_fmt):
+    // pF_fmt bisa '< .001' → NaN → NaN<.05 false (model sangat signifikan salah dilaporkan tidak signifikan).
+    var regSig=(typeof r.sig==='boolean')?r.sig:parseFloat(r.pF)<.05;
+    return (regSig
       ?'Model regresi signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' menjelaskan '+r.R2+' varians '+escHtml(o.yF)+'. Setiap +1 '+escHtml(o.xF)+' → '+escHtml(o.yF)+' berubah '+r.b1+'.'
       :'Model regresi tidak signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' tidak cukup menjelaskan varians '+escHtml(o.yF)+'.');
   }
   if(o.type==='multipleReg'){
-    var pF2=parseFloat(r.pF||1);
-    var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&parseFloat(c.p_fmt)<.05;}).map(function(c){return escHtml(c.name);});
-    return (pF2<.05
-      ?'Model signifikan (R²='+r.R2+', p='+SE.f4(r.pF)+'). Prediktor signifikan: '+(sigPreds.length?sigPreds.join(', '):'tidak ada')+'.'
+    // Sama seperti regression: pakai .sig (boolean); fallback ke nilai numerik p (f4), bukan p_fmt.
+    var mrSig=(typeof r.sig==='boolean')?r.sig:parseFloat(r.pF)<.05;
+    var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&((typeof c.sig==='boolean')?c.sig:parseFloat(c.p)<.05);}).map(function(c){return escHtml(c.name);});
+    // r.pF sudah string hasil f4 → SE.f4(r.pF) melempar TypeError; tampilkan pF_fmt.
+    return (mrSig
+      ?'Model signifikan (R²='+r.R2+', p='+(r.pF_fmt||r.pF)+'). Prediktor signifikan: '+(sigPreds.length?sigPreds.join(', '):'tidak ada')+'.'
       :'Model tidak signifikan secara keseluruhan (R²='+r.R2+').');
   }
   if(o.type==='logistic'){
