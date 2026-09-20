@@ -1,4 +1,4 @@
-// Core mediation computation
+// Core mediation computation 
 function computeMediation(xName,mNames,yName,bootN){
   var isV=function(v){return typeof v==='number'&&isFinite(v);};
   if(!xName||!yName||!mNames||!mNames.length) throw new Error('Select X, Y, and at least 1 Mediator');
@@ -399,7 +399,7 @@ function computeSEM(latents,latentMap,paths){
   var R=[];
   for(var i=0;i<p;i++){R[i]=[];for(var j=0;j<p;j++)R[i][j]=corr(matrix[i],matrix[j]);}
 
-  // ── Measurement Model (CFA for each latent) ──
+  // Measurement Model (CFA for each latent)
   var loadings=[];
   var constructs=[];
   var allLambdas=new Array(p).fill(0);
@@ -544,7 +544,7 @@ function computeSEM(latents,latentMap,paths){
   var RMSEAinterp=RMSEA_raw<=0.05?'Excellent (≤.05)':RMSEA_raw<=0.08?'Acceptable (≤.08)':'Poor (>.08)';
   var SRMRinterp=SRMR_raw<=0.05?'Excellent (≤.05)':SRMR_raw<=0.08?'Acceptable (≤.08)':'Poor (>.08)';
 
-  // Structural Paths 
+  // Structural Paths
   var computedPaths=[];
   if(paths&&paths.length){
     // Compute latent factor scores (weighted sum of standardized indicators)

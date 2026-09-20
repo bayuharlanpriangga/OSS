@@ -244,26 +244,32 @@ function toggleModCov(f,checked){
 }
 
 // SE helper for fInv (add to SE if missing)
+// Kuantil F (invers CDF): cari x sehingga P(F<=x)=p. Bisection di atas `fP` GLOBAL
+// (upper-tail, stats-distributions.js) — BUKAN SE.fP: SE.fP tidak pernah diekspor, dan
+// versi lama (`SE.fP?…:0.5` + langkah ×0.9/×1.1) selalu mengembalikan 117.39 untuk
+// semua argumen (diperbaiki 2026-09-21, Temuan F poin 11). NaN untuk input tak valid,
+// sehingga pemanggil dengan `||fallback` tetap jalan.
 if(!SE.fInv){
   SE.fInv=function(p,df1,df2){
-    // Simple Newton iteration on fCDF for F quantile
-    var x=1.0;
-    for(var i=0;i<50;i++){
-      var fx=SE.fP?1-SE.fP(x,df1,df2):0.5;
-      if(Math.abs(fx-p)<1e-7) break;
-      x*=fx>p?0.9:1.1;
+    if(!(p>0&&p<1)||!(df1>0)||!(df2>0)) return NaN;
+    var cdf=function(x){return 1-fP(x,df1,df2);};
+    var lo=0,hi=1;
+    while(cdf(hi)<p){lo=hi;hi*=2;if(hi>1e12) return NaN;}
+    for(var i=0;i<200;i++){
+      var mid=(lo+hi)/2;
+      if(cdf(mid)<p) lo=mid; else hi=mid;
+      if(hi-lo<1e-12*Math.max(1,hi)) break;
     }
-    return x;
+    return (lo+hi)/2;
   };
 }
+// Nama "Approx" dipertahankan agar pemanggil (stats-poweranalysis.js) tidak berubah, tapi
+// sekarang cuma membungkus SE.fInv yang eksak. Rumus Wilson-Hilferty lama salah
+// (mis. 1.64 untuk F(.95;2,30) padahal 3.316).
 if(!SE.fCritApprox){
   SE.fCritApprox=function(p,df1,df2){
-    // Wilson-Hilferty approximation for F critical value
-    var z=SE.normInv(p);
-    var c1=df1,c2=df2;
-    var k1=2/9/c1, k2=2/9/c2;
-    var x=Math.pow(1-k2+z*Math.sqrt(k2),3)/(1-k1);
-    return Math.max(0.01,x);
+    var v=SE.fInv(p,df1,df2);
+    return isFinite(v)?Math.max(0.01,v):NaN;
   };
 }
 if(!SE.chiCritApprox){

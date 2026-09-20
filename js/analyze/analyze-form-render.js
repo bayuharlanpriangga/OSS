@@ -2133,7 +2133,7 @@ function renderMediationForm(){
 function renderSemForm(){
   const nF=numFields();
   let html='';
-    // ── SEM State Defaults ──
+    // SEM State Defaults
     if(!aState.semLatents) aState.semLatents=[];
     if(aState.semLatentMap===undefined||aState.semLatentMap===null) aState.semLatentMap={};
     if(!aState.semPaths) aState.semPaths=[];   // array of {from,to} latent→latent or lat→observed
@@ -3569,7 +3569,7 @@ function renderMetaanalysisForm(){
 
     html+='<div class="grid2">';
 
-    // ── LEFT: Input Panel ──
+    // LEFT: Input Panel
     html+='<div>';
     html+='<div class="card"><div class="sec-hd">Model & Effect Size</div>';
     // Model picker
@@ -3764,7 +3764,7 @@ function renderASub(){
     html+=renderFilterForm();
   }
 
-  // ── WEIGHT CASES ──────────────────────────────────────────────────────
+  // WEIGHT CASES
   else if(currentASub==='weightcases'){
     html+=renderWeightcasesForm();
   }
