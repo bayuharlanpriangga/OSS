@@ -29,7 +29,7 @@
 // user (mirip kasus `holmBonferroni` dead code di B7).
 // ════════════════════════════════════════════════════════════
 
-// ── WEIGHT HELPERS (defined early so all code can use them) ──────────────
+// WEIGHT HELPERS (defined early so all code can use them) 
 function getNEff(){
   if(!aState.wcActive||!aState.wcVar) return data.length;
   var wv=aState.wcVar;
