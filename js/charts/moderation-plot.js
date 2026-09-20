@@ -23,15 +23,15 @@
 //     (sama seperti svgModerationPlot).
 // Depends on: escHtml() dan SE (SE.f4, SE.tP) — global, dibaca runtime,
 // aman dimuat sebelum app.js (scope-fallback ke global).
-// ⚠️ Temuan E9 (dicatat 2026-09-20, BELUM diperbaiki, pola sama seperti
-// Temuan E2/E6/E7): di svgJohnsonNeymanPlot, `wName` (nama variabel
-// moderator, dari data user) dimasukkan ke teks SVG (judul sumbu X)
-// TANPA escHtml — beda dengan `xName` di svgModerationPlot yang SUDAH
-// di-escape. `yName` diterima sebagai parameter di kedua fungsi tapi
-// TIDAK PERNAH dirender ke teks SVG di salah satu fungsi (tidak ada Y
-// axis title) — jadi tidak berisiko, tidak perlu escHtml. Menunggu
-// konfirmasi user apakah mau diperbaiki sekarang (aturan Bagian 4
-// poin 4).
+// ✅ Temuan E9 — SUDAH DIPERBAIKI (2026-09-20, atas permintaan user;
+// pola sama seperti Temuan E2/E6/E7): di svgJohnsonNeymanPlot, `wName`
+// (nama variabel moderator, dari data user) sempat masuk teks SVG
+// (judul sumbu X) TANPA escHtml. Sekarang dibungkus escHtml(wName),
+// sama seperti `xName` di svgModerationPlot yang sudah di-escape sejak
+// awal. `yName` diterima sebagai parameter di kedua fungsi tapi TIDAK
+// PERNAH dirender ke teks SVG di salah satu fungsi (tidak ada Y axis
+// title) — jadi tidak berisiko, tidak perlu escHtml, bukan bagian
+// temuan.
 // ════════════════════════════════════════════════════════════
 
 function svgModerationPlot(res,xName,wName,yName,W,H){
@@ -156,7 +156,7 @@ function svgJohnsonNeymanPlot(res,xName,wName,yName,W,H){
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   [wMin,(wMin+wMax)/2,wMax].forEach(function(v){svg+='<text x="'+tx(v)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8" fill="#64748b">'+SE.f4(v)+'</text>';});
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+wName+' (Moderator)</text>';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+escHtml(wName)+' (Moderator)</text>';
   svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="8" fill="#475569" transform="rotate(-90,12,'+(P.t+ch/2)+')">Simple Slope</text>';
   // Legend
   svg+='<rect x="'+(P.l+4)+'" y="'+(P.t+4)+'" width="10" height="8" rx="2" fill="rgba(52,211,153,.25)"/>';

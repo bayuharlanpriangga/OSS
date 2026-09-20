@@ -304,9 +304,10 @@ function runPowerAnalysis(){
 // svgModerationPlot & svgJohnsonNeymanPlot masing-masing 2 titik
 // (preview + output, tidak diubah); svgSimpleSlopesPlot HANYA 1 titik
 // (preview saja, pola sama seperti svgSEMDiagram/E7 &
-// svgSensitivityCurve/E8). ⚠️ Temuan E9 (dicatat, belum diperbaiki):
-// `wName` di svgJohnsonNeymanPlot masuk SVG tanpa escHtml, pola sama
-// Temuan E2/E6/E7 — lihat header file target untuk detail.
+// svgSensitivityCurve/E8). Temuan escHtml E9 (`wName` di
+// svgJohnsonNeymanPlot tanpa escape) sudah DIPERBAIKI di file target
+// (2026-09-20); renderModerationOutput() di bawah juga sudah
+// di-escape (header, nama koefisien, interpretasi).
 
 function runModeration(){
   runSafe(function(){
@@ -3438,7 +3439,7 @@ function renderModerationOutput(o){
   var intColor=intSig2?'#34d399':'#f87171';
   var html='';
   html+='<div style="margin-bottom:12px;padding:12px 16px;border-radius:10px;background:rgba(0,0,0,.15);border:1.5px solid '+intColor+'"><div style="font-size:14px;font-weight:800;color:'+intColor+';font-family:Playfair Display,serif">'+(intSig2?'&#x2713; Significant Moderation':'&#x2717; Non-significant Moderation')+'</div>';
-  html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">'+r.xName+'&#xD7;'+r.wName+' &#x2192; '+r.yName+' &#xB7; N='+r.n+(r.center?' (mean-centered)':'')+'</div></div>';
+  html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">'+escHtml(r.xName)+'&#xD7;'+escHtml(r.wName)+' &#x2192; '+escHtml(r.yName)+' &#xB7; N='+r.n+(r.center?' (mean-centered)':'')+'</div></div>';
   html+='<div class="stats-grid" style="margin-bottom:12px">';
   html+=stCard('R&#xB2;',r.R2,'Variance explained');
   html+=stCard('Adj R&#xB2;',r.R2adj,'');
@@ -3451,7 +3452,7 @@ function renderModerationOutput(o){
   html+='<div class="tbl-wrap"><table><thead><tr><th>Variable</th><th>b</th><th>SE</th><th>&#x3B2;</th><th>t</th><th>p</th></tr></thead><tbody>';
   r.coefs.forEach(function(c){
     var sig=parseFloat(c.p)<0.05;
-    html+='<tr><td class="td-label">'+c.name+'</td><td class="td-num">'+c.b+'</td><td class="td-num">'+c.SE+'</td><td class="td-num">'+c.beta+'</td><td class="td-num">'+c.t+'</td><td><span class="tag '+(sig?'tag-green':'tag-gray')+'">'+c.p_fmt+'</span></td></tr>';
+    html+='<tr><td class="td-label">'+escHtml(c.name)+'</td><td class="td-num">'+c.b+'</td><td class="td-num">'+c.SE+'</td><td class="td-num">'+c.beta+'</td><td class="td-num">'+c.t+'</td><td><span class="tag '+(sig?'tag-green':'tag-gray')+'">'+c.p_fmt+'</span></td></tr>';
   });
   html+='</tbody></table></div>';
   html+='<div style="margin-top:12px">'+svgModerationPlot(r,r.xName,r.wName,r.yName)+'</div>';
@@ -3473,7 +3474,7 @@ function renderModerationOutput(o){
       html+='<div style="font-size:11px;color:rgba(232,222,255,.55);margin-top:5px">No JN transition points found. '+SE.f4(r.jn.pctSig)+'% of W range shows significant X&#x2192;Y relationship.</div>';
     }
   }
-  html+='<div class="assump" style="margin-top:12px"><b style="color:#e879f9">Interpretation:</b> '+(intSig2?'Significant':'Non-significant')+' interaction b(X&#xD7;W)='+r.interaction.b+', t='+r.interaction.t+', p='+r.interaction.p_fmt+', &#x394;R&#xB2;='+r.deltaR2+'. '+(intSig2?'The effect of '+r.xName+' on '+r.yName+' is moderated by '+r.wName+'. Examine simple slopes and JN plot for regions of significance.':'The effect of '+r.xName+' on '+r.yName+' does not significantly differ across levels of '+r.wName+'.')+'</div>';
+  html+='<div class="assump" style="margin-top:12px"><b style="color:#e879f9">Interpretation:</b> '+(intSig2?'Significant':'Non-significant')+' interaction b(X&#xD7;W)='+r.interaction.b+', t='+r.interaction.t+', p='+r.interaction.p_fmt+', &#x394;R&#xB2;='+r.deltaR2+'. '+(intSig2?'The effect of '+escHtml(r.xName)+' on '+escHtml(r.yName)+' is moderated by '+escHtml(r.wName)+'. Examine simple slopes and JN plot for regions of significance.':'The effect of '+escHtml(r.xName)+' on '+escHtml(r.yName)+' does not significantly differ across levels of '+escHtml(r.wName)+'.')+'</div>';
   return html;
 }
 
