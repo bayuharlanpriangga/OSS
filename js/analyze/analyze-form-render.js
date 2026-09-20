@@ -465,13 +465,13 @@ function renderTransformForm(){
     html+='<div class="card"><div class="sec-hd">Transform Variable</div>';
     html+=mkSelect('tr-fld',nF,aState.trFld,'aState.trFld=val;renderASub()','Source Variable');
     html+='<div style="margin-top:8px">'+mkCsel('tr-type',['zscore','minmax','log','log10','sqrt','square','center','rank'],aState.trType,'aState.trType=val;renderASub()','Transformation')+'</div>';
-    html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.trNewName+'" oninput="aState.trNewName=this.value"/></div>';
+    html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+escHtmlAttr(aState.trNewName)+'" oninput="aState.trNewName=this.value"/></div>';
     html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runTransform()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     html+='<div class="assump" style="margin-top:11px">Z-score · Min-Max · Log · Sqrt · Square · Center · Rank</div>';
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Compute Variable</div>';
-    html+='<div style="margin-bottom:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.computeName+'" oninput="aState.computeName=this.value"/></div>';
-    html+='<div style="margin-bottom:8px"><label class="lbl">Expression</label><input class="inp" style="font-family:monospace" value="'+aState.computeExpr+'" oninput="aState.computeExpr=this.value" placeholder="e.g. age * 2 + score / 10"/></div>';
+    html+='<div style="margin-bottom:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+escHtmlAttr(aState.computeName)+'" oninput="aState.computeName=this.value"/></div>';
+    html+='<div style="margin-bottom:8px"><label class="lbl">Expression</label><input class="inp" style="font-family:monospace" value="'+escHtmlAttr(aState.computeExpr)+'" oninput="aState.computeExpr=this.value" placeholder="e.g. age * 2 + score / 10"/></div>';
     html+='<button class="btn btn-primary btn-sm" onclick="runCompute()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
     html+='<div class="assump" style="margin-top:10px">Vars · +−×÷^% · abs/sqrt/log/exp/round/floor/ceil</div>';
     html+='</div></div>';
@@ -840,7 +840,7 @@ function renderRecodeForm(){
     html+='<div class="card"><div class="sec-hd">Recode Variable</div>';
     html+=mkSelect('rc-fld',aF,aState.recodeFld,'aState.recodeFld=val;renderASub()','Source Variable');
     html+='<div style="margin-top:8px">'+mkCsel('rc-type',['range','exact','binary'],aState.recodeType,'aState.recodeType=val;renderASub()','Recode Type')+'</div>';
-    html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+aState.recodeNewName+'" oninput="aState.recodeNewName=this.value"/></div>';
+    html+='<div style="margin-top:8px"><label class="lbl">New Variable Name</label><input class="inp" value="'+escHtmlAttr(aState.recodeNewName)+'" oninput="aState.recodeNewName=this.value"/></div>';
     if(aState.recodeType==='binary'){
       html+='<div class="row" style="gap:7px;margin-top:8px;margin-bottom:9px"><div style="flex:1"><label class="lbl">Value → 0</label><input class="inp" id="rc-val0" placeholder="e.g. Male"/></div><div style="flex:1"><label class="lbl">Value → 1</label><input class="inp" id="rc-val1" placeholder="e.g. Female"/></div></div>';
       html+='<button class="btn btn-primary btn-sm" onclick="runRecodeBinary()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg> Apply</button>';
@@ -867,7 +867,7 @@ function renderFilterForm(){
   let html='';
     html+='<div class="grid2">';
     html+='<div class="card"><div class="sec-hd">Filter Cases</div>';
-    html+='<div style="margin-bottom:9px"><label class="lbl">Filter Expression</label><input class="inp" style="font-family:monospace" value="'+aState.filterExpr+'" oninput="aState.filterExpr=this.value" placeholder="e.g. age > 25"/></div>';
+    html+='<div style="margin-bottom:9px"><label class="lbl">Filter Expression</label><input class="inp" style="font-family:monospace" value="'+escHtmlAttr(aState.filterExpr)+'" oninput="aState.filterExpr=this.value" placeholder="e.g. age > 25"/></div>';
     html+='<div class="assump" style="margin-bottom:11px"><b style="color:#818cf8">Syntax:</b><br><code style="color:#60a5fa">age > 25</code> · <code style="color:#60a5fa">gender == Male</code><br><code style="color:#60a5fa">score >= 70 && age < 35</code></div>';
     html+='<div class="row" style="gap:8px"><button class="btn btn-primary btn-sm" onclick="applyFilter()">▶ Run</button>';
     if(aState.filterActive)html+='<button class="btn btn-red btn-sm" onclick="clearFilter()">✕ Clear</button>';
@@ -3612,7 +3612,7 @@ function renderMetaanalysisForm(){
     // ── Add Study ──
     html+='<div class="card"><div class="sec-hd">Tambah Studi</div>';
     html+='<div style="display:flex;flex-direction:column;gap:6px">';
-    html+='<input class="inp" id="ma-name" placeholder="Nama studi (cth: Smith 2020)" value="'+(aState.metaNewStudy.name||'')+'" oninput="aState.metaNewStudy.name=this.value" style="font-size:12px"/>';
+    html+='<input class="inp" id="ma-name" placeholder="Nama studi (cth: Smith 2020)" value="'+escHtmlAttr(aState.metaNewStudy.name||'')+'" oninput="aState.metaNewStudy.name=this.value" style="font-size:12px"/>';
     html+='<div style="display:flex;gap:6px">';
 
     var eLab=aState.metaEffect==='d'?"Cohen's d":aState.metaEffect==='r'?'r':aState.metaEffect==='or'?'ln(OR)':aState.metaEffect==='g'?"Hedges' g":'Effect (yi)';
@@ -3634,7 +3634,7 @@ function renderMetaanalysisForm(){
     } else {
       html+='<div class="tbl-wrap"><table><thead><tr><th>Studi</th><th>yi</th><th>vi</th><th>N</th><th></th></tr></thead><tbody>';
       aState.metaStudies.forEach(function(s,i){
-        html+='<tr><td class="td-label" style="max-width:120px;overflow:hidden;text-overflow:ellipsis">'+s.name+'</td>';
+        html+='<tr><td class="td-label" style="max-width:120px;overflow:hidden;text-overflow:ellipsis">'+escHtml(s.name)+'</td>';
         html+='<td class="td-num">'+parseFloat(s.yi).toFixed(3)+'</td>';
         html+='<td class="td-num">'+parseFloat(s.vi).toFixed(4)+'</td>';
         html+='<td class="td-num">'+(s.ni||'—')+'</td>';

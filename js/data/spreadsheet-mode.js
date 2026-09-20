@@ -209,14 +209,14 @@ function colFillModal(fieldName){
     bodyHtml+='<div style="margin-top:8px;display:flex;gap:8px">';
     bodyHtml+='<div style="flex:1"><label style="font-size:10px;color:rgba(232,222,255,.4);display:block;margin-bottom:3px">Start value</label><input id="cf-seq-start" class="inp" type="number" value="1" style="width:100%"/></div>';
     bodyHtml+='<div style="flex:1"><label style="font-size:10px;color:rgba(232,222,255,.4);display:block;margin-bottom:3px">Step</label><input id="cf-seq-step" class="inp" type="number" value="1" style="width:100%"/></div>';
-    bodyHtml+='<div style="align-self:flex-end"><button onclick="applyColSeq(\''+fieldName+'\',\''+v.type+'\')" style="padding:8px 14px;border-radius:7px;border:none;background:linear-gradient(135deg,#059669,#0891b2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap">Fill Seq</button></div>';
+    bodyHtml+='<div style="align-self:flex-end"><button onclick="applyColSeq(\''+escHtmlAttr(fieldName)+'\',\''+escHtmlAttr(v.type)+'\')" style="padding:8px 14px;border-radius:7px;border:none;background:linear-gradient(135deg,#059669,#0891b2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap">Fill Seq</button></div>';
     bodyHtml+='</div></details>';
   }
   
   bodyHtml+='</div>';
   
   var footHtml='<div style="padding:12px 16px;border-top:1px solid rgba(124,58,237,.1);display:flex;gap:8px">';
-  footHtml+='<button onclick="applyColFill(\''+fieldName+'\',\''+v.type+'\')" style="flex:1;padding:11px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;font-size:13px;font-weight:700;font-family:Inter,sans-serif">⬇ Apply Fill</button>';
+  footHtml+='<button onclick="applyColFill(\''+escHtmlAttr(fieldName)+'\',\''+escHtmlAttr(v.type)+'\')" style="flex:1;padding:11px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;font-size:13px;font-weight:700;font-family:Inter,sans-serif">⬇ Apply Fill</button>';
   footHtml+='<button id="colfill-cancel" style="padding:11px 18px;border-radius:8px;border:1px solid rgba(124,58,237,.25);background:transparent;color:rgba(232,222,255,.5);font-size:13px;cursor:pointer;font-family:Inter,sans-serif">Cancel</button>';
   footHtml+='</div>';
 

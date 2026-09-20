@@ -434,7 +434,7 @@ function svgKaplanMeier(res,W,H){
     // Legend
     var ly=P.t+6+gi*14;
     svg+='<line x1="'+(P.l+4)+'" x2="'+(P.l+20)+'" y1="'+ly+'" y2="'+ly+'" stroke="'+col+'" stroke-width="2"/>';
-    svg+='<text x="'+(P.l+24)+'" y="'+(ly+4)+'" font-size="9" fill="'+col+'">'+g.label+(g.medianSurv!==null?' (M='+SE.f4(g.medianSurv)+')':' (M=NR)')+'</text>';
+    svg+='<text x="'+(P.l+24)+'" y="'+(ly+4)+'" font-size="9" fill="'+col+'">'+escHtml(g.label)+(g.medianSurv!==null?' (M='+SE.f4(g.medianSurv)+')':' (M=NR)')+'</text>';
   });
 
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
@@ -468,7 +468,7 @@ function svgForestPlot(res,W,H){
     var lhr=logHRs[i],lo=ciLos[i],hi=ciHis[i];
     var sig=parseFloat(c.p)<0.05;
     var col=sig?(parseFloat(c.HR)>1?'#f87171':'#34d399'):'#818cf8';
-    svg+='<text x="'+(padL-5)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="'+col+'" font-weight="'+(sig?700:400)+'">'+c.name+'</text>';
+    svg+='<text x="'+(padL-5)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="'+col+'" font-weight="'+(sig?700:400)+'">'+escHtml(c.name)+'</text>';
     if(isFinite(lo)&&isFinite(hi)){
       svg+='<line x1="'+tx(lo)+'" x2="'+tx(hi)+'" y1="'+y+'" y2="'+y+'" stroke="'+col+'" stroke-width="1.5"/>';
       svg+='<line x1="'+tx(lo)+'" x2="'+tx(lo)+'" y1="'+(y-4)+'" y2="'+(y+4)+'" stroke="'+col+'" stroke-width="1.5"/>';
@@ -1571,7 +1571,7 @@ function renderPivot(el){
   html+='<th style="color:#818cf8">'+escHtml(pvState.row)+' \\ '+escHtml(pvState.col)+'</th>';
   cv.forEach(c=>html+='<th style="color:#60a5fa">'+escHtml(c)+'</th>');
   html+='</tr></thead><tbody>';
-  rv.forEach((r,ri)=>{html+='<tr class="'+(ri%2?'':'alt')+'"><td style="font-weight:700;color:#a78bfa">'+r+'</td>';
+  rv.forEach((r,ri)=>{html+='<tr class="'+(ri%2?'':'alt')+'"><td style="font-weight:700;color:#a78bfa">'+escHtml(r)+'</td>';
     cv.forEach(c=>{const v=cell(r,c);html+='<td style="text-align:right;color:'+(v==='—'?'#334155':'#e2e8f0')+'">'+v+'</td>';});
     html+='</tr>';});
   html+='</tbody></table></div></div>';
@@ -1609,8 +1609,8 @@ function _buildInterp(o){
     var d=parseFloat(r.cohensD)||0;
     var mag=Math.abs(d)<.2?'trivial':Math.abs(d)<.5?'kecil':Math.abs(d)<.8?'sedang':'besar';
     return (sig
-      ?'Terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (t='+r.t+', p='+r.p_fmt+'). Ukuran efek Cohen\'s d='+r.cohensD+' ('+mag+').'
-      :'Tidak terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (t='+r.t+', p='+r.p_fmt+'). Efek d='+r.cohensD+' ('+mag+').');
+      ?'Terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (t='+r.t+', p='+r.p_fmt+'). Ukuran efek Cohen\'s d='+r.cohensD+' ('+mag+').'
+      :'Tidak terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (t='+r.t+', p='+r.p_fmt+'). Efek d='+r.cohensD+' ('+mag+').');
   }
   if(o.type==='onesamp'){
     return (sig
@@ -1633,13 +1633,13 @@ function _buildInterp(o){
       :'Tidak terdapat perbedaan signifikan antar grup (F='+r.F+', p='+r.p_fmt+'). η²='+r.eta2+'.');
   }
   if(o.type==='anova2'){
-    var sigEffects=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return e.source;});
+    var sigEffects=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return escHtml(e.source);});
     return sigEffects.length
-      ?'Efek signifikan: '+sigEffects.join(', ')+'. Perhatikan interaksi jika '+r.factorA+'×'+r.factorB+' signifikan.'
+      ?'Efek signifikan: '+sigEffects.join(', ')+'. Perhatikan interaksi jika '+escHtml(r.factorA)+'×'+escHtml(r.factorB)+' signifikan.'
       :'Tidak ada efek utama maupun interaksi yang signifikan.';
   }
   if(o.type==='anova3'){
-    var sigEff3=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return e.source;});
+    var sigEff3=(r.effects||[]).filter(function(e){return e.sig;}).map(function(e){return escHtml(e.source);});
     return sigEff3.length
       ?'Efek signifikan: '+sigEff3.join(', ')+'.'
       :'Tidak ada efek utama maupun interaksi yang signifikan.';
@@ -1651,8 +1651,8 @@ function _buildInterp(o){
   }
   if(o.type==='partialCorrelation'){
     return (sig
-      ?'Setelah mengontrol '+o.pcZ+', korelasi antara '+o.pcX+' dan '+o.pcY+' tetap signifikan (r='+r.rp+', p='+r.p_fmt+').'
-      :'Setelah mengontrol '+o.pcZ+', korelasi antara '+o.pcX+' dan '+o.pcY+' tidak signifikan (r='+r.rp+', p='+r.p_fmt+').');
+      ?'Setelah mengontrol '+escHtml(o.pcZ)+', korelasi antara '+escHtml(o.pcX)+' dan '+escHtml(o.pcY)+' tetap signifikan (r='+r.rp+', p='+r.p_fmt+').'
+      :'Setelah mengontrol '+escHtml(o.pcZ)+', korelasi antara '+escHtml(o.pcX)+' dan '+escHtml(o.pcY)+' tidak signifikan (r='+r.rp+', p='+r.p_fmt+').');
   }
   if(o.type==='regression'){
     var pF=parseFloat(r.pF_fmt||1);
@@ -1674,8 +1674,8 @@ function _buildInterp(o){
   }
   if(o.type==='mannwhitney'){
     return (sig
-      ?'Terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (U='+r.U+', p='+r.p_fmt+'). Ukuran efek r='+r.r_eff+'.'
-      :'Tidak terdapat perbedaan signifikan antara '+o.ga+' dan '+o.gb+' (U='+r.U+', p='+r.p_fmt+').');
+      ?'Terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (U='+r.U+', p='+r.p_fmt+'). Ukuran efek r='+r.r_eff+'.'
+      :'Tidak terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (U='+r.U+', p='+r.p_fmt+').');
   }
   if(o.type==='kruskal'){
     return (sig
@@ -2297,7 +2297,7 @@ function renderOutput(el){
     }
     else if(o.type==='hierarchicalReg'&&o.res){
       var hrRes=o.res;
-      html+='<p style="font-size:11.5px;color:rgba(232,222,255,.6);margin-bottom:12px"><b style="color:#a5f3fc">Dependent Variable:</b> '+hrRes.depVar+'</p>';
+      html+='<p style="font-size:11.5px;color:rgba(232,222,255,.6);margin-bottom:12px"><b style="color:#a5f3fc">Dependent Variable:</b> '+escHtml(hrRes.depVar)+'</p>';
       // Model Summary Table
       html+='<div class="sec-hd" style="margin-bottom:8px">Model Summary & ΔR²</div>';
       html+='<div class="tbl-wrap">';
@@ -2309,7 +2309,7 @@ function renderOutput(el){
           var pSig=parseFloat(b.pFchange)<0.05;
           return[
             '<b style="color:'+bCol+'">Block '+b.block+'</b>',
-            '<span style="color:#94a3b8;font-size:10.5px">'+b.predictors.join(', ')+'</span>',
+            '<span style="color:#94a3b8;font-size:10.5px">'+b.predictors.map(escHtml).join(', ')+'</span>',
             '<b>'+b.R2+'</b>',
             b.R2adj,
             '<b style="color:#a5f3fc">'+b.dR2+'</b>',
@@ -2343,12 +2343,12 @@ function renderOutput(el){
       (hrRes.blocks||[]).forEach(function(b,bi){
         var bCol=bCols2[bi%5];
         html+='<div style="margin-top:13px">';
-        html+='<div class="sec-hd" style="margin-bottom:7px;color:'+bCol+'">Block '+b.block+' Coefficients <span style="font-size:9.5px;font-weight:400;color:rgba(232,222,255,.35);font-style:normal">(cumulative predictors: '+b.cumulativePredictors.join(', ')+')</span></div>';
+        html+='<div class="sec-hd" style="margin-bottom:7px;color:'+bCol+'">Block '+b.block+' Coefficients <span style="font-size:9.5px;font-weight:400;color:rgba(232,222,255,.35);font-style:normal">(cumulative predictors: '+b.cumulativePredictors.map(escHtml).join(', ')+')</span></div>';
         html+=mkTable(['Variable','B','SE','β','t','p','VIF'],
           (b.coefs||[]).map(function(c,ci){
             var vif=ci===0?'—':(b.vif?b.vif[ci-1]:'—');
             var pSig=parseFloat(c.p_fmt)<0.05;
-            return[c.name,c.B,c.SE,ci===0?'—':c.beta,c.t,
+            return[escHtml(c.name),c.B,c.SE,ci===0?'—':c.beta,c.t,
               (pSig?'<b style="color:#34d399">':'')+c.p_fmt+(pSig?'</b>':''),
               vif];
           }));
@@ -2372,24 +2372,24 @@ function renderOutput(el){
         html+=mkTable(['Variable','B','SE','Wald','p','OR','95% CI OR'],
           r.coefs.map(function(c){
             var sig=c.p_fmt!=='—'&&(c.p_fmt==='<.001'||parseFloat(c.p_fmt)<0.05);
-            return[c.name,c.B,c.SE,c.wald,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':''),c.OR,c.ci_or];
+            return[escHtml(c.name),c.B,c.SE,c.wald,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':''),c.OR,c.ci_or];
           })
         );
         // Confusion matrix
         html+='<div style="margin-top:12px;font-size:11px;font-weight:700;color:#c084fc;margin-bottom:6px">Confusion Matrix</div>';
-        html+='<div class="tbl-wrap"><table><thead><tr><th></th><th>Pred. "'+r.cats[0]+'"</th><th>Pred. "'+r.cats[1]+'"</th><th>% Correct</th></tr></thead><tbody>';
-        html+='<tr><td class="td-label">Act. "'+r.cats[0]+'"</td><td class="td-num">'+r.cm[0][0]+'</td><td class="td-num">'+r.cm[0][1]+'</td><td class="td-num">'+SE.f1(r.cm[0][0]/(r.cm[0][0]+r.cm[0][1]+0.001)*100)+'%</td></tr>';
-        html+='<tr><td class="td-label">Act. "'+r.cats[1]+'"</td><td class="td-num">'+r.cm[1][0]+'</td><td class="td-num">'+r.cm[1][1]+'</td><td class="td-num">'+SE.f1(r.cm[1][1]/(r.cm[1][0]+r.cm[1][1]+0.001)*100)+'%</td></tr>';
+        html+='<div class="tbl-wrap"><table><thead><tr><th></th><th>Pred. "'+escHtml(r.cats[0])+'"</th><th>Pred. "'+escHtml(r.cats[1])+'"</th><th>% Correct</th></tr></thead><tbody>';
+        html+='<tr><td class="td-label">Act. "'+escHtml(r.cats[0])+'"</td><td class="td-num">'+r.cm[0][0]+'</td><td class="td-num">'+r.cm[0][1]+'</td><td class="td-num">'+SE.f1(r.cm[0][0]/(r.cm[0][0]+r.cm[0][1]+0.001)*100)+'%</td></tr>';
+        html+='<tr><td class="td-label">Act. "'+escHtml(r.cats[1])+'"</td><td class="td-num">'+r.cm[1][0]+'</td><td class="td-num">'+r.cm[1][1]+'</td><td class="td-num">'+SE.f1(r.cm[1][1]/(r.cm[1][0]+r.cm[1][1]+0.001)*100)+'%</td></tr>';
         html+='<tr><td class="td-label" style="color:#c084fc">Total</td><td></td><td></td><td class="td-num" style="color:#34d399;font-weight:700">'+r.accuracy+'%</td></tr>';
         html+='</tbody></table></div>';
       } else {
         r.categories.forEach(function(cat,ci){
           if(ci===0) return;
-          html+='<div style="margin-top:10px;font-size:11px;color:#fb923c;font-weight:700">Category "'+cat+'" vs. Reference "'+r.categories[0]+'"</div>';
+          html+='<div style="margin-top:10px;font-size:11px;color:#fb923c;font-weight:700">Category "'+escHtml(cat)+'" vs. Reference "'+escHtml(r.categories[0])+'"</div>';
           html+=mkTable(['Variable','B','SE','Wald','p','OR','95% CI OR'],
             r.coefs[ci-1].map(function(c){
               var sig=c.p_fmt!=='—'&&(c.p_fmt==='<.001'||parseFloat(c.p_fmt)<0.05);
-              return[c.name,c.B,c.SE,c.wald,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':''),c.OR,c.ci_or];
+              return[escHtml(c.name),c.B,c.SE,c.wald,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':''),c.OR,c.ci_or];
             })
           );
         });
@@ -3131,7 +3131,7 @@ function renderOutput(el){
       var r=o.res;
       html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.06)">';
       html+='<div style="font-size:13px;font-weight:800;color:#4ade80;font-family:Playfair Display,serif"> Kaplan-Meier Survival Analysis</div>';
-      html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:3px">Time: '+o.survTime+' · Event: '+o.survEvent+(o.survGroup?' · Group: '+o.survGroup:'')+'</div>';
+      html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:3px">Time: '+escHtml(o.survTime)+' · Event: '+escHtml(o.survEvent)+(o.survGroup?' · Group: '+escHtml(o.survGroup):'')+'</div>';
       html+='</div>';
       html+='<div class="stats-grid" style="margin-bottom:12px">';
       r.groups.forEach(function(g){
@@ -3145,7 +3145,7 @@ function renderOutput(el){
         var lr=r.logrank;
         html+='<div style="margin-top:12px"><div class="sec-hd" style="margin-bottom:7px">Log-Rank Test</div>';
         html+=mkTable(['Group','N','Events','Censored','Median Survival','O−E'],
-          r.groups.map(function(g){return[g.label,g.n,g.events,g.n-g.events,g.medianSurv===null?'NR':SE.f4(g.medianSurv),g.oe];}));
+          r.groups.map(function(g){return[escHtml(g.label),g.n,g.events,g.n-g.events,g.medianSurv===null?'NR':SE.f4(g.medianSurv),g.oe];}));
         html+='<div style="margin-top:9px;padding:9px 12px;background:rgba(124,58,237,.08);border-radius:8px;border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.7)">'+lr.interpretation+'</div>';
         html+='</div>';
       }
@@ -3155,7 +3155,7 @@ function renderOutput(el){
       var r=o.res;
       var cC=parseFloat(r.concordance)>=0.8?'#34d399':parseFloat(r.concordance)>=0.7?'#fbbf24':'#f87171';
       html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">';
-      html+='<div><div style="font-size:13px;font-weight:800;color:#4ade80;font-family:Playfair Display,serif">Cox Proportional Hazards</div><div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">N='+r.n+' · Events='+r.events+' · Covariates: '+r.covariates.join(', ')+'</div></div>';
+      html+='<div><div style="font-size:13px;font-weight:800;color:#4ade80;font-family:Playfair Display,serif">Cox Proportional Hazards</div><div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">N='+r.n+' · Events='+r.events+' · Covariates: '+r.covariates.map(escHtml).join(', ')+'</div></div>';
       html+='<div style="text-align:right"><div style="font-size:13px;font-weight:700;color:'+cC+'">C-index = '+r.concordance+'</div><div style="font-size:10px;color:rgba(232,222,255,.4)">LR χ²='+r.lrChi2+' p='+r.lrP_fmt+'</div></div>';
       html+='</div>';
       html+='<div class="stats-grid2" style="margin-bottom:12px">';
@@ -3169,7 +3169,7 @@ function renderOutput(el){
           var sig=parseFloat(c.p)<0.05;
           var hrNum=parseFloat(c.HR);
           var hrCol=hrNum>1.5?'#f87171':hrNum<0.67?'#34d399':'rgba(232,222,255,.75)';
-          return[c.name,c.beta,c.se,'<b style="color:'+hrCol+'">'+c.HR+'</b>',c.ci95,c.z,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':'')];
+          return[escHtml(c.name),c.beta,c.se,'<b style="color:'+hrCol+'">'+c.HR+'</b>',c.ci95,c.z,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':'')];
         }));
       html+=svgForestPlot(r);
       html+='<div style="margin-top:10px;padding:9px 12px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.18);border-radius:8px;font-size:11px;color:rgba(232,222,255,.6);line-height:1.65"><b style="color:#4ade80">Interpretation:</b> HR &gt; 1 = higher risk (shorter survival); HR &lt; 1 = protective. C-index: 0.5 = random · ≥0.7 = acceptable · ≥0.8 = good discrimination.</div>';
@@ -3190,8 +3190,8 @@ function renderOutput(el){
       html+=stCard('BF₀₁',r.BF01,'Evidence for H₀');
       html+=stCard("Cohen's d",r.cohensD,r.dInterp);
       html+=stCard('t-statistic',r.t,'df='+r.df+' · p='+r.p_fmt);
-      html+=stCard('n₁',r.n1,'Group '+(o.ga||'A'));
-      html+=stCard('n₂',r.n2,'Group '+(o.gb||'B'));
+      html+=stCard('n₁',r.n1,'Group '+escHtml(o.ga||'A'));
+      html+=stCard('n₂',r.n2,'Group '+escHtml(o.gb||'B'));
       html+='</div>';
       html+='<div style="margin-top:8px;padding:10px 14px;border-radius:9px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.65);line-height:1.7">';
       html+='<b style="color:#c084fc">Prior:</b> Cauchy(r='+r.priorScale+') · Tails: '+(o.tails===2?'two-tailed':'one-tailed')+'<br>';
@@ -3242,7 +3242,7 @@ function renderOutput(el){
       var r=o.res;
       html+='<div style="margin-bottom:12px;padding:12px 16px;border-radius:10px;background:rgba(103,232,249,.07);border:1.5px solid rgba(103,232,249,.3)">';
       html+='<div style="font-size:16px;font-weight:800;color:#67e8f9;font-family:Playfair Display,serif">'+r.model+'</div>';
-      html+='<div style="font-size:11.5px;color:rgba(232,222,255,.5);margin-top:3px">Variable: '+r.variable+' · N = '+r.n+'</div>';
+      html+='<div style="font-size:11.5px;color:rgba(232,222,255,.5);margin-top:3px">Variable: '+escHtml(r.variable)+' · N = '+r.n+'</div>';
       html+='</div>';
       if(r.arCoefs){
         // ARIMA output
@@ -3320,7 +3320,7 @@ function renderOutput(el){
       html+='<div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px">Hasil Per Studi</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Studi</th><th>yi</th><th>vi</th><th>SE</th><th>95% CI</th><th>Bobot (%)</th></tr></thead><tbody>';
       (r.studyData||[]).forEach(function(s){
-        html+='<tr><td class="td-label">'+s.name+'</td>';
+        html+='<tr><td class="td-label">'+escHtml(s.name)+'</td>';
         html+='<td class="td-num">'+s.yi.toFixed(3)+'</td>';
         html+='<td class="td-num">'+s.vi.toFixed(4)+'</td>';
         html+='<td class="td-num">'+Math.sqrt(s.vi).toFixed(4)+'</td>';
