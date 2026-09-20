@@ -1,3 +1,25 @@
+// ════════════════════════════════════════════════════════════
+// js/output/output-view-shell.js
+// Fitur: Output View — shell/container (F1) + ringkasan per-tipe output (F2)
+//   F1: state tab-group (_outMode, _outActiveGroup, _outGrid), _outGroup(o),
+//       _outGroupColor(key), _outGroupIcon(key), _outGroups()
+//   F2: _interpBox(text), _buildInterp(o) — kotak interpretasi (1 kalimat
+//       kesimpulan) di bawah tiap kartu output
+// Depends on (semua dibaca saat runtime, bukan top-level call — aman dimuat
+//   sebelum app.js): outputs[] (dataset-manager.js), escHtml() (app.js),
+//   SE.f4 (stats-core-basic.js)
+// Pemanggil: renderOutput() & Export Word Dialog di app.js
+//
+// CATATAN:
+// - outputs[] SELALU newest-first (addOutput() pakai unshift). Karena itu
+//   `latest` di _outGroups() memang benar = ID output TERBARU di grup itu.
+//   Jangan di-update per iterasi — malah jadi ID terlama. Lihat komentar di sana.
+// - (F2, DIPERBAIKI 2026-09-21) cabang 'partialCorrelation' di _buildInterp dulu tidak
+//   pernah cocok (tipe output aslinya 'partialCorr'); sudah diganti jadi 'partialCorr'.
+//   Cabang render kartunya di renderOutput() (app.js) diperbaiki bersamaan.
+// - (F2, DIPERBAIKI 2026-09-21) o.field di cabang 'descriptive' sekarang di-escHtml.
+// ════════════════════════════════════════════════════════════
+
 // Output tab group state
 var _outMode = 'all';       // 'all' | 'group'
 var _outActiveGroup = null; // active group key when in group mode
@@ -90,7 +112,11 @@ function _outGroups(){
   return seen.map(function(k){return map[k];});
 }
 
-// Interpretation box helper 
+// ════════════════════════════════════════════════════════════
+// F2 — Ringkasan per-tipe output (dispatcher singkat by o.type)
+// ════════════════════════════════════════════════════════════
+
+// ── Interpretation box helper ─────────────────────────────────────────
 // Renders a subtle, theme-consistent conclusion line at the bottom of each output card
 function _interpBox(text){
   return '<div style="margin-top:14px;padding:9px 13px;border-top:1px solid rgba(124,58,237,.1);font-size:11.5px;color:rgba(232,222,255,.45);line-height:1.65;font-style:italic">'+text+'</div>';

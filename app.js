@@ -2901,7 +2901,12 @@ function sigStar(p){
   if(pf<.05)  return '*';
   return '';
 }
-function pFmt(p){
+// Format p-value untuk teks APA (input: string p yang SUDAH diformat, mis. '0.0123').
+// Output: '< .001' atau '= <p>'. SENGAJA bernama pFmtAPA — dulu bernama `pFmt` dan
+// (sebagai function declaration global) menimpa pFmt milik stats-core-basic.js,
+// sehingga SEMUA `p_fmt` engine jadi '= 0.1229189…' (regresi B5, diperbaiki 2026-09-21).
+// JANGAN dinamai ulang jadi `pFmt` lagi.
+function pFmtAPA(p){
   var pf=parseFloat(p);
   if(!isFinite(pf)) return p;
   if(pf<.001) return '< .001';
@@ -2949,14 +2954,14 @@ function buildAPATable(o){
       ['Statistic','Value'],
       [
         ['t('+r.df+')',r.t+sigStar(r.p)],
-        ['p',pFmt(r.p)],
+        ['p',pFmtAPA(r.p)],
         ["Cohen's d",r.cohensD+' ('+r.dInterp+')'],
         ['95% CI',r.ci95],
       ]
     ));
     lines.push('');
     lines.push('  Note. '+sigStar(r.p)+' = significant. * p < .05. ** p < .01. *** p < .001.');
-    if(o.lev) lines.push('  Levene\'s test for equality of variances: F = '+o.lev.F+', p '+pFmt(o.lev.p_fmt)+'.');
+    if(o.lev) lines.push('  Levene\'s test for equality of variances: F = '+o.lev.F+', p '+pFmtAPA(o.lev.p_fmt)+'.');
   }
 
   else if(o.type==='paired'){
@@ -2974,7 +2979,7 @@ function buildAPATable(o){
         ['Mean Difference',r.meanDiff],
         ['SD Difference',r.sdDiff],
         ['t('+r.df+')',r.t+sigStar(r.p)],
-        ['p',pFmt(r.p)],
+        ['p',pFmtAPA(r.p)],
         ["Cohen's dz",r.cohensD+' ('+r.dInterp+')'],
         ['95% CI',r.ci95],
       ]
@@ -2999,7 +3004,7 @@ function buildAPATable(o){
         ['Mean Difference',r.meanDiff],
         ['95% CI of Diff',r.ciDiff],
         ['t('+r.df+')',r.t+sigStar(r.p)],
-        ['p',pFmt(r.p)],
+        ['p',pFmtAPA(r.p)],
         ["Cohen's d",r.cohensD+' ('+r.dInterp+')'],
       ]
     ));
@@ -3014,7 +3019,7 @@ function buildAPATable(o){
     lines.push(txtTable(
       ['Source','df','SS','MS','F','p','η²'],
       [
-        ['Between',r.dfB,r.ssB,r.msB,r.F+sigStar(r.p),pFmt(r.p),r.eta2],
+        ['Between',r.dfB,r.ssB,r.msB,r.F+sigStar(r.p),pFmtAPA(r.p),r.eta2],
         ['Within',r.dfW,r.ssW,r.msW,'','',''],
         ['Total',r.dfB+r.dfW,'','','','',''],
       ]
@@ -3034,7 +3039,7 @@ function buildAPATable(o){
       var phLabel={'tukey':'Tukey HSD','bonferroni':'Bonferroni','lsd':'LSD Fisher','holm':'Holm-Bonferroni'}[o.posthocMethod]||'Post-hoc';
       lines.push('  '+phLabel+' Post-hoc Comparisons:');
       o.posthoc.forEach(function(ph){
-        lines.push('    '+ph.a+' vs '+ph.b+': diff = '+ph.diff+', p '+pFmt(ph.p_fmt||ph.p)+' '+sigStar(ph.p_fmt||ph.p));
+        lines.push('    '+ph.a+' vs '+ph.b+': diff = '+ph.diff+', p '+pFmtAPA(ph.p_fmt||ph.p)+' '+sigStar(ph.p_fmt||ph.p));
       });
     }
   }
@@ -3046,7 +3051,7 @@ function buildAPATable(o){
     lines.push('');
     lines.push(txtTable(
       ['Variables','r','r²','p','95% CI'],
-      [[o.crX+' × '+o.crY, r.r+sigStar(r.p), r.r2, pFmt(r.p), r.ci95]]
+      [[o.crX+' × '+o.crY, r.r+sigStar(r.p), r.r2, pFmtAPA(r.p), r.ci95]]
     ));
     lines.push('');
     lines.push('  Note. '+r.strength+' '+r.direction+' relationship.');
@@ -3061,7 +3066,7 @@ function buildAPATable(o){
       ['','r','r²','p','95% CI'],
       [
         [o.pcX+' × '+o.pcY+' (zero-order)',r.rxy,'—','—','—'],
-        [o.pcX+' × '+o.pcY+' (partial)',r.rp+sigStar(r.p),r.r2,pFmt(r.p),r.ci95],
+        [o.pcX+' × '+o.pcY+' (partial)',r.rp+sigStar(r.p),r.r2,pFmtAPA(r.p),r.ci95],
       ]
     ));
     lines.push('');
@@ -3078,7 +3083,7 @@ function buildAPATable(o){
     lines.push('Significance Tests (Wilks\' Lambda):');
     lines.push(txtTable(
       ['Fungsi','Rc','Rc²','Wilks λ','χ²','df','p','Sig'],
-      r.tests.map(function(t){return[t.root,t.rc,t.rc2,t.wilks,t.chiSq,t.df,pFmt(t.p_fmt),sigStar(t.p)];})
+      r.tests.map(function(t){return[t.root,t.rc,t.rc2,t.wilks,t.chiSq,t.df,pFmtAPA(t.p_fmt),sigStar(t.p)];})
     ));
     lines.push('');
     lines.push('Structure Coefficients — Set X:');
@@ -3100,14 +3105,14 @@ function buildAPATable(o){
     lines.push(txtTable(
       ['','B','SE','t','p','Sig'],
       [
-        ['Constant',r.b0,r.SEb0,r.tb0,pFmt(r.pb0_fmt),sigStar(r.pb0_fmt)],
-        [o.xF+' (b₁)',r.b1,r.SEb1,r.tb1,pFmt(r.pb1_fmt),sigStar(r.pb1_fmt)],
+        ['Constant',r.b0,r.SEb0,r.tb0,pFmtAPA(r.pb0_fmt),sigStar(r.pb0_fmt)],
+        [o.xF+' (b₁)',r.b1,r.SEb1,r.tb1,pFmtAPA(r.pb1_fmt),sigStar(r.pb1_fmt)],
       ]
     ));
     lines.push('');
     lines.push(txtTable(
       ['Model Fit','Value'],
-      [['R²',r.R2],['Adj R²',r.R2adj],['F',r.F],['p',pFmt(r.pF_fmt)],['RMSE',r.RMSE]]
+      [['R²',r.R2],['Adj R²',r.R2adj],['F',r.F],['p',pFmtAPA(r.pF_fmt)],['RMSE',r.RMSE]]
     ));
     lines.push('');
     lines.push('  Equation: Ŷ = '+r.b0+' + '+r.b1+' · '+o.xF);
@@ -3119,15 +3124,15 @@ function buildAPATable(o){
     lines.push('Multiple Linear Regression');
     lines.push('Dependent Variable: '+o.yName);
     lines.push('');
-    var predRows=[['Constant',r.b0,r.SEb0||'—',r.t0||'—',pFmt(r.p0_fmt||'1'),sigStar(r.p0_fmt||'1')]];
+    var predRows=[['Constant',r.b0,r.SEb0||'—',r.t0||'—',pFmtAPA(r.p0_fmt||'1'),sigStar(r.p0_fmt||'1')]];
     if(r.predictors) r.predictors.forEach(function(pr){
-      predRows.push([pr.name,pr.b,pr.se,pr.t,pFmt(pr.p_fmt),sigStar(pr.p_fmt)]);
+      predRows.push([pr.name,pr.b,pr.se,pr.t,pFmtAPA(pr.p_fmt),sigStar(pr.p_fmt)]);
     });
     lines.push(txtTable(['Predictor','B','SE','t','p','Sig'],predRows));
     lines.push('');
     lines.push(txtTable(
       ['Model Fit','Value'],
-      [['R²',r.R2],['Adj R²',r.R2adj],['F',r.F],['p',pFmt(r.pF_fmt)]]
+      [['R²',r.R2],['Adj R²',r.R2adj],['F',r.F],['p',pFmtAPA(r.pF_fmt)]]
     ));
     lines.push('');
     lines.push('  * p < .05. ** p < .01. *** p < .001.');
@@ -3144,7 +3149,7 @@ function buildAPATable(o){
         ['Variance',s.variance],['Min',s.min],['Max',s.max],
         ['Range',s.range],['Skewness',s.skewness],['Kurtosis',s.kurtosis],
         ['SE Mean',s.seMean],['95% CI','['+s.ci95l+', '+s.ci95u+']'],
-        ['Shapiro-Wilk W',s.shapiroW],['Shapiro-Wilk p',pFmt(s.shapiroP)],
+        ['Shapiro-Wilk W',s.shapiroW],['Shapiro-Wilk p',pFmtAPA(s.shapiroP)],
       ].filter(function(row){return row[1]!==undefined&&row[1]!==null;})
     ));
   }
@@ -3160,7 +3165,7 @@ function buildAPATable(o){
     lines.push('');
     lines.push(txtTable(
       ['Statistic','Value'],
-      [['U',r.U],['z',r.z],['p',pFmt(r.p_fmt)],['r (effect)',r.r_eff]]
+      [['U',r.U],['z',r.z],['p',pFmtAPA(r.p_fmt)],['r (effect)',r.r_eff]]
     ));
     lines.push('');
     lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
@@ -3177,7 +3182,7 @@ function buildAPATable(o){
     lines.push('');
     lines.push(txtTable(
       ['Statistic','Value'],
-      [['H',r.H],['df',r.df],['p',pFmt(r.p_fmt)]]
+      [['H',r.H],['df',r.df],['p',pFmtAPA(r.p_fmt)]]
     ));
     lines.push('');
     lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
@@ -3223,7 +3228,7 @@ function buildAPATable(o){
         ['Source','df','SS','MS','F','p','Partial η²'],
         r.effects.map(function(e){
           return[e.source+(e.isCov?' (cov)':''),e.df,e.SS||'—',e.MS||'—',
-            (e.F||'—')+sigStar(e.p_fmt),pFmt(e.p_fmt),e.partialEta2||'—'];
+            (e.F||'—')+sigStar(e.p_fmt),pFmtAPA(e.p_fmt),e.partialEta2||'—'];
         }).concat([['Error',r.dfError,r.ssError,r.msError,'','','']])
       ));
       lines.push('');
@@ -3262,7 +3267,7 @@ function buildAPATable(o){
             lines.push(txtTable(
               ['Source','df','SS','MS','F','p','η²'],
               ures.effects.map(function(e){
-                return[e.source,e.df,e.SS||'—',e.MS||'—',(e.F||'—')+sigStar(e.p_fmt),pFmt(e.p_fmt),e.eta2||'—'];
+                return[e.source,e.df,e.SS||'—',e.MS||'—',(e.F||'—')+sigStar(e.p_fmt),pFmtAPA(e.p_fmt),e.eta2||'—'];
               }).concat([['Error',ures.dfError,ures.ssError,ures.msError,'','','']])
             ));
           }
@@ -3282,7 +3287,7 @@ function buildAPATable(o){
     // KMO + Bartlett
     lines.push(txtTable(
       ['Adequacy Check','Value'],
-      [['KMO',r.kmo+' ('+r.kmoInterp+')'],['Bartlett χ²',r.chi2],['df',r.bartDf],['p',pFmt(r.bartP)]]
+      [['KMO',r.kmo+' ('+r.kmoInterp+')'],['Bartlett χ²',r.chi2],['df',r.bartDf],['p',pFmtAPA(r.bartP)]]
     ));
     lines.push('');
     // Factor loadings
@@ -3314,10 +3319,10 @@ function buildAPATable(o){
     lines.push(txtTable(
       ['Step','Path','Coef (β)','p','Result'],
       [
-        ['Step 1 (c)',r.xName+' → '+r.yName,bk.c,pFmt(parseFloat(bk.p_c)),parseFloat(bk.p_c)<0.05?'Sig*':'n.s.'],
-        ['Step 2 (a)',r.xName+' → '+r.mNames[0],bk.a,pFmt(parseFloat(bk.p_a)),parseFloat(bk.p_a)<0.05?'Sig*':'n.s.'],
-        ['Step 3 (b)',r.mNames[0]+' → '+r.yName,bk.b,pFmt(parseFloat(bk.p_b)),parseFloat(bk.p_b)<0.05?'Sig*':'n.s.'],
-        ["Step 4 (c')",r.xName+' → '+r.yName+' (direct)',bk.c_prime,pFmt(parseFloat(bk.p_c_prime)),parseFloat(bk.p_c_prime)<0.05?'Sig*':'n.s.'],
+        ['Step 1 (c)',r.xName+' → '+r.yName,bk.c,pFmtAPA(parseFloat(bk.p_c)),parseFloat(bk.p_c)<0.05?'Sig*':'n.s.'],
+        ['Step 2 (a)',r.xName+' → '+r.mNames[0],bk.a,pFmtAPA(parseFloat(bk.p_a)),parseFloat(bk.p_a)<0.05?'Sig*':'n.s.'],
+        ['Step 3 (b)',r.mNames[0]+' → '+r.yName,bk.b,pFmtAPA(parseFloat(bk.p_b)),parseFloat(bk.p_b)<0.05?'Sig*':'n.s.'],
+        ["Step 4 (c')",r.xName+' → '+r.yName+' (direct)',bk.c_prime,pFmtAPA(parseFloat(bk.p_c_prime)),parseFloat(bk.p_c_prime)<0.05?'Sig*':'n.s.'],
       ]
     ));
     lines.push('');
@@ -3351,7 +3356,7 @@ function buildAPATable(o){
       lines.push('Block '+b.block+' Coefficients (Cumulative: '+b.cumulativePredictors.join(', ')+')');
       lines.push(txtTable(
         ['Variable','B','SE','β','t','p'],
-        (b.coefs||[]).map(function(c){return[c.name,c.B,c.SE,c.beta||'—',c.t,pFmt(c.p_fmt)+sigStar(c.p_fmt)];})
+        (b.coefs||[]).map(function(c){return[c.name,c.B,c.SE,c.beta||'—',c.t,pFmtAPA(c.p_fmt)+sigStar(c.p_fmt)];})
       ));
       lines.push('');
     });
