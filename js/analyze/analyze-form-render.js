@@ -407,7 +407,7 @@ function renderRegressionForm(){
     html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runReg()">▶ Run</button>';
     if(prv&&!prv._err){
       html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px">'+stCard('R²',prv.R2,'Variance explained')+stCard('Adj R²',prv.R2adj)+stCard('F',prv.F,'p='+prv.pF_fmt)+stCard('RMSE',prv.RMSE)+'</div>';
-      html+='<div class="eq" style="margin-top:9px">Ŷ = '+prv.b0+' + '+prv.b1+' · '+aState.regX+'</div>';
+      html+='<div class="eq" style="margin-top:9px">Ŷ = '+prv.b0+' + '+prv.b1+' · '+escHtml(aState.regX)+'</div>';
     }
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Scatter + Residuals</div>';
@@ -427,7 +427,7 @@ function renderMultipleRegForm(){
     html+='<label class="lbl" style="margin-top:9px;margin-bottom:5px">Predictors (X):</label>';
     html+='<div style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;margin-bottom:11px">';
     nF.filter(f=>f!==aState.mrY).forEach(f=>{const sel=aState.mrXs.includes(f);
-      html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(99,102,241,.07)':'transparent')+'"><input type="checkbox" data-fld="'+f+'" '+(sel?'checked':'')+' onchange="toggleMrXEl(this)" style="accent-color:#818cf8"/>'+f+'</label>';
+      html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(99,102,241,.07)':'transparent')+'"><input type="checkbox" data-fld="'+escHtmlAttr(f)+'" '+(sel?'checked':'')+' onchange="toggleMrXEl(this)" style="accent-color:#818cf8"/>'+escHtml(f)+'</label>';
     });
     html+='</div>';
     html+='<button class="btn btn-primary btn-sm" onclick="runMultipleReg()">▶ Run</button>';
@@ -437,7 +437,7 @@ function renderMultipleRegForm(){
     }
     html+='</div>';
     html+='<div class="card"><div class="sec-hd">Coefficients</div>';
-    if(prv&&!prv._err)html+=mkTable(['Variable','B','SE','β','t','p','VIF'],prv.coefs.map((c,i)=>[c.name,c.B,c.SE,i===0?'—':c.beta,c.t,c.p_fmt,i===0?'—':prv.vif[i-1]]));
+    if(prv&&!prv._err)html+=mkTable(['Variable','B','SE','β','t','p','VIF'],prv.coefs.map((c,i)=>[escHtml(c.name),c.B,c.SE,i===0?'—':c.beta,c.t,c.p_fmt,i===0?'—':prv.vif[i-1]]));
     else html+='<div style="color:#64748b;font-size:12px;padding:12px">Select ≥1 predictor and run.</div>';
     html+='</div></div>';
   return html;
@@ -1187,7 +1187,7 @@ function renderCanonicalcorrForm(){
       const disabledY=aState.ccaYs.includes(f);
       html+='<label style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;cursor:'+(disabledY?'not-allowed':'pointer')+';font-size:11.5px;opacity:'+(disabledY?'.35':'1')+';'
         +(sel?'background:rgba(244,114,182,.18);color:#f472b6;border:1px solid rgba(244,114,182,.35);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')+'\">'
-        +'<input type="checkbox" '+(sel?'checked':'')+(disabledY?' disabled':'')+' onchange="toggleCCAField(this,\'x\')" data-fld="'+f+'" style="accent-color:#f472b6;width:12px;height:12px"/>'+f+'</label>';
+        +'<input type="checkbox" '+(sel?'checked':'')+(disabledY?' disabled':'')+' onchange="toggleCCAField(this,\'x\')" data-fld="'+escHtmlAttr(f)+'" style="accent-color:#f472b6;width:12px;height:12px"/>'+escHtml(f)+'</label>';
     });
     html+='</div>';
     html+='<label class="lbl" style="color:#67e8f9">Set Y (Criterion Variables)</label>';
@@ -1197,7 +1197,7 @@ function renderCanonicalcorrForm(){
       const disabledX=aState.ccaXs.includes(f);
       html+='<label style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;cursor:'+(disabledX?'not-allowed':'pointer')+';font-size:11.5px;opacity:'+(disabledX?'.35':'1')+';'
         +(sel?'background:rgba(103,232,249,.18);color:#67e8f9;border:1px solid rgba(103,232,249,.35);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')+'\">'
-        +'<input type="checkbox" '+(sel?'checked':'')+(disabledX?' disabled':'')+' onchange="toggleCCAField(this,\'y\')" data-fld="'+f+'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+f+'</label>';
+        +'<input type="checkbox" '+(sel?'checked':'')+(disabledX?' disabled':'')+' onchange="toggleCCAField(this,\'y\')" data-fld="'+escHtmlAttr(f)+'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+escHtml(f)+'</label>';
     });
     html+='</div>';
     html+='<div style="padding:7px 10px;background:rgba(192,132,252,.05);border-radius:7px;border:1px solid rgba(192,132,252,.15);font-size:10.5px;color:rgba(232,222,255,.45);line-height:1.65;margin-bottom:10px">'
@@ -1212,7 +1212,7 @@ function renderCanonicalcorrForm(){
       });
       html+='</div>';
     } else if(ccaPrv&&ccaPrv._err){
-      html+='<div class="assump" style="margin-top:9px;color:#fca5a5">⚠ '+ccaPrv._err+'</div>';
+      html+='<div class="assump" style="margin-top:9px;color:#fca5a5">⚠ '+escHtml(ccaPrv.msg)+'</div>';
     }
     html+='</div>';
     // Right panel: interpretation guide
@@ -2691,7 +2691,7 @@ function renderRocForm(){
         if(uniq.length>=2){
           html+='<div style="margin-top:8px"><label class="lbl">Positive Class (event=1)</label>';
           html+='<div class="row" style="gap:5px;margin-top:5px;flex-wrap:wrap">';
-          uniq.forEach(function(u){html+='<button class="btn '+(aState.rocPosClass===u?'btn-primary':'btn-ghost')+' btn-sm" onclick="aState.rocPosClass=\''+u+'\';renderASub()">'+u+'</button>';});
+          uniq.forEach(function(u){html+='<button class="btn '+(aState.rocPosClass===u?'btn-primary':'btn-ghost')+' btn-sm" onclick="aState.rocPosClass=this.dataset.v;renderASub()" data-v="'+escHtmlAttr(u)+'">'+escHtml(u)+'</button>';});
           html+='</div></div>';
         }
       }
@@ -2740,7 +2740,7 @@ function renderRocForm(){
       nF.forEach(function(v){
         var sel=(aState.rocCompare||[]).includes(v);
         html+='<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;background:'+(sel?'rgba(103,232,249,.12)':'rgba(255,255,255,.03)')+';border:1px solid '+(sel?'rgba(103,232,249,.3)':'rgba(255,255,255,.07)')+';">';
-        html+='<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleROCCompare(\''+v+'\',this.checked)" style="accent-color:#67e8f9"/>'+v+'</label>';
+        html+='<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleROCCompare(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(v)+'" style="accent-color:#67e8f9"/>'+escHtml(v)+'</label>';
       });
       html+='</div>';
       if(aState.rocTrue&&aState.rocCompare&&aState.rocCompare.length>=2){
@@ -2754,14 +2754,14 @@ function renderRocForm(){
           cmpCurves.forEach(function(c,ci){
             var r=c.roc;
             var col=['#f472b6','#67e8f9','#fbbf24','#34d399','#c084fc'][ci%5];
-            html+='<tr><td class="td-label" style="color:'+col+'">'+c.name+'</td><td class="td-num" style="color:'+col+';font-weight:700">'+r.auc+'</td><td class="td-num" style="font-size:10px">'+r.aucCI+'</td><td class="td-num">'+r.optThresh+'</td><td class="td-num">'+r.optSens+'</td><td class="td-num">'+r.optSpec+'</td></tr>';
+            html+='<tr><td class="td-label" style="color:'+col+'">'+escHtml(c.name)+'</td><td class="td-num" style="color:'+col+';font-weight:700">'+r.auc+'</td><td class="td-num" style="font-size:10px">'+r.aucCI+'</td><td class="td-num">'+r.optThresh+'</td><td class="td-num">'+r.optSens+'</td><td class="td-num">'+r.optSpec+'</td></tr>';
           });
           html+='</tbody></table></div>';
           // DeLong test between first two
           if(cmpCurves.length>=2){
             try{
               var dlong=deLongTest(cmpCurves[0].roc,cmpCurves[1].roc);
-              html+='<div style="margin-top:10px;padding:9px 12px;background:rgba(124,58,237,.08);border-radius:8px;border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.7)"><b style="color:#c084fc">DeLong Test ('+cmpCurves[0].name+' vs '+cmpCurves[1].name+'):</b> z='+dlong.z+', p='+dlong.p_fmt+' — '+(parseFloat(dlong.p)<0.05?'<span style="color:#34d399">Significant difference in AUC</span>':'<span style="color:#fbbf24">No significant difference</span>')+'</div>';
+              html+='<div style="margin-top:10px;padding:9px 12px;background:rgba(124,58,237,.08);border-radius:8px;border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.7)"><b style="color:#c084fc">DeLong Test ('+escHtml(cmpCurves[0].name)+' vs '+escHtml(cmpCurves[1].name)+'):</b> z='+dlong.z+', p='+dlong.p_fmt+' — '+(parseFloat(dlong.p)<0.05?'<span style="color:#34d399">Significant difference in AUC</span>':'<span style="color:#fbbf24">No significant difference</span>')+'</div>';
             }catch(e){}
           }
         }

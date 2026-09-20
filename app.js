@@ -1657,12 +1657,12 @@ function _buildInterp(o){
   if(o.type==='regression'){
     var pF=parseFloat(r.pF_fmt||1);
     return (pF<.05
-      ?'Model regresi signifikan (F p='+r.pF_fmt+'). '+o.xF+' menjelaskan '+r.R2+' varians '+o.yF+'. Setiap +1 '+o.xF+' → '+o.yF+' berubah '+r.b1+'.'
-      :'Model regresi tidak signifikan (F p='+r.pF_fmt+'). '+o.xF+' tidak cukup menjelaskan varians '+o.yF+'.');
+      ?'Model regresi signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' menjelaskan '+r.R2+' varians '+escHtml(o.yF)+'. Setiap +1 '+escHtml(o.xF)+' → '+escHtml(o.yF)+' berubah '+r.b1+'.'
+      :'Model regresi tidak signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' tidak cukup menjelaskan varians '+escHtml(o.yF)+'.');
   }
   if(o.type==='multipleReg'){
     var pF2=parseFloat(r.pF||1);
-    var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&parseFloat(c.p_fmt)<.05;}).map(function(c){return c.name;});
+    var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&parseFloat(c.p_fmt)<.05;}).map(function(c){return escHtml(c.name);});
     return (pF2<.05
       ?'Model signifikan (R²='+r.R2+', p='+SE.f4(r.pF)+'). Prediktor signifikan: '+(sigPreds.length?sigPreds.join(', '):'tidak ada')+'.'
       :'Model tidak signifikan secara keseluruhan (R²='+r.R2+').');
@@ -2202,8 +2202,8 @@ function renderOutput(el){
     else if(o.type==='canonicalCorr'){
       var r=o.res;
       html+='<div style="margin-bottom:10px;padding:8px 12px;background:rgba(192,132,252,.06);border-radius:8px;border:1px solid rgba(192,132,252,.18);font-size:11.5px;color:rgba(232,222,255,.6)">'
-        +'<b style="color:#f472b6">Set X:</b> '+o.xNames.join(', ')
-        +' &nbsp;·&nbsp; <b style="color:#67e8f9">Set Y:</b> '+o.yNames.join(', ')
+        +'<b style="color:#f472b6">Set X:</b> '+o.xNames.map(function(n){return escHtml(n);}).join(', ')
+        +' &nbsp;·&nbsp; <b style="color:#67e8f9">Set Y:</b> '+o.yNames.map(function(n){return escHtml(n);}).join(', ')
         +' &nbsp;·&nbsp; <b style="color:#c084fc">n='+r.n+' · functions='+r.nRoots+'</b></div>';
       // Canonical roots summary cards
       html+='<div class="stats-grid" style="margin-bottom:12px">';
@@ -2222,11 +2222,11 @@ function renderOutput(el){
       // Structure coefficients X
       html+='<div style="font-size:11px;font-weight:700;color:#f472b6;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.6px">Struktur Koefisien — Set X</div>';
       var xCols=['Variabel'].concat(r.tests.map(function(t){return'Fungsi '+t.root;}));
-      html+=mkTable(xCols, r.xLoadings.map(function(v){return[v.name].concat(v.loadings);}));
+      html+=mkTable(xCols, r.xLoadings.map(function(v){return[escHtml(v.name)].concat(v.loadings);}));
       // Structure coefficients Y
       html+='<div style="font-size:11px;font-weight:700;color:#67e8f9;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.6px">Struktur Koefisien — Set Y</div>';
       var yCols=['Variabel'].concat(r.tests.map(function(t){return'Fungsi '+t.root;}));
-      html+=mkTable(yCols, r.yLoadings.map(function(v){return[v.name].concat(v.loadings);}));
+      html+=mkTable(yCols, r.yLoadings.map(function(v){return[escHtml(v.name)].concat(v.loadings);}));
       html+='<div style="margin-top:10px;padding:8px 11px;background:rgba(255,255,255,.02);border-radius:8px;font-size:10.5px;color:rgba(232,222,255,.4);line-height:1.6">'
         +'<b style="color:rgba(232,222,255,.65)">Interpretasi:</b> Hanya fungsi dengan p &lt; .05 yang diinterpretasi. '
         +'Struktur koefisien ≥ |.30| dianggap meaningful loading. '
@@ -2235,7 +2235,7 @@ function renderOutput(el){
     else if(o.type==='regression'){
       html+=mkTable(['','B','SE','t','p','Sig'],[['Constant',o.res.b0,o.res.SEb0,o.res.tb0,o.res.pb0_fmt,parseFloat(o.res.pb0)<.05?'*':'ns'],['Slope (b₁)',o.res.b1,o.res.SEb1,o.res.tb1,o.res.pb1_fmt,parseFloat(o.res.pb1)<.05?'*':'ns']]);
       html+='<div class="stats-grid" style="margin:10px 0">'+stCard('R²',o.res.R2)+stCard('Adj R²',o.res.R2adj)+stCard('F',o.res.F,'p='+o.res.pF_fmt)+stCard('RMSE',o.res.RMSE)+'</div>';
-      html+='<div class="eq">Ŷ = '+o.res.b0+' + '+o.res.b1+'·'+o.xF+'</div>';
+      html+='<div class="eq">Ŷ = '+o.res.b0+' + '+o.res.b1+'·'+escHtml(o.xF)+'</div>';
       html+='<div class="chart-stack">'+svgScatter(data,o.xF,o.yF)+svgResidual(o.res)+'</div>';
     }
     else if(o.type==='multipleReg'){
@@ -2246,7 +2246,7 @@ function renderOutput(el){
         o.res.warnings.forEach(w=>{
           const col=w.level==='error'?'#f87171':w.level==='info'?'#67e8f9':'#fbbf24';
           const ic=w.level==='error'?'✗':w.level==='info'?'ℹ':'⚠';
-          html+='<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:5px"><span style="color:'+col+';flex-shrink:0">'+ic+'</span><span style="font-size:11.5px;color:rgba(232,222,255,.75)">'+w.msg+'</span></div>';
+          html+='<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:5px"><span style="color:'+col+';flex-shrink:0">'+ic+'</span><span style="font-size:11.5px;color:rgba(232,222,255,.75)">'+escHtml(w.msg)+'</span></div>';
         });
         html+='</div>';
       }
@@ -2266,7 +2266,7 @@ function renderOutput(el){
         const vif=i===0?'—':o.res.vif[i-1];
         const vifCol=i>0&&parseFloat(vif)>10?'color:#f87171':i>0&&parseFloat(vif)>5?'color:#fbbf24':'';
         const pSig=parseFloat(c.p_fmt)<0.05;
-        return[c.name,c.B,c.SE,i===0?'—':c.beta,c.t,
+        return[escHtml(c.name),c.B,c.SE,i===0?'—':c.beta,c.t,
           (pSig?'<b style="color:#34d399">':'')+c.p_fmt+(pSig?'</b>':''),
           vifCol?'<span style="'+vifCol+'">'+vif+'</span>':vif];
       }));
@@ -2278,13 +2278,13 @@ function renderOutput(el){
         const vifCol=i>0&&parseFloat(vif)>10?'color:#f87171':i>0&&parseFloat(vif)>5?'color:#fbbf24':'';
         const hcSE=c.SE_HC3||c.SE; const hcT=c.t_HC3||c.t; const hcP=c.p_HC3_fmt||c.p_fmt;
         const pSig=c.sig_HC3!==undefined?c.sig_HC3:parseFloat(hcP)<0.05;
-        return[c.name,c.B,hcSE,i===0?'—':c.beta,hcT,
+        return[escHtml(c.name),c.B,hcSE,i===0?'—':c.beta,hcT,
           (pSig?'<b style="color:#34d399">':'')+hcP+(pSig?'</b>':''),
           vifCol?'<span style="'+vifCol+'">'+vif+'</span>':vif];
       }));
       html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:5px">HC3 = heteroscedasticity-consistent covariance (Long & Ervin 2000). Use when BP test is significant.</div>';
       html+='</div>';
-      html+='<div class="eq">'+o.yName+' = '+o.res.coefs.map(c=>c.name==='(Constant)'?c.B:c.B+'·'+c.name).join(' + ')+'</div>';
+      html+='<div class="eq">'+escHtml(o.yName)+' = '+o.res.coefs.map(c=>c.name==='(Constant)'?c.B:c.B+'·'+escHtml(c.name)).join(' + ')+'</div>';
       // Cook's D summary
       if(o.res.highCooks>0||o.res.highLeverage>0){
         html+='<div style="margin-top:10px;padding:8px 12px;background:rgba(124,58,237,.06);border-radius:8px;border:1px solid rgba(124,58,237,.14)">';
@@ -3103,7 +3103,7 @@ function renderOutput(el){
       var r=o.res;
       var aucCol2=parseFloat(r.auc)>=0.9?'#34d399':parseFloat(r.auc)>=0.8?'#a5f3fc':parseFloat(r.auc)>=0.7?'#fbbf24':'#f87171';
       html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid '+aucCol2+';background:rgba(0,0,0,.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
-      html+='<div><div style="font-size:14px;font-weight:800;color:'+aucCol2+';font-family:Playfair Display,serif">'+r.aucInterp+'</div><div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">'+o.rocProb+' → '+o.rocTrue+' (pos: '+r.posClass+')</div></div>';
+      html+='<div><div style="font-size:14px;font-weight:800;color:'+aucCol2+';font-family:Playfair Display,serif">'+r.aucInterp+'</div><div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">'+escHtml(o.rocProb)+' → '+escHtml(o.rocTrue)+' (pos: '+escHtml(r.posClass)+')</div></div>';
       html+='<div style="text-align:right"><div style="font-size:18px;font-weight:900;color:'+aucCol2+'">AUC = '+r.auc+'</div><div style="font-size:10px;color:rgba(232,222,255,.4)">95% CI: '+r.aucCI+'</div></div>';
       html+='</div>';
       html+='<div class="stats-grid" style="margin-bottom:12px">';
