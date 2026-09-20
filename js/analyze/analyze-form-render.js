@@ -1287,8 +1287,8 @@ function renderGlmCountForm(){
         +(sel?'background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')
         +'">'
         +'<input type="checkbox" '+(sel?'checked':'')
-        +' onchange="toggleCntPred(this.dataset.fld,this.checked)" data-fld="'+f
-        +'" style="accent-color:#34d399;width:13px;height:13px"/>'+f+'</label>';
+        +' onchange="toggleCntPred(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+        +'" style="accent-color:#34d399;width:13px;height:13px"/>'+escHtml(f)+'</label>';
     });
     html+='</div></div>';
     html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="'+(isNB?'runNegBinGLM':'runPoissonGLM')+'()">▶ Run</button>';
@@ -1338,7 +1338,7 @@ function renderGlmCountForm(){
       else html+=stCard('Dispersion',cntPreview.dispersion);
       html+='</div>';
       html+=mkTable(['Predictor','β','SE','z','p','IRR','95% CI IRR'],
-        cntPreview.coefs.map(function(c){return[c.name,c.b,c.se,c.z,c.p,c.irr,c.irrCI];}));
+        cntPreview.coefs.map(function(c){return[escHtml(c.name),c.b,c.se,c.z,c.p,c.irr,c.irrCI];}));
       if(cntPreview.warnings&&cntPreview.warnings.length){
         html+='<div style="margin-top:8px;padding:8px 11px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.25);border-radius:7px;font-size:11.5px;color:#fbbf24">';
         cntPreview.warnings.forEach(function(w){html+='⚠ '+w+'<br>';});
@@ -1382,8 +1382,8 @@ function renderGlmForm(){
           +(sel?'background:rgba(167,139,250,.18);color:#c084fc;border:1px solid rgba(167,139,250,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleGlmFactor(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#a78bfa;width:13px;height:13px"/>'+f+'</label>';
+          +' onchange="toggleGlmFactor(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#a78bfa;width:13px;height:13px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<div style="margin-bottom:12px">';
@@ -1396,8 +1396,8 @@ function renderGlmForm(){
           +(sel?'background:rgba(103,232,249,.12);color:#67e8f9;border:1px solid rgba(103,232,249,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleGlmCov(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#67e8f9;width:13px;height:13px"/>'+f+'</label>';
+          +' onchange="toggleGlmCov(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#67e8f9;width:13px;height:13px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<button class="btn btn-primary btn-sm" onclick="runGLM()">▶ Run</button>';
@@ -1423,7 +1423,7 @@ function renderGlmForm(){
         glmRes.effects.forEach(function(e){
           var psig=e.sig;
           html+='<tr>';
-          html+='<td style="font-weight:600;color:#c084fc">'+e.source+(e.isCov?' <span class="tag tag-blue" style="font-size:9px">cov</span>':'')+'</td>';
+          html+='<td style="font-weight:600;color:#c084fc">'+escHtml(e.source)+(e.isCov?' <span class="tag tag-blue" style="font-size:9px">cov</span>':'')+'</td>';
           html+='<td class="td-num">'+e.df+'</td>';
           html+='<td class="td-num">'+(e.SS||'—')+'</td>';
           html+='<td class="td-num">'+(e.MS||'—')+'</td>';
@@ -1453,7 +1453,7 @@ function renderGlmForm(){
             var gm=SE.mean(gv),gs=gv.length>=2?SE.std(gv):NaN,gn=gv.length;
             var se=(gn>0&&isFinite(gs))?gs/Math.sqrt(gn):0;
             var ci=isFinite(gs)?'['+SE.f4(gm-1.96*se)+', '+SE.f4(gm+1.96*se)+']':'N/A';
-            html+='<tr><td class="td-str">'+g+'</td><td class="td-num">'+gn+'</td>';
+            html+='<tr><td class="td-str">'+escHtml(g)+'</td><td class="td-num">'+gn+'</td>';
             html+='<td class="td-num">'+SE.f4(gm)+'</td><td class="td-num">'+(isFinite(gs)?SE.f4(gs):'N/A')+'</td>';
             html+='<td class="td-num" style="font-size:11px;color:#94a3b8">'+ci+'</td></tr>';
           });
@@ -1481,8 +1481,8 @@ function renderGlmForm(){
           +(sel?'background:rgba(103,232,249,.14);color:#67e8f9;border:1px solid rgba(103,232,249,.35);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleGlmMultiDep(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#67e8f9;width:13px;height:13px"/>'+f+'</label>';
+          +' onchange="toggleGlmMultiDep(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#67e8f9;width:13px;height:13px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<div style="margin-bottom:12px">';
@@ -1495,8 +1495,8 @@ function renderGlmForm(){
           +(sel?'background:rgba(167,139,250,.18);color:#c084fc;border:1px solid rgba(167,139,250,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.45);border:1px solid rgba(124,58,237,.15);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleGlmFactor(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#a78bfa;width:13px;height:13px"/>'+f+'</label>';
+          +' onchange="toggleGlmFactor(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#a78bfa;width:13px;height:13px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<button class="btn btn-primary btn-sm" onclick="runMANOVA()">▶ Run</button>';
@@ -1572,7 +1572,7 @@ function renderGlmForm(){
           html+=stCard('Mean Diff',rmRes.meanDiff,'SE='+rmRes.se)+stCard('t',rmRes.t,'df='+rmRes.df);
           html+=stCard("Cohen's d",rmRes.cohensD,rmRes.dInterp)+stCard('p-value',rmRes.p_fmt,rmRes.sig?'Significant':'n.s.');
           html+='</div>';
-          html+='<div class="row">'+sigBadge(rmRes.p)+'<span class="assump" style="flex:1">'+aState.pairedA+' → '+aState.pairedB+': Mean change = '+rmRes.meanDiff+'</span></div>';
+          html+='<div class="row">'+sigBadge(rmRes.p)+'<span class="assump" style="flex:1">'+escHtml(aState.pairedA)+' → '+escHtml(aState.pairedB)+': Mean change = '+rmRes.meanDiff+'</span></div>';
           html+='</div>';
         }
       }
@@ -1645,7 +1645,7 @@ function renderHlmForm(){
           html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Group-Level Descriptives</div>';
           html+='<div class="tbl-wrap"><table><thead><tr><th>Group</th><th>n</th><th>Mean</th><th>SD</th></tr></thead><tbody>';
           hlmRes.grpStats.slice(0,15).forEach(function(g){
-            html+='<tr><td class="td-str">'+g.group+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td></tr>';
+            html+='<tr><td class="td-str">'+escHtml(g.group)+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td></tr>';
           });
           if(hlmRes.grpStats.length>15) html+='<tr><td colspan="4" style="color:rgba(232,222,255,.3);font-size:11px;text-align:center">… '+( hlmRes.grpStats.length-15)+' more groups</td></tr>';
           html+='</tbody></table></div>';
@@ -1676,8 +1676,8 @@ function renderHlmForm(){
           +(sel?'background:rgba(103,232,249,.12);color:#67e8f9;border:1px solid rgba(103,232,249,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.14);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleHlmL1(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+f+'</label>';
+          +' onchange="toggleHlmL1(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<div style="margin-bottom:12px"><label class="lbl">Level-2 Predictors <span style="color:rgba(232,222,255,.35)">(between-group)</span></label>';
@@ -1688,8 +1688,8 @@ function renderHlmForm(){
           +(sel?'background:rgba(167,139,250,.14);color:#c084fc;border:1px solid rgba(167,139,250,.28);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.14);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleHlmL2(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#a78bfa;width:12px;height:12px"/>'+f+'</label>';
+          +' onchange="toggleHlmL2(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#a78bfa;width:12px;height:12px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<div style="margin-bottom:12px"><label class="lbl">Model Type</label>';
@@ -1752,8 +1752,8 @@ function renderHlmForm(){
           +(sel?'background:rgba(103,232,249,.12);color:#67e8f9;border:1px solid rgba(103,232,249,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.14);')
           +'">'
           +'<input type="checkbox" '+(sel?'checked':'')
-          +' onchange="toggleHlmL1(this.dataset.fld,this.checked)" data-fld="'+f
-          +'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+f+'</label>';
+          +' onchange="toggleHlmL1(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+          +'" style="accent-color:#67e8f9;width:12px;height:12px"/>'+escHtml(f)+'</label>';
       });
       html+='</div></div>';
       html+='<button class="btn btn-primary btn-sm" onclick="runHLM()">▶ Run</button>';

@@ -1728,7 +1728,7 @@ function _buildInterp(o){
   if(o.type==='hlm'){
     var icc=r&&r.ICC;
     return icc!==undefined
-      ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+o.depVar+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')
+      ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+escHtml(o.depVar)+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')
       :'Model HLM selesai. Periksa random effects untuk variasi antar kelompok.';
   }
   if(o.type==='sem'){
@@ -2423,18 +2423,18 @@ function renderOutput(el){
         html+=mkTable(['Source','df','SS','MS','F','p','η²','Partial η²'],
           o.res.effects.map(function(e){
             var ps=e.sig?'<b style="color:#34d399">'+e.p_fmt+'</b>':(e.p_fmt||'—');
-            return[e.source+(e.isCov?' (cov)':''),e.df,e.SS||'—',e.MS||'—',e.F||'—',ps,e.eta2||'—',e.partialEta2||'—'];
+            return[escHtml(e.source)+(e.isCov?' (cov)':''),e.df,e.SS||'—',e.MS||'—',e.F||'—',ps,e.eta2||'—',e.partialEta2||'—'];
           }).concat([['Error',o.res.dfError,o.res.ssError,o.res.msError,'','','','']]));
         // Factor means
         o.res.factors.forEach(function(fac){
           var levels=o.res.factorLevels[fac];
           var eff=o.res.effects.find(function(e){return e.source===fac;});
           if(!levels||!eff||!eff.groups) return;
-          html+='<div style="margin-top:11px"><div class="sec-hd" style="font-size:11px">'+fac+' — Estimated Marginal Means</div>';
+          html+='<div style="margin-top:11px"><div class="sec-hd" style="font-size:11px">'+escHtml(fac)+' — Estimated Marginal Means</div>';
           html+=mkTable([fac,'N','Mean','SD'],levels.map(function(g){
             var gv=eff.groups[g];
-            if(!gv) return[g,'—','—','—'];
-            return[g,gv.length,SE.f4(SE.mean(gv)),gv.length>=2?SE.f4(SE.std(gv)):'N/A'];
+            if(!gv) return[escHtml(g),'—','—','—'];
+            return[escHtml(g),gv.length,SE.f4(SE.mean(gv)),gv.length>=2?SE.f4(SE.std(gv)):'N/A'];
           }));
           html+='</div>';
         });
@@ -2468,7 +2468,7 @@ function renderOutput(el){
         html+='</tr></thead><tbody>';
         r2.coefs.forEach(function(c){
           html+='<tr>';
-          html+='<td style="font-weight:600;color:'+mColor+'">'+c.name+'</td>';
+          html+='<td style="font-weight:600;color:'+mColor+'">'+escHtml(c.name)+'</td>';
           html+='<td class="td-num">'+c.b+'</td>';
           html+='<td class="td-num">'+c.se+'</td>';
           html+='<td class="td-num">'+c.z+'</td>';
@@ -2506,13 +2506,13 @@ function renderOutput(el){
         // ── Header badges
         html+='<div class="assump" style="margin-bottom:11px">';
         html+='<b style="color:#c084fc">MANOVA</b> — ';
-        html+='DVs: <b style="color:#f9a8d4">'+r.depVars.join(', ')+'</b> &nbsp;·&nbsp; ';
-        html+='Factor: <b style="color:#a5f3fc">'+r.factor+'</b> &nbsp;·&nbsp; ';
+        html+='DVs: <b style="color:#f9a8d4">'+r.depVars.map(function(d){return escHtml(d);}).join(', ')+'</b> &nbsp;·&nbsp; ';
+        html+='Factor: <b style="color:#a5f3fc">'+escHtml(r.factor)+'</b> &nbsp;·&nbsp; ';
         html+='N='+r.n+' &nbsp;·&nbsp; Groups='+r.g+' &nbsp;·&nbsp; DVs='+r.p;
         html+='</div>';
 
         // ── Multivariate Tests table (Pillai, Wilks, Hotelling, Roy)
-        html+='<div class="sec-hd" style="margin-bottom:7px">Multivariate Tests <span style="font-weight:400;font-size:10px;color:rgba(232,222,255,.4)">(Effect: '+r.factor+')</span></div>';
+        html+='<div class="sec-hd" style="margin-bottom:7px">Multivariate Tests <span style="font-weight:400;font-size:10px;color:rgba(232,222,255,.4)">(Effect: '+escHtml(r.factor)+')</span></div>';
         var mvRows = [
           ['Pillai\'s Trace',      r.pillai.stat,    r.pillai.F,    r.pillai.df1,    r.pillai.df2,    r.pillai.p_fmt,    r.pillai.sig],
           ['Wilks\' Lambda',       r.wilks.stat,     r.wilks.F,     r.wilks.df1,     r.wilks.df2,     r.wilks.p_fmt,     r.wilks.sig],
@@ -2560,7 +2560,7 @@ function renderOutput(el){
         r.depVars.forEach(function(dv){ html+='<th>'+escHtml(dv)+'</th>'; });
         html+='</tr></thead><tbody>';
         r.groupMeans.forEach(function(gm){
-          html+='<tr><td class="td-label">'+gm.key+'</td><td class="td-num">'+gm.n+'</td>';
+          html+='<tr><td class="td-label">'+escHtml(gm.key)+'</td><td class="td-num">'+gm.n+'</td>';
           gm.means.forEach(function(m){ html+='<td class="td-num">'+m+'</td>'; });
           html+='</tr>';
         });
@@ -2576,11 +2576,11 @@ function renderOutput(el){
           r.univariate.forEach(function(item){
             var dv=item.dv, ures=item.res;
             html+='<div style="margin-bottom:10px;padding:9px 11px;border-radius:7px;background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.15)">';
-            html+='<div style="font-size:11px;font-weight:700;color:#f9a8d4;margin-bottom:6px">ANOVA: '+dv+'</div>';
+            html+='<div style="font-size:11px;font-weight:700;color:#f9a8d4;margin-bottom:6px">ANOVA: '+escHtml(dv)+'</div>';
             if(ures&&!ures._err&&ures.effects){
               var tRows2 = ures.effects.map(function(e){
                 var ps = e.sig?'<b style="color:#34d399">'+e.p_fmt+'</b>':(e.p_fmt||'—');
-                return [e.source, e.df, e.SS||'—', e.MS||'—', e.F||'—', ps, e.eta2||'—'];
+                return [escHtml(e.source), e.df, e.SS||'—', e.MS||'—', e.F||'—', ps, e.eta2||'—'];
               });
               tRows2.push(['Error', ures.dfError, ures.ssError, ures.msError, '', '', '']);
               html+=mkTable(['SOURCE','DF','SS','MS','F','p','η²'], tRows2);
@@ -2591,8 +2591,8 @@ function renderOutput(el){
                 html+=mkTable([r.factor,'N','Mean','SD'],
                   (ures.factorLevels&&ures.factorLevels[r.factor]||[]).map(function(gk){
                     var gv=eff.groups[gk];
-                    if(!gv||!gv.length) return[gk,'—','—','—'];
-                    return[gk, gv.length, SE.f4(SE.mean(gv)), gv.length>=2?SE.f4(SE.std(gv)):'N/A'];
+                    if(!gv||!gv.length) return[escHtml(gk),'—','—','—'];
+                    return[escHtml(gk), gv.length, SE.f4(SE.mean(gv)), gv.length>=2?SE.f4(SE.std(gv)):'N/A'];
                   })
                 );
                 html+='</div>';
@@ -2623,7 +2623,7 @@ function renderOutput(el){
         var iccLabel=iccV<.05?'Negligible clustering':iccV<.10?'Small – HLM recommended':iccV<.25?'Moderate – HLM important':'Strong – HLM essential';
         html+='<div class="stats-grid" style="margin-bottom:11px">';
         html+=stCard('ICC',r.ICC,'Intraclass Correlation')+stCard('Groups (k)',r.k,'Level-2 units');
-        html+=stCard('N obs',r.n,'Level-1 units')+stCard('Grand Mean',r.grandMean,o.dep);
+        html+=stCard('N obs',r.n,'Level-1 units')+stCard('Grand Mean',r.grandMean,escHtml(o.dep));
         html+='</div>';
         html+='<div style="padding:10px 14px;border-radius:9px;border:1.5px solid '+iccColor+';background:rgba(124,58,237,.04);margin-bottom:11px">';
         html+='<div style="font-size:13px;font-weight:700;color:'+iccColor+'">ICC = '+r.ICC+'</div>';
@@ -2633,10 +2633,10 @@ function renderOutput(el){
         html+=stCard('Design Effect',r.design_effect,'DEFF = 1+(ñ–1)·ICC')+stCard('F (null model)',r.F+(r.sig?' *':' ns'),'One-way ANOVA test');
         html+='</div>';
         if(r.grpStats&&r.grpStats.length){
-          html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Group-Level Descriptives ('+o.group+')</div>';
+          html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Group-Level Descriptives ('+escHtml(o.group)+')</div>';
           html+='<div class="tbl-wrap"><table><thead><tr><th>Group</th><th>n</th><th>Mean</th><th>SD</th></tr></thead><tbody>';
           r.grpStats.slice(0,20).forEach(function(g){
-            html+='<tr><td class="td-str">'+g.group+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td></tr>';
+            html+='<tr><td class="td-str">'+escHtml(g.group)+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td></tr>';
           });
           if(r.grpStats.length>20) html+='<tr><td colspan="4" style="color:rgba(232,222,255,.3);font-size:11px;text-align:center">… '+(r.grpStats.length-20)+' more groups</td></tr>';
           html+='</tbody></table></div>';
