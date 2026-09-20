@@ -114,7 +114,8 @@
       return r*(((a[3]*rs+a[2])*rs+a[1])*rs+a[0])/((((b[3]*rs+b[2])*rs+b[1])*rs+b[0])*rs+1);
     }
     const s=Math.log(p<0.5?-Math.log(p):-Math.log(1-p));
-    let t2=c[0]; for(let i=1;i<9;i++) t2=t2*s+c[i];
+    // Horner dari koefisien tertinggi (c[8]) ke c[0] — urutan sebelumnya terbalik
+    let t2=c[8]; for(let i=7;i>=0;i--) t2=t2*s+c[i];
     return p<0.5?-t2:t2;
   }
 

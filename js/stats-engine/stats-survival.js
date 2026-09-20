@@ -87,6 +87,20 @@ function computeCoxRegression(dataArr,timeVar,eventVar,covariates){
   var sds=covariates.map(function(c,i){return SE.std(cases.map(function(r){return Number(r[c]);}))||1;});
   var X=cases.map(function(r){return covariates.map(function(c,i){return (Number(r[c])-means[i])/sds[i];});});
 
+  // Log partial likelihood pada beta b (dipakai step-halving di bawah)
+  function coxLL(b){
+    var ord=times.map(function(t,i){return i;}).sort(function(a,c){return times[a]-times[c];});
+    var v=0;
+    ord.forEach(function(i){
+      if(events[i]!==1) return;
+      var t=times[i],S0=0;
+      ord.forEach(function(j){if(times[j]>=t) S0+=Math.exp(X[j].reduce(function(s,x,k){return s+x*b[k];},0));});
+      if(S0<=0) return;
+      v+=X[i].reduce(function(s,x,k){return s+x*b[k];},0)-Math.log(S0);
+    });
+    return v;
+  }
+
   // Newton-Raphson for partial likelihood
   var beta=new Array(p).fill(0);
   for(var iter=0;iter<25;iter++){
@@ -118,8 +132,19 @@ function computeCoxRegression(dataArr,timeVar,eventVar,covariates){
     var step=[];for(var a=0;a<p;a++){var s=0;for(var b=0;b<p;b++)s+=inv[a*p+b]*grad[b];step.push(s);}
     var maxStep=Math.max.apply(null,step.map(Math.abs));
     if(maxStep>1) step=step.map(function(s){return s/maxStep;});
-    beta=beta.map(function(b2,i){return b2+step[i];});
-    if(step.reduce(function(s,v){return s+v*v;},0)<1e-8) break;
+    // hess = turunan kedua log-likelihood (negatif-definit), jadi step = H⁻¹·g dan
+    // langkah Newton untuk MAKSIMASI adalah beta − step (bukan beta + step).
+    // Step-halving: kecilkan langkah sampai log-likelihood tidak turun.
+    var stepScale=1,trial=null,llTrial=-Infinity,accepted=false;
+    for(var hlv=0;hlv<15;hlv++){
+      trial=beta.map(function(b2,i){return b2-stepScale*step[i];});
+      llTrial=coxLL(trial);
+      if(isFinite(llTrial)&&llTrial>=ll-1e-10){accepted=true;break;}
+      stepScale/=2;
+    }
+    if(!accepted) break;
+    beta=trial;
+    if(step.reduce(function(s,v){return s+v*v;},0)*stepScale*stepScale<1e-8) break;
   }
 
   // SEs from Hessian inverse

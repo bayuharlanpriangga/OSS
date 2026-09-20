@@ -21,7 +21,7 @@
     var r=p-0.5;
     if(Math.abs(r)<0.42){var rs=r*r;return r*(((a[3]*rs+a[2])*rs+a[1])*rs+a[0])/((((b[3]*rs+b[2])*rs+b[1])*rs+b[0])*rs+1);}
     var s=Math.log(p<0.5?-Math.log(p):-Math.log(1-p));
-    var t2=c[0]; for(var i2=1;i2<9;i2++) t2=t2*s+c[i2];
+    var t2=c[8]; for(var i2=7;i2>=0;i2--) t2=t2*s+c[i2]; // Horner dari c[8] ke c[0]
     return p<0.5?-t2:t2;
   }
 
