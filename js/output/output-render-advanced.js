@@ -476,3 +476,314 @@ function renderOutAdv_cluster(o){
       html+='<div style="margin-top:6px;font-size:10px;color:rgba(232,222,255,.35)">Silhouette ≥ .50 = reasonable cluster structure. Variables z-standardized before clustering.</div>';
   return html;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// F5 — render detail lanjutan (bagian 2): MI, ROC, Survival, Cox, Bayesian
+//      (t-test / korelasi / posterior), Time Series, Meta-analysis.
+// APPEND ke akhir js/output/output-render-advanced.js (setelah 9 fungsi F4).
+// Pola sama dgn F3/F4: tiap fungsi menerima objek output `o` dan MENGEMBALIKAN
+// string HTML isi kartu; badan = isi cabang lama di `renderOutput()` apa adanya
+// (byte-exact), tambahan hanya `var html='';` di awal dan `return html;` di akhir.
+// Dispatcher (`else if(o.type===...&&o.res)`) tetap di `renderOutput()` (app.js).
+// Dependency (semua global, dibaca saat runtime, tanpa top-level call):
+//   escHtml, SE, stCard, mkTable, svgConvergence, svgROC, svgKaplanMeier,
+//   svgForestPlot, svgBayesPosterior, svgMetaForestPlot, svgFunnelPlot.
+// ════════════════════════════════════════════════════════════════════════════
+
+function renderOutAdv_mi(o){
+  var html='';
+      var r=o.res;
+      var methLabels={'pmm':'PMM (Predictive Mean Matching)','norm':'Bayesian Normal Regression','mice_cart':'CART'};
+      html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid rgba(192,132,252,.35);background:rgba(192,132,252,.06)">';
+      html+='<div style="font-size:13px;font-weight:800;color:#c084fc;font-family:Playfair Display,serif"> Multiple Imputation</div>';
+      html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:3px">Method: '+methLabels[r.method]+' · M='+r.M+' imputed datasets · N='+r.n+'</div>';
+      html+='</div>';
+      html+='<div class="stats-grid2" style="margin-bottom:11px">';
+      html+=stCard('M (Imputations)',r.M,'');
+      html+=stCard('Variables Imputed',r.targetVars.length,'');
+      html+=stCard('Method',r.method.toUpperCase(),'');
+      html+=stCard('Cases',r.n,'');
+      html+='</div>';
+      html+='<div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:7px">Pooled Results (Rubin\'s Rules)</div>';
+      html+=mkTable(['Variable','N Observed','N Imputed','Orig. Mean','Pooled Mean','Orig. SD','Pooled SD','FMI (λ)'],
+        r.pooled.map(function(p){
+          var fmiNum=parseFloat(p.FMI);
+          var fmiCol=fmiNum>0.5?'#f87171':fmiNum>0.3?'#fbbf24':'#34d399';
+          return[p.variable,p.n,p.nImputed,p.origMean,'<b style="color:#c084fc">'+p.pooledMean+'</b>',p.origSD,p.pooledSD,'<span style="color:'+fmiCol+'">'+p.FMI+'</span>'];
+        }));
+      html+='<div style="margin-top:10px;padding:9px 12px;background:rgba(124,58,237,.08);border-radius:8px;border:1px solid rgba(124,58,237,.18);font-size:11px;color:rgba(232,222,255,.6);line-height:1.65">';
+      html+='<b style="color:#c084fc">FMI (Fraction of Missing Information):</b> λ &lt; 0.1 = low impact · λ 0.1–0.3 = moderate · λ &gt; 0.5 = high — consider reducing missingness. Pooled SD reflects imputation uncertainty. The first imputed dataset (M=1) has been applied to the active dataset.';
+      html+='</div>';
+      // Convergence plot
+      if(r.pooled.length>0&&r.pooled[0].convergence&&r.pooled[0].convergence.length>1){
+        html+='<div style="margin-top:12px;font-size:11px;font-weight:700;color:#c084fc;margin-bottom:5px">Convergence Plot (Imputed Means across M)</div>';
+        html+=svgConvergence(r.pooled);
+      }
+    
+  return html;
+}
+
+function renderOutAdv_roc(o){
+  var html='';
+      var r=o.res;
+      var aucCol2=parseFloat(r.auc)>=0.9?'#34d399':parseFloat(r.auc)>=0.8?'#a5f3fc':parseFloat(r.auc)>=0.7?'#fbbf24':'#f87171';
+      html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid '+aucCol2+';background:rgba(0,0,0,.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+      html+='<div><div style="font-size:14px;font-weight:800;color:'+aucCol2+';font-family:Playfair Display,serif">'+r.aucInterp+'</div><div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">'+escHtml(o.rocProb)+' → '+escHtml(o.rocTrue)+' (pos: '+escHtml(r.posClass)+')</div></div>';
+      html+='<div style="text-align:right"><div style="font-size:18px;font-weight:900;color:'+aucCol2+'">AUC = '+r.auc+'</div><div style="font-size:10px;color:rgba(232,222,255,.4)">95% CI: '+r.aucCI+'</div></div>';
+      html+='</div>';
+      html+='<div class="stats-grid" style="margin-bottom:12px">';
+      html+=stCard('AUC',r.auc,r.aucInterp);
+      html+=stCard('95% CI',r.aucCI,'Hanley-McNeil');
+      html+=stCard('N',r.n,'pos='+r.nPos+' neg='+r.nNeg);
+      html+=stCard('Optimal Cutoff',r.optThresh,'Youden');
+      html+=stCard('Sensitivity',r.optSens,'at optimal');
+      html+=stCard('Specificity',r.optSpec,'at optimal');
+      html+=stCard('PPV',r.optPPV,'precision');
+      html+=stCard('NPV',r.optNPV,'');
+      html+=stCard('F1 Score',r.optF1,'');
+      html+=stCard('Youden J',r.optYouden,'');
+      html+='</div>';
+      html+=svgROC(r);
+      html+='<div style="margin-top:12px"><div class="sec-hd" style="margin-bottom:6px">AUC Interpretation Guide</div>';
+      html+='<div class="tbl-wrap"><table><thead><tr><th>AUC Range</th><th>Discriminative Ability</th></tr></thead><tbody>';
+      [['0.90 – 1.00','Excellent'],['0.80 – 0.89','Good'],['0.70 – 0.79','Acceptable'],['0.60 – 0.69','Poor'],['0.50 – 0.59','Fail (no better than chance)']].forEach(function(row){
+        html+='<tr><td class="td-num">'+row[0]+'</td><td style="font-size:11px;color:rgba(232,222,255,.6)">'+row[1]+'</td></tr>';
+      });
+      html+='</tbody></table></div></div>';
+    
+  return html;
+}
+
+function renderOutAdv_survival(o){
+  var html='';
+      var r=o.res;
+      html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.06)">';
+      html+='<div style="font-size:13px;font-weight:800;color:#4ade80;font-family:Playfair Display,serif"> Kaplan-Meier Survival Analysis</div>';
+      html+='<div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:3px">Time: '+escHtml(o.survTime)+' · Event: '+escHtml(o.survEvent)+(o.survGroup?' · Group: '+escHtml(o.survGroup):'')+'</div>';
+      html+='</div>';
+      html+='<div class="stats-grid" style="margin-bottom:12px">';
+      r.groups.forEach(function(g){
+        html+=stCard('N ('+g.label+')',g.n,'');
+        html+=stCard('Events ('+g.label+')',g.events,'');
+        html+=stCard('Median Surv. ('+g.label+')',g.medianSurv===null?'NR':SE.f4(g.medianSurv),'');
+      });
+      html+='</div>';
+      html+=svgKaplanMeier(r);
+      if(r.groups.length>=2){
+        var lr=r.logrank;
+        html+='<div style="margin-top:12px"><div class="sec-hd" style="margin-bottom:7px">Log-Rank Test</div>';
+        html+=mkTable(['Group','N','Events','Censored','Median Survival','O−E'],
+          r.groups.map(function(g){return[escHtml(g.label),g.n,g.events,g.n-g.events,g.medianSurv===null?'NR':SE.f4(g.medianSurv),g.oe];}));
+        html+='<div style="margin-top:9px;padding:9px 12px;background:rgba(124,58,237,.08);border-radius:8px;border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.7)">'+lr.interpretation+'</div>';
+        html+='</div>';
+      }
+    
+  return html;
+}
+
+function renderOutAdv_cox(o){
+  var html='';
+      var r=o.res;
+      var cC=parseFloat(r.concordance)>=0.8?'#34d399':parseFloat(r.concordance)>=0.7?'#fbbf24':'#f87171';
+      html+='<div style="margin-bottom:11px;padding:10px 14px;border-radius:9px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">';
+      html+='<div><div style="font-size:13px;font-weight:800;color:#4ade80;font-family:Playfair Display,serif">Cox Proportional Hazards</div><div style="font-size:11px;color:rgba(232,222,255,.5);margin-top:2px">N='+r.n+' · Events='+r.events+' · Covariates: '+r.covariates.map(escHtml).join(', ')+'</div></div>';
+      html+='<div style="text-align:right"><div style="font-size:13px;font-weight:700;color:'+cC+'">C-index = '+r.concordance+'</div><div style="font-size:10px;color:rgba(232,222,255,.4)">LR χ²='+r.lrChi2+' p='+r.lrP_fmt+'</div></div>';
+      html+='</div>';
+      html+='<div class="stats-grid2" style="margin-bottom:12px">';
+      html+=stCard('N',r.n,'');
+      html+=stCard('Events',r.events,'');
+      html+=stCard('Concordance (C)',r.concordance,'');
+      html+=stCard('LR Test p',r.lrP_fmt,'');
+      html+='</div>';
+      html+=mkTable(['Covariate','β','SE','HR','95% CI HR','z','p'],
+        r.coefs.map(function(c){
+          var sig=parseFloat(c.p)<0.05;
+          var hrNum=parseFloat(c.HR);
+          var hrCol=hrNum>1.5?'#f87171':hrNum<0.67?'#34d399':'rgba(232,222,255,.75)';
+          return[escHtml(c.name),c.beta,c.se,'<b style="color:'+hrCol+'">'+c.HR+'</b>',c.ci95,c.z,(sig?'<b style="color:#34d399">':'')+c.p_fmt+(sig?'</b>':'')];
+        }));
+      html+=svgForestPlot(r);
+      html+='<div style="margin-top:10px;padding:9px 12px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.18);border-radius:8px;font-size:11px;color:rgba(232,222,255,.6);line-height:1.65"><b style="color:#4ade80">Interpretation:</b> HR &gt; 1 = higher risk (shorter survival); HR &lt; 1 = protective. C-index: 0.5 = random · ≥0.7 = acceptable · ≥0.8 = good discrimination.</div>';
+    
+  return html;
+}
+
+function renderOutAdv_bayes_ttest(o){
+  var html='';
+      var r=o.res;
+      var bf=parseFloat(r.BF10);
+      var bfCol=bf>100?'#34d399':bf>30?'#4ade80':bf>10?'#a3e635':bf>3?'#fbbf24':bf>1?'#fb923c':bf>0.1?'#f87171':'#e879f9';
+      html+='<div style="margin-bottom:12px;padding:14px 18px;border-radius:10px;background:rgba(0,0,0,.2);border:2px solid '+bfCol+';display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+      html+='<div><div style="font-size:22px;font-weight:900;color:'+bfCol+';font-family:Playfair Display,serif">BF₁₀ = '+r.BF10+'</div>';
+      html+='<div style="font-size:12px;color:rgba(232,222,255,.6);margin-top:2px">'+r.interpretation+'</div></div>';
+      html+='<div style="text-align:right"><div style="font-size:11.5px;font-weight:700;color:rgba(232,222,255,.5)">BF₀₁ = '+r.BF01+'</div>';
+      html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35)">t('+r.df+')='+r.t+' · p='+r.p_fmt+'</div></div>';
+      html+='</div>';
+      html+='<div class="stats-grid2" style="margin-bottom:12px">';
+      html+=stCard('BF₁₀',r.BF10,'Evidence for H₁');
+      html+=stCard('BF₀₁',r.BF01,'Evidence for H₀');
+      html+=stCard("Cohen's d",r.cohensD,r.dInterp);
+      html+=stCard('t-statistic',r.t,'df='+r.df+' · p='+r.p_fmt);
+      html+=stCard('n₁',r.n1,'Group '+escHtml(o.ga||'A'));
+      html+=stCard('n₂',r.n2,'Group '+escHtml(o.gb||'B'));
+      html+='</div>';
+      html+='<div style="margin-top:8px;padding:10px 14px;border-radius:9px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.65);line-height:1.7">';
+      html+='<b style="color:#c084fc">Prior:</b> Cauchy(r='+r.priorScale+') · Tails: '+(o.tails===2?'two-tailed':'one-tailed')+'<br>';
+      html+='<b style="color:#c084fc">Interpretation guide:</b> BF₁₀ &gt; 100 = extreme H₁ · &gt; 30 = very strong · &gt; 10 = strong · &gt; 3 = moderate · &gt; 1 = anecdotal · &lt; 1/3 = moderate H₀ · &lt; 1/10 = strong H₀.';
+      html+='</div>';
+    
+  return html;
+}
+
+function renderOutAdv_bayes_corr(o){
+  var html='';
+      var r=o.res;
+      var bf=parseFloat(r.BF10);
+      var bfCol=bf>100?'#34d399':bf>10?'#4ade80':bf>3?'#fbbf24':bf>1?'#fb923c':'#f87171';
+      html+='<div style="margin-bottom:12px;padding:14px 18px;border-radius:10px;background:rgba(0,0,0,.2);border:2px solid '+bfCol+'">>';
+      html+='<div style="font-size:22px;font-weight:900;color:'+bfCol+';font-family:Playfair Display,serif">BF₁₀ = '+r.BF10+'</div>';
+      html+='<div style="font-size:12px;color:rgba(232,222,255,.6);margin-top:2px">'+r.interpretation+'</div>';
+      html+='</div>';
+      html+='<div class="stats-grid2" style="margin-bottom:12px">';
+      html+=stCard('BF₁₀',r.BF10,'Evidence for ρ≠0');
+      html+=stCard('BF₀₁',r.BF01,'Evidence for ρ=0');
+      html+=stCard('Pearson r',r.r,'');
+      html+=stCard('p-value (NHST)',r.p_fmt,'');
+      html+=stCard('N',r.n,'');
+      html+=stCard('Prior scale κ',SE.f4(o.prior||1),'JZS prior');
+      html+='</div>';
+    
+  return html;
+}
+
+function renderOutAdv_bayes_posterior(o){
+  var html='';
+      var r=o.res;
+      html+='<div style="margin-bottom:12px;padding:12px 16px;border-radius:10px;background:rgba(124,58,237,.12);border:1.5px solid rgba(192,132,252,.4)">';
+      html+='<div style="font-size:16px;font-weight:800;color:#c084fc;font-family:Playfair Display,serif">Posterior Mean = '+r.postMean+'</div>';
+      html+='<div style="font-size:12px;color:rgba(232,222,255,.6);margin-top:2px">95% Credible Interval: '+r.hdi95+'</div>';
+      html+='</div>';
+      html+='<div class="stats-grid2" style="margin-bottom:12px">';
+      html+=stCard('Posterior μ',r.postMean,'');
+      html+=stCard('Posterior SD',r.postSD,'');
+      html+=stCard('95% Credible Interval',r.hdi95,'HDI');
+      html+=stCard('Sample Mean',r.sampleMean,'');
+      html+=stCard('Prior μ₀',r.priorMu0,'');
+      html+=stCard('N',r.n,'');
+      html+='</div>';
+      html+=svgBayesPosterior(r);
+      html+='<div style="margin-top:10px;padding:10px 14px;border-radius:9px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18);font-size:11.5px;color:rgba(232,222,255,.65);line-height:1.7">';
+      html+='<b style="color:#c084fc">Prior:</b> Normal-Inverse-Gamma (μ₀='+r.priorMu0+', κ₀='+r.priorKappa0+')<br>';
+      html+='<b style="color:#c084fc">Note:</b> The credible interval is a direct probability statement: "There is 95% probability that μ lies in '+r.hdi95+' given the data and prior."';
+      html+='</div>';
+    
+  return html;
+}
+
+function renderOutAdv_timeseries(o){
+  var html='';
+      var r=o.res;
+      html+='<div style="margin-bottom:12px;padding:12px 16px;border-radius:10px;background:rgba(103,232,249,.07);border:1.5px solid rgba(103,232,249,.3)">';
+      html+='<div style="font-size:16px;font-weight:800;color:#67e8f9;font-family:Playfair Display,serif">'+r.model+'</div>';
+      html+='<div style="font-size:11.5px;color:rgba(232,222,255,.5);margin-top:3px">Variable: '+escHtml(r.variable)+' · N = '+r.n+'</div>';
+      html+='</div>';
+      if(r.arCoefs){
+        // ARIMA output
+        html+='<div class="stats-grid2" style="margin-bottom:12px">';
+        html+=stCard('AIC',r.aic,'');
+        html+=stCard('BIC',r.bic,'');
+        html+=stCard('σ̂ (residual SD)',r.sigma,'');
+        html+=stCard('1-step Forecast',r.forecast,'');
+        html+=stCard('95% CI Low',r.fc_lo95,'');
+        html+=stCard('95% CI High',r.fc_hi95,'');
+        html+='</div>';
+        if(r.arCoefs.length){
+          html+='<div class="tbl-wrap"><table><thead><tr><th>Parameter</th><th>Estimate</th></tr></thead><tbody>';
+          html+='<tr><td>Intercept (μ)</td><td class="td-num">'+SE.f4(r.mu||0)+'</td></tr>';
+          r.arCoefs.forEach(function(c,i){html+='<tr><td>AR('+(i+1)+')</td><td class="td-num">'+c+'</td></tr>';});
+          r.maCoefs.forEach(function(c,i){html+='<tr><td>MA('+(i+1)+')</td><td class="td-num">'+c+'</td></tr>';});
+          html+='</tbody></table></div>';
+        }
+        html+='<div style="margin-top:10px;padding:9px 13px;background:rgba(103,232,249,.05);border:1px solid rgba(103,232,249,.18);border-radius:8px;font-size:11.5px;color:rgba(232,222,255,.7);line-height:1.65">';
+        html+='<b style="color:#67e8f9">Forecast (1-step):</b> '+r.forecast+' &nbsp;[95% CI: '+r.fc_lo95+' – '+r.fc_hi95+']<br>';
+        html+='<b style="color:#67e8f9">Residual Mean:</b> '+r.residMean+' &nbsp;·&nbsp; <b style="color:#67e8f9">Residual SD:</b> '+r.residSD;
+        html+='</div>';
+      } else {
+        // Decomposition output
+        html+='<div class="stats-grid2" style="margin-bottom:12px">';
+        html+=stCard('Period',r.period,'seasonal');
+        html+=stCard('Model Type',r.type,'');
+        html+=stCard('Seasonal Strength',r.seasonalStrength,'0–1 scale');
+        html+=stCard('Seasonal Amplitude',r.seasonalAmplitude,'');
+        html+=stCard('Remainder SD',r.remainderSD,'');
+        html+=stCard('Trend Range','['+r.trendRange[0]+', '+r.trendRange[1]+']','');
+        html+='</div>';
+        if(r.seasonalIndices&&r.seasonalIndices.length){
+          html+='<div style="margin-top:10px"><div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:6px">Seasonal Indices</div>';
+          html+='<div class="tbl-wrap"><table><thead><tr>';
+          r.seasonalIndices.forEach(function(s){html+='<th>P'+s.period+'</th>';});
+          html+='</tr></thead><tbody><tr>';
+          r.seasonalIndices.forEach(function(s){
+            var v=parseFloat(s.index),col=v>0?'#34d399':v<0?'#f87171':'rgba(232,222,255,.6)';
+            html+='<td class="td-num" style="color:'+col+'">'+s.index+'</td>';
+          });
+          html+='</tr></tbody></table></div></div>';
+        }
+      }
+    
+  return html;
+}
+
+function renderOutAdv_metaanalysis(o){
+  var html='';
+      var r=o.res;
+      var psig=r.p<0.05;
+      html+='<div style="margin-bottom:12px;padding:12px 16px;border-radius:10px;background:rgba(251,146,60,.07);border:1.5px solid rgba(251,146,60,.3)">';
+      html+='<div style="font-size:16px;font-weight:800;color:#fb923c;font-family:Playfair Display,serif">Meta-Analysis · '+(r.model==='fixed'?'Fixed-Effect':'Random-Effects')+' (k = '+r.k+' studies)</div>';
+      html+='<div style="font-size:11.5px;color:rgba(232,222,255,.5);margin-top:3px">Pooled '+r.effectLabel+' = '+r.pooledEffect+' &nbsp;[95% CI: '+r.ci_lo+', '+r.ci_hi+'] &nbsp;· &nbsp;z = '+r.z+', p = '+r.p_fmt+'</div>';
+      html+='</div>';
+
+      html+='<div class="stats-grid2" style="margin-bottom:12px">';
+      html+=stCard('Pooled Effect ('+r.effectLabel+')',r.pooledEffect,'SE = '+r.se);
+      html+=stCard('95% CI','['+r.ci_lo+', '+r.ci_hi+']','');
+      html+=stCard('z',r.z,'p = '+r.p_fmt);
+      html+=stCard('Sig?',psig?'Yes ✓':'No ✗','α = 0.05');
+      html+=stCard('Q statistic',r.Q,'p = '+r.Q_p_fmt);
+      html+=stCard('I² (%)',r.I2+'%',r.I2label);
+      html+=stCard('τ²',r.tau2,'Between-study variance');
+      html+=stCard('τ',r.tau,'SD between studies');
+      html+='</div>';
+
+      // Heterogeneity interpretation
+      var hColor=r.I2raw<25?'#34d399':r.I2raw<50?'#fbbf24':r.I2raw<75?'#fb923c':'#f87171';
+      html+='<div style="margin-bottom:12px;padding:10px 13px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:8px;font-size:11.5px;color:rgba(232,222,255,.7);line-height:1.65">';
+      html+='<b style="color:#fb923c">Heterogenitas: </b><b style="color:'+hColor+'">'+r.I2label+'</b> · ';
+      html+='Q('+( r.k-1)+') = '+r.Q+', p = '+r.Q_p_fmt+'. ';
+      html+=r.I2raw<25?'Studi cukup homogen.':r.I2raw<50?'Ada variasi sedang antar studi.':r.I2raw<75?'Heterogenitas substansial.':'Heterogenitas tinggi — hati-hati interpretasi.';
+      html+='</div>';
+
+      // Study-level table
+      html+='<div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px">Hasil Per Studi</div>';
+      html+='<div class="tbl-wrap"><table><thead><tr><th>Studi</th><th>yi</th><th>vi</th><th>SE</th><th>95% CI</th><th>Bobot (%)</th></tr></thead><tbody>';
+      (r.studyData||[]).forEach(function(s){
+        html+='<tr><td class="td-label">'+escHtml(s.name)+'</td>';
+        html+='<td class="td-num">'+s.yi.toFixed(3)+'</td>';
+        html+='<td class="td-num">'+s.vi.toFixed(4)+'</td>';
+        html+='<td class="td-num">'+Math.sqrt(s.vi).toFixed(4)+'</td>';
+        html+='<td class="td-num">['+s.ci_lo+', '+s.ci_hi+']</td>';
+        html+='<td class="td-num">'+s.weight.toFixed(1)+'%</td>';
+        html+='</tr>';
+      });
+      html+='</tbody></table></div>';
+
+      // Forest plot
+      html+='<div style="margin-top:14px;font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px">Forest Plot</div>';
+      html+=svgMetaForestPlot(o.studies||[],r,o.effectType||'yi');
+
+      // Funnel plot
+      html+='<div style="margin-top:14px;font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px">Funnel Plot <span style="font-size:9.5px;font-weight:400;color:rgba(232,222,255,.35)">(publication bias check)</span></div>';
+      html+=svgFunnelPlot(r);
+      html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-top:6px">Funnel plot simetris → tidak ada publication bias. Asimetri → kemungkinan ada bias publikasi.</div>';
+    
+  return html;
+}

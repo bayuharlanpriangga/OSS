@@ -352,10 +352,11 @@
        app.js. F3 (renderOutput basic) nantinya menyusul di file yang sama. -->
   <script src="js/output/output-render-basic.js"></script>
 
-  <!-- 4b'. Output layer (F4, 2026-09-21): renderOutAdv_<tipe> (hlm, alpha, kappa,
-       efa, cfa, sem, mediation, discriminant, cluster) — murni string builder,
-       tanpa top-level call, dependency dibaca runtime — aman dimuat sebelum
-       app.js. F5 nantinya menyusul di file yang sama. -->
+  <!-- 4b'. Output layer (F4+F5, 2026-09-21): renderOutAdv_<tipe> (F4: hlm, alpha,
+       kappa, efa, cfa, sem, mediation, discriminant, cluster; F5: mi, roc,
+       survival, cox, bayes_ttest, bayes_corr, bayes_posterior, timeseries,
+       metaanalysis) — murni string builder, tanpa top-level call, dependency
+       dibaca runtime — aman dimuat sebelum app.js. -->
   <script src="js/output/output-render-advanced.js"></script>
 
   <!-- 4c. Output layer lanjutan (F1, 2026-09-21): Tab Group System — state +
