@@ -614,7 +614,10 @@ function handleCSV(e){
         hdr.forEach((h,j)=>{const v=vs[j]?.trim()??'';
           if(v===''||v==='.'||v==='NA')row[h]=null;else{const n=Number(v);row[h]=isNaN(n)?v:n;}});
         return row;});
-      const nv=hdr.map(h=>({name:h,type:rows.some(r=>typeof r[h]==='string'&&r[h]!==null)?'String':'Numeric',width:12,dec:2,label:h,measure:'Scale',role:'Input'}));
+      const nv=hdr.map(h=>{
+        const isStr=rows.some(r=>typeof r[h]==='string'&&r[h]!==null);
+        return {name:h,type:isStr?'String':'Numeric',width:12,dec:isStr?0:2,label:h,measure:isStr?'Nominal':'Scale',role:'Input'};
+      });
       // If active dataset is empty OR user wants a new dataset
       var dsIsEmpty=!data.length&&!vars.length;
       var toNew=!dsIsEmpty&&confirm('Import "'+file.name+'" as a NEW dataset?\n\nOK = New dataset\nCancel = Replace current dataset ("'+getActiveDs().name+'")');
