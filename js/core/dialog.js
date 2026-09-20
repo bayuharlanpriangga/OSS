@@ -1,9 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/core/dialog.js
-// Fitur: OSS Dialog Engine — pengganti confirm()/alert()/prompt() browser native
-// Depends on: elemen #oss-dialog-overlay dkk di index.html
-// ════════════════════════════════════════════════════════════
-// ── OSS Dialog Engine ──────────────────────────────────────
+// OSS Dialog Engine 
 function escDlg(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ossDialog(cfg){
   var ov=document.getElementById('oss-dialog-overlay');

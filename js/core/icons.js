@@ -1,11 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/core/icons.js
-// Fitur: SVG Icon System — objek global IC berisi semua ikon inline SVG
-// Depends on: tidak ada (pure data object)
-// ════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════
 // SVG ICON SYSTEM
-// ═══════════════════════════════════════════════════════════
 var IC = {
   search: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-4.35-4.35"/></svg>',
   plus:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',

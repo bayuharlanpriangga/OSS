@@ -1,11 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
-// ANALYZE — FORM RENDERER (D1, split bertahap dari renderASub() di app.js)
-// Tiap fungsi di sini = isi 1 cabang else-if(currentASub===...) di renderASub(),
-// dibungkus jadi fungsi berdiri sendiri (pola sama seperti C11/renderMissingDataAnalysis),
-// dipanggil balik dari app.js lewat: html+=render<Nama>Form();
-// Byte-exact terhadap isi cabang aslinya, kecuali wrapper function + var html lokal + return.
-// ════════════════════════════════════════════════════════════════════════
-
+// ANALYZE — FORM RENDERER
 function renderDescriptiveForm(){
   const nF=numFields();
   let html='';
@@ -481,13 +474,13 @@ function renderTransformForm(){
 function renderHierarchicalRegForm(){
   const nF=numFields();
   let html='';
-    // ── Init state ──────────────────────────────────────────────────────
+    // Init state
     if(!aState.hrY) aState.hrY = nF[0]||'';
     if(!aState.hrBlocks) aState.hrBlocks = [[],[]]; // Block1, Block2 arrays
     if(!aState.hrBlocks[0]) aState.hrBlocks[0]=[];
     if(!aState.hrBlocks[1]) aState.hrBlocks[1]=[];
 
-    // ── Live preview per block ────────────────────────────────────────────
+    // Live preview per block 
     var hrPrvs = [];
     for(var bi=0; bi<aState.hrBlocks.length; bi++){
       var _cumXs = [];
@@ -791,7 +784,7 @@ function renderKappaForm(){
       }
     }
     html+='</div>';
-    // ── Interpretation card ──
+    // Interpretation card
     html+='<div class="card"><div class="sec-hd">Interpretation (Landis & Koch 1977)</div>';
     [['< 0','Poor (below chance)','tag-red'],['0.00–0.20','Slight','tag-orange'],['0.21–0.40','Fair','tag-yellow'],['0.41–0.60','Moderate','tag-purple'],['0.61–0.80','Substantial','tag-blue'],['0.81–1.00','Almost Perfect','tag-green']].forEach(function(row){
       html+='<div style="display:flex;align-items:center;gap:9px;padding:6px 10px;background:rgba(255,255,255,.018);border-radius:7px;border:1px solid rgba(255,255,255,.04);margin-bottom:4px"><span style="font-family:monospace;font-size:11px;color:#94a3b8;width:80px">'+row[0]+'</span><span class="tag '+row[2]+'">'+row[1]+'</span></div>';
@@ -907,7 +900,7 @@ function renderWeightcasesForm(){
     }
     html+='<div class="grid2">';
 
-    // ── Left: Setup ──
+    // Left: Setup
     html+='<div class="card">';
     html+='<div class="sec-hd">⚖ Weight Cases</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:13px;line-height:1.65">Pembobotan frekuensi virtual: data asli tetap ringkas, tapi semua kalkulasi statistik memperlakukan setiap baris seolah direplikasi sebanyak nilai variabel bobot. Berguna untuk data agregat (frequency table, crosstab) dan survei berbobot.</div>';
@@ -943,7 +936,7 @@ function renderWeightcasesForm(){
     html+='</div>';
     html+='</div>';
 
-    // ── Right: Preview ──
+    // Right: Preview
     html+='<div class="card"><div class="sec-hd">Preview & Diagnostics</div>';
     if(wcPreview){
       html+='<div class="stats-grid2" style="margin-bottom:12px">';
@@ -1360,7 +1353,7 @@ function renderGlmForm(){
     if(!aState.glmWithin) aState.glmWithin='';
     if(!aState.glmBetween) aState.glmBetween='';
 
-    // ─── UNIVARIATE ───────────────────────────────────────────
+    // UNIVARIATE
     if(aState.glmSubType==='univariate'){
       var glmRes=null;
       if(aState.glmDep&&aState.glmFactors.length){
@@ -1463,7 +1456,7 @@ function renderGlmForm(){
       }
     }
 
-    // ─── MULTIVARIATE (MANOVA) ─────────────────────────────────
+    // MULTIVARIATE (MANOVA)
     else if(aState.glmSubType==='multivariate'){
       if(!aState.glmMultiDeps||!aState.glmMultiDeps.length) aState.glmMultiDeps=nF.slice(0,Math.min(2,nF.length));
       var manova=null;
@@ -1541,7 +1534,7 @@ function renderGlmForm(){
       }
     }
 
-    // ─── REPEATED MEASURES ─────────────────────────────────────
+    // REPEATED MEASURES 
     else if(aState.glmSubType==='repeated'){
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Repeated Measures Setup</div>';
@@ -1584,7 +1577,7 @@ function renderHlmForm(){
   const nF=numFields(),aF=allFields();
   let html='';
 
-    // ── State init ──────────────────────────────────────────────
+    // State init 
     if(!aState.hlmDep)   aState.hlmDep   = nF[0]||'';
     if(!aState.hlmGroup) aState.hlmGroup = aF[0]||'';
     if(!aState.hlmL1Preds) aState.hlmL1Preds = [];
@@ -1592,15 +1585,10 @@ function renderHlmForm(){
     if(!aState.hlmGroup2)  aState.hlmGroup2  = aF[1]||aF[0]||'';
     if(!aState.hlmModelType) aState.hlmModelType = 'intercept'; // intercept | slopes | crosslevel
 
-    // ── Helper: compute ICC from data ─────── DIPINDAH ke
-    // js/stats-engine/stats-glm-hlm.js (B25, 2026-09-16)
-
-    // ── Compute live results ─────────────────────────────────────
+    // Compute live results
     var hlmRes=aState.hlmDep&&aState.hlmGroup?tryStats(function(){return computeHLMBasics(aState.hlmDep,aState.hlmGroup);}):null;
 
-    // ═══════════════════════════════════════════════════════════
     // SUB: ICC & Variance Partitioning
-    // ═══════════════════════════════════════════════════════════
     if(currentASub==='hlm-icc'){
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">⬡ ICC & Variance Partitioning</div>';
@@ -1656,9 +1644,7 @@ function renderHlmForm(){
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
     // SUB: Two-Level HLM
-    // ═══════════════════════════════════════════════════════════
     else if(currentASub==='hlm-2level'){
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Two-Level HLM Setup</div>';
@@ -1730,9 +1716,7 @@ function renderHlmForm(){
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
     // SUB: Three-Level HLM
-    // ═══════════════════════════════════════════════════════════
     else if(currentASub==='hlm-3level'){
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Three-Level HLM Setup</div>';
@@ -1806,7 +1790,7 @@ function renderEfaForm(){
     }
 
     html+='<div class="grid2">';
-    // ── Left: settings ──
+    // Left: settings 
     html+='<div class="card"><div class="sec-hd">Exploratory Factor Analysis</div>';
     html+='<div style="margin-bottom:10px"><label class="lbl">Variables <span style="color:#67e8f9">(select ≥2 numeric)</span></label>';
     html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;max-height:160px;overflow-y:auto">';
@@ -1839,7 +1823,7 @@ function renderEfaForm(){
     }
     html+='</div>';
 
-    // ── Right: scree plot + eigenvalues ──
+    // Right: scree plot + eigenvalues
     html+='<div class="card"><div class="sec-hd">Scree Plot</div>';
     if(efaPreview&&!efaPreview._err){
       html+=svgScreePlot(efaPreview.eigenvalues,efaPreview.nFactors);
@@ -1860,7 +1844,7 @@ function renderEfaForm(){
     }
     html+='</div></div>';
 
-    // ── Factor Loading Matrix ──
+    // Factor Loading Matrix
     if(efaPreview&&!efaPreview._err){
       html+='<div class="card"><div class="sec-hd">Factor Loading Matrix <span style="font-size:10px;font-style:normal;color:rgba(232,222,255,.35);margin-left:8px">('+efaPreview.rotation+' rotation · |loading| ≥ 0.40 highlighted)</span></div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Variable</th>';
@@ -1917,7 +1901,7 @@ function renderCfaForm(){
     }
 
     html+='<div class="grid2">';
-    // ── Left: CFA setup ──
+    // Left: CFA setup 
     html+='<div class="card"><div class="sec-hd">Confirmatory Factor Analysis (CFA)</div>';
     html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:12px;line-height:1.6">Tentukan jumlah faktor laten dan assign variabel ke masing-masing faktor. CFA akan menghitung fit indices: CFI, TLI, RMSEA, SRMR.</div>';
     // Number of factors
@@ -1950,7 +1934,7 @@ function renderCfaForm(){
     html+='<button class="btn btn-primary btn-sm" onclick="runCFA()" style="margin-top:4px">▶ Run</button>';
     html+='</div>';
 
-    // ── Right: Fit indices preview ──
+    // Right: Fit indices preview
     html+='<div class="card"><div class="sec-hd">Fit Indices (Live Preview)</div>';
     if(!cfaReady){
       html+='<div class="chart-empty" style="padding:32px 0">Assign min 2 indikator ke salah satu faktor untuk melihat fit indices.</div>';
@@ -1988,7 +1972,7 @@ function renderCfaForm(){
     }
     html+='</div></div>';
 
-    // ── Factor Loadings Table ──
+    // Factor Loadings Table
     if(cfaPreview&&!cfaPreview._err){
       var r=cfaPreview;
       html+='<div class="card"><div class="sec-hd">Factor Loadings (Standardized)</div>';
@@ -2179,7 +2163,7 @@ function renderSemForm(){
     });
     html+='</div>';
 
-    // ── MODE: MEASUREMENT ──────────────────────────────────────────────────
+    // MODE: MEASUREMENT
     if(aState.semMode==='measurement'){
       html+='<div class="grid2">';
 
@@ -2291,7 +2275,7 @@ function renderSemForm(){
       }
     }
 
-    // ── MODE: STRUCTURAL ──────────────────────────────────────────────────
+    // MODE: STRUCTURAL 
     else if(aState.semMode==='structural'){
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Structural Paths (Hubungan Antar Konstruk)</div>';
@@ -2356,7 +2340,7 @@ function renderSemForm(){
       html+='</div>';
     }
 
-    // ── MODE: RESULTS ──────────────────────────────────────────────────
+    // MODE: RESULTS
     else if(aState.semMode==='results'){
       if(!semReady){
         html+='<div class="card" style="text-align:center;padding:38px"><div style="font-size:32px;margin-bottom:9px">⬡</div><div style="color:#475569;font-size:13px">Lengkapi Measurement Model terlebih dahulu (≥2 konstruk, ≥2 indikator masing-masing).</div></div>';
@@ -2789,7 +2773,7 @@ function renderSurvivalForm(){
 
     html+='<div class="grid2">';
 
-    // ── Left: shared setup + method select ──────────────────────
+    // Left: shared setup + method select
     html+='<div style="display:flex;flex-direction:column;gap:10px">';
     html+='<div class="card"><div class="sec-hd"> Variable Setup</div>';
     html+='<div style="margin-bottom:8px"><label class="lbl">Analysis Method</label>';
@@ -2809,7 +2793,7 @@ function renderSurvivalForm(){
     html+='</div>';
     html+='</div>';
 
-    // ── Right: method-specific content ──────────────────────────
+    // Right: method-specific content
     html+='<div style="display:flex;flex-direction:column;gap:10px">';
 
     if(aState.survMethod==='km'){
@@ -3399,11 +3383,6 @@ function renderTimeseriesForm(){
     var tsPeriod= aState.tsPeriod!== undefined ? aState.tsPeriod : 12;
     var tsVals  = SE.validNums(data.map(function(r){return r[tsV];}));
     var tsN     = tsVals.length;
-
-    // tsACF, tsPACF, tsDiff, tsARIMA, tsDecomp dipindah ke
-    // js/stats-engine/stats-timeseries.js (B26) — sekarang fungsi global,
-    // dipanggil langsung di bawah tanpa ubah call-site.
-
     var tsRes = tsN>=4 ? tryStats(function(){
       if(tsMod==='arima') return tsARIMA(tsVals,tsP,tsD,tsQ);
       else return tsDecomp(tsVals,tsPeriod,tsDType);
@@ -3609,7 +3588,7 @@ function renderMetaanalysisForm(){
     html+=mkCsel('meta-effect',metaEffectOpts,metaEffectLabel,'metaSetEffect(val)','Effect Size');
     html+='</div>';
 
-    // ── Add Study ──
+    // Add Study
     html+='<div class="card"><div class="sec-hd">Tambah Studi</div>';
     html+='<div style="display:flex;flex-direction:column;gap:6px">';
     html+='<input class="inp" id="ma-name" placeholder="Nama studi (cth: Smith 2020)" value="'+escHtmlAttr(aState.metaNewStudy.name||'')+'" oninput="aState.metaNewStudy.name=this.value" style="font-size:12px"/>';
@@ -3627,7 +3606,7 @@ function renderMetaanalysisForm(){
     html+='<div style="font-size:10px;color:rgba(232,222,255,.3);line-height:1.5">vi = variance effect size = (SE)². Jika punya SE: vi = SE². Jika punya n & SD: vi ≈ 4/n (untuk d).</div>';
     html+='</div></div>';
 
-    // ── Study List ──
+    // Study List
     html+='<div class="card"><div class="sec-hd">Daftar Studi ('+aState.metaStudies.length+')</div>';
     if(!aState.metaStudies.length){
       html+='<div class="chart-empty" style="padding:18px 0">Belum ada studi. Tambah minimal 2 studi untuk analisis.</div>';
@@ -3650,7 +3629,7 @@ function renderMetaanalysisForm(){
     html+='</div>'; // end study list card
     html+='</div>'; // end left col
 
-    // ── RIGHT: Live Results + Plots ──
+    // RIGHT: Live Results + Plots
     html+='<div>';
     if(aState.metaStudies.length<2){
       html+='<div class="card"><div class="chart-empty" style="padding:40px 0;flex-direction:column;gap:10px"><div>Tambah minimal 2 studi untuk melihat hasil meta-analisis.</div></div></div>';
@@ -3794,7 +3773,7 @@ function renderASub(){
     html+=renderImputeForm();
   }
 
-  // ── MULTIPLE IMPUTATION ────────────────────────────────────────────────
+  // MULTIPLE IMPUTATION 
   else if(currentASub==='mi'){
     html+=renderMiForm();
   }
@@ -3822,9 +3801,8 @@ function renderASub(){
   else if(currentASub==='glm'||currentASub==='glm-multi'||currentASub==='glm-rep'){
     html+=renderGlmForm();
   }
-  // ══════════════════════════════════════════════════════════════
+
   // HLM – Hierarchical Linear Model
-  // ══════════════════════════════════════════════════════════════
   else if(currentASub==='hlm-2level'||currentASub==='hlm-3level'||currentASub==='hlm-icc'){
     html+=renderHlmForm();
   }
@@ -3845,54 +3823,43 @@ function renderASub(){
     html+=renderSemForm();
   }
 
-  // ══════════════════════════════════════════════════════════════
   // DISCRIMINANT ANALYSIS (LDA)
-  // ══════════════════════════════════════════════════════════════
   else if(currentASub==='discriminant'){
     html+=renderDiscriminantForm();
   }
 
-  // ══════════════════════════════════════════════════════════════
   // CLUSTER ANALYSIS (K-Means & Hierarchical)
-  // ══════════════════════════════════════════════════════════════
   else if(currentASub==='cluster'){
     html+=renderClusterForm();
   }
 
-  // ══════════════════════════════════════════════════════════════
   // MISSING DATA ANALYSIS — Little's MCAR + Pattern Matrix — badan
-  // cabang ini DIPINDAH & DIBUNGKUS jadi function renderMissingDataAnalysis()
-  // di js/data/missing-data.js (C11, split roadmap OSS 2.0). Cabang
-  // if/else-if di sini TETAP ADA (perlu tetap ada supaya renderASub()
-  // jalan benar), tapi badannya sekarang cuma 1 baris pemanggilan.
-  // ══════════════════════════════════════════════════════════════
   else if(currentASub==='missinganalysis'){
     html+=renderMissingDataAnalysis();
   }
 
 
-  // ── ROC CURVE ──────────────────────────────────────────────────────────
+  // ROC CURVE
   else if(currentASub==='roc'||currentASub==='roc_compare'){
     html+=renderRocForm();
   }
 
-  // ── SURVIVAL ANALYSIS ──────────────────────────────────────────────────
+  // SURVIVAL ANALYSIS
   else if(currentASub==='survival'||currentASub==='km'||currentASub==='logrank'||currentASub==='cox'){
     html+=renderSurvivalForm();
   }
-  // ─────────────────────────────────────────────────────────────────────
+  
+  // POWER ANALYSYS 
   else if(currentASub==='poweranalysis'||currentASub==='powerplot'||currentASub==='sensitivity'){
     html+=renderPoweranalysisForm();
   }
 
-  // ─────────────────────────────────────────────────────────────────────
   // MODERATION ANALYSIS
-  // ─────────────────────────────────────────────────────────────────────
   else if(currentASub==='moderation'||currentASub==='simpleslopes'||currentASub==='jn'){
     html+=renderModerationForm();
   }
 
-  // ── BAYESIAN ANALYSIS ──────────────────────────────────────────────────
+  // BAYESIAN ANALYSIS
   else if(currentASub==='bayesian'){
     html+=renderBayesianForm();
   }
@@ -3905,12 +3872,12 @@ function renderASub(){
     html+=renderBayesianPosteriorForm();
   }
 
-  // ── TIME SERIES (ARIMA + Decomposition) ────────────────────────────────
+  // TIME SERIES (ARIMA + Decomposition)
   else if(currentASub==='timeseries'){
     html+=renderTimeseriesForm();
   }
 
-  // ── META-ANALYSIS ─────────────────────────────────────────────────────────
+  // META-ANALYSIS
   else if(currentASub==='metaanalysis'){
     html+=renderMetaanalysisForm();
   }
@@ -3918,19 +3885,7 @@ function renderASub(){
   el.innerHTML=html;
 }
 
-
-// ════════════════════════════════════════════════════════════════════════
-// RUN ANALYSIS FUNCTIONS
-// ════════════════════════════════════════════════════════════════════════
-
-// ── Forest Plot SVG + Funnel Plot SVG (svgMetaForestPlot/svgFunnelPlot) —
-// DIPINDAH ke js/charts/forest-funnel-plot.js (E4+E5, split roadmap OSS 2.0).
-// File dimuat SEBELUM file ini — keduanya murni string builder yang baca
-// escHtml di runtime; dipanggil dari renderMetaanalysisForm (di atas) dan
-// renderOutput (app.js).
-
-
-// ── Meta-Analysis State Helpers ─────────────────────────────────────────
+// Meta-Analysis State Helpers 
 function metaSetModel(val){
   aState.metaModel=(val==='Random-Effects'?'random':'fixed');
   renderASub();

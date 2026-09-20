@@ -1,4 +1,4 @@
-// ── Forest Plot SVG ─────────────────────────────────────────────────────
+// Forest Plot SVG
 function svgMetaForestPlot(studies, res, effectType){
   var k=studies.length;
   var sd=res.studyData;
@@ -79,7 +79,7 @@ function svgMetaForestPlot(studies, res, effectType){
   return svg;
 }
 
-// ── Funnel Plot SVG ─────────────────────────────────────────────────────
+// Funnel Plot SVG 
 function svgFunnelPlot(res){
   var sd=res.studyData;
   var W=420,H=220,padL=45,padR=20,padT=20,padB=40;

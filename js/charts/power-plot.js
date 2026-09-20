@@ -1,27 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/charts/power-plot.js
-// Fitur: Power Analysis chart (E8, split roadmap OSS 2.0) — dipetakan
-// 2026-09-19, tidak ada di baseline lama, dikelompokkan bareng file
-// stats-engine pasangannya (js/stats-engine/stats-poweranalysis.js).
-// Isi:
-//   - svgPowerCurve(test,alpha,tails,W,H): kurva power vs N per grup,
-//     3 garis (small/medium/large effect) + garis referensi power=0.80.
-//     2 pemanggil: preview di renderPowerForm() (analyze-form-render.js)
-//     dan output di renderOutput() kasus 'poweranalysis' (app.js).
-//   - svgSensitivityCurve(test,alpha,power,tails,nHighlight,W,H): kurva
-//     minimum detectable effect vs N, dengan highlight titik N saat ini.
-//     1 pemanggil: preview di renderPowerForm() (analyze-form-render.js)
-//     — tidak dipakai renderOutput() di app.js (grep 2026-09-20, pola
-//     sama seperti svgSEMDiagram/E7 yang juga cuma dipakai preview).
-// Depends on: computePower() (global, sudah dipindah ke
-// js/stats-engine/stats-poweranalysis.js sebelum sesi ini — file itu
-// dimuat lebih dulu di index.html jadi aman) dan aState.pwPower
-// (svgPowerCurve saja, dibaca runtime). Tidak pakai escHtml (tidak ada
-// nama variabel/label dari data user yang dirender — 'test' dipilih
-// dari dropdown tetap berisi key internal seperti 'ttest_2samp', bukan
-// nama variabel dataset, jadi tidak masuk kategori Temuan E2/E6/E7).
-// ════════════════════════════════════════════════════════════
-
+// Power Analysis chart
 function svgPowerCurve(test,alpha,tails,W,H){
   W=W||420; H=H||220;
   var effectSets={

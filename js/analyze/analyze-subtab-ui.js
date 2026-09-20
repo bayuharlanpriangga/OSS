@@ -1,10 +1,4 @@
-// ── Analyze sub-tab state ─────────────────────────────────
-// DIPINDAH dari app.js (C2, split roadmap OSS 2.0) — var aState +
-// field helpers (numFields/allFields/isMiss/missCount). Dipindah apa
-// adanya jadi global biasa, pola sama C1: aState adalah object literal
-// murni (tidak baca `vars`/`data` sama sekali), dan numFields/allFields/
-// isMiss/missCount membaca `vars`/`data` di dalam function body
-// (runtime, bukan top-level) — aman dimuat sebelum app.js.
+// Analyze sub-tab state
 var aState = {
   // Descriptive
   dFld: '',

@@ -1,8 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/core/loading-screen.js
-// Fitur: Loading Screen dismiss logic (progress bar animasi saat boot)
-// Depends on: elemen #loading-screen, #load-bar, #load-percent di index.html
-// ════════════════════════════════════════════════════════════
 // ── LOADING SCREEN DISMISS ──
 (function(){
   var ls = document.getElementById('loading-screen');

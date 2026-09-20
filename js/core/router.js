@@ -1,16 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/core/router.js
-// Fitur: Page Router (appReady, fixed-position page isolation) + App Tab Switching
-//        + Side Nav active state + TAB_LABELS + boot sequence (gabungan A2 & A6)
-// Depends on: updateBadges() (js/ui-misc/badges.js), switchDataset/renderDsSidebar
-//   (js/data/dataset-manager.js — belum dipisah), render*(el) tiap tab (masih di app.js),
-//   loadSession() (js/session/session-save-restore.js — belum dipisah), closeCsel/closeCmd
-//   (belum dipisah), sprMode/sprBuffer (spreadsheet-mode.js — belum dipisah)
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // PAGE ROUTER — position:fixed true page isolation
-// ════════════════════════════════════════════════════════════
 var appReady=false;
 var currentTab='data';
 var currentASub='descriptive';
@@ -67,12 +55,8 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });
 
-// ════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════
 // APP TAB SWITCHING
-// ════════════════════════════════════════════════════════════
 // TAB SWITCHING + SIDE NAV ACTIVE STATE
-// ════════════════════════════════════════════════════════════
 var TAB_LABELS={'data':' Data','variable':' Variables','analyze':' Analyze',
   'syntax':' Syntax','pivot':' Pivot','ai':' AI Advisor','output':' Output'};
 

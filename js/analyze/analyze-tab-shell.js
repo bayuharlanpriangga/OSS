@@ -1,32 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
 // ANALYZE TAB SHELL — wrapper render tab Analyze: sidebar grup + daftar
-// sub-tab (renderAnalyze). Temuan yang dicatat pas C8 (split roadmap OSS
-// 2.0): fungsi ini TIDAK terdaftar di roadmap manapun (bukan C8, bukan
-// C9/sliding-pill, bukan D1) — header baseline "VARIABLE VIEW" ternyata
-// membungkus fisik sampai fungsi ini juga. Atas keputusan user, dipindah
-// jadi FILE TERPISAH (bukan digabung ke `analyze-form-render.js`/D1).
-//
-// Dipindah apa adanya (byte-exact): `function renderAnalyze(el)` — 1
-// fungsi saja, berisi definisi `GROUP_TABS` (peta sidebar grup → daftar
-// sub-tab per grup, termasuk ikon SVG & label), logika resolve grup
-// aktif (`currentGroup`/`currentASub`, fallback ke `SUB_TO_GROUP` kalau
-// sub-tab tidak cocok grup), lalu render HTML sidebar + baris sub-tab +
-// panggil `positionSubTabIndicator` (C9) dan `renderASub()` (D1, switch
-// raksasa render form per sub-tab).
-//
-// Dependency: `currentGroup` & `currentASub` — KEDUANYA var GLOBAL yang
-// TIDAK PERNAH dideklarasikan dengan `var` eksplisit di manapun di
-// app.js (cuma ditulis lewat assignment biasa, mis. `currentASub=
-// tabs[0].id;` di dalam fungsi ini sendiri) — perilaku pre-existing di
-// monolith (sama seperti ditemukan pas C9), bukan bug baru dari split
-// ini. `SUB_TO_GROUP`, `switchASub`, `renderASub` — masih didefinisikan
-// di app.js (bagian D1 yang belum dipisah). `positionSubTabIndicator` —
-// sudah di `js/analyze/analyze-subtab-ui.js` (C9). Semua dependency
-// dibaca di dalam function body (runtime, dipanggil saat tab Analyze
-// dirender) — bukan top-level saat parse — aman dimuat sbg file
-// pre-app.js lewat scope-fallback ke global, tidak ada top-level call
-// di file ini.
-// ════════════════════════════════════════════════════════════════════════
 function renderAnalyze(el){
   // Group definitions: each sidebar item maps to its own set of sub-tabs
   var GROUP_TABS={

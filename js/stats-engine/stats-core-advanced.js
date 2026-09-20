@@ -921,25 +921,8 @@ function varimaxRotate(L, p, m){
   return L;
 }
 
-// ════════════════════════════════════════════════════════════
-// Fitur (B9): MANOVA (Pillai, Wilks, Hotelling-Lawley, Roy, Box's M)
-// Depends on: isV, mean, req, lnG (stats-distributions.js);
-// f4, pFmt (stats-core-basic.js); matMul/matT/matDet/matInv (signature
-// matMul(A,B) dkk, 2D array — versi B8, sudah ada di atas di file ini),
-// jacobiEigen (juga sudah ada di atas); glmUnivariate (stats-glm-hlm.js).
-// CATATAN: chi2CDF/regularizedGammaP/regularizedGammaQ privat milik
-// manovaProper DI-RENAME jadi manovaChi2CDF/manovaRegGammaP/manovaRegGammaQ
-// (bukan cuma potong-tempel apa adanya) — supaya TIDAK menimpa fungsi
-// global chi2CDF yang sudah dipakai Bartlett's test & CFA fit index di
-// atas (baris ~589, ~775 file ini). Nilai hitung manovaProper sendiri
-// tidak berubah sama sekali, cuma nama fungsi privatnya. Lihat catatan
-// lengkap di ARCHITECTURE.md changelog B9.
-// ════════════════════════════════════════════════════════════
-  // ══════════════════════════════════════════════════════════════
-  // PROPER MANOVA — Pillai, Wilks, Hotelling-Lawley, Roy
-  // Uses H (hypothesis) and E (error) cross-product matrices
-  // Supports one between-subjects factor (one-way MANOVA)
-  // ══════════════════════════════════════════════════════════════
+  
+  // PROPER MANOVA
   function manovaProper(data, depVars, factor){
     // 1. Listwise deletion: keep rows with all DVs numeric + factor present
     var rows = data.filter(function(r){

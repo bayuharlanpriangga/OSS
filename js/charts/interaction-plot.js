@@ -1,4 +1,4 @@
-// ── Interaction Plot (Two-Way or Three-Way ANOVA) ──────────────────────
+// Interaction Plot (Two-Way or Three-Way ANOVA)
 // cellMeansTable: [{level:A_level, byB:[{level:B_level, mean, n}]}]
 // xLabel: Factor B levels (x-axis), lineLabel: Factor A levels (lines)
 function svgInteractionPlot(cellMeansTable, xLabel, lineLabel, depLabel, W, H){

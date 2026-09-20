@@ -1,37 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
-// MISSING DATA ANALYSIS — Little's MCAR Test + Pattern Matrix (C11, split
-// roadmap OSS 2.0). BEDA STRUKTUR dari C1-C10: di baseline/app.js ini
-// BUKAN fungsi berdiri sendiri, melainkan 1 cabang
-// `else if(currentASub==='missinganalysis'){...}` di tengah switch
-// raksasa `renderASub()` (D1, ~50 cabang, belum dipisah). Supaya bisa
-// dipisah tanpa merusak alur `renderASub()`, badan cabang ini DIBUNGKUS
-// jadi fungsi baru `renderMissingDataAnalysis()` yang membangun & me-
-// return string HTML-nya sendiri (var `html` lokal, bukan lagi variabel
-// bersama `renderASub()`) — SATU-SATUNYA perubahan struktural dari kode
-// aslinya; isi logika di dalamnya (kalkulasi, HTML yang dihasilkan,
-// urutan) 100% byte-exact, tidak ada yang diubah.
-//
-// Call-site di `renderASub()` (masih di app.js) juga HARUS diubah dari:
-//   else if(currentASub==='missinganalysis'){ ...263 baris kode... }
-// jadi:
-//   else if(currentASub==='missinganalysis'){ html+=renderMissingDataAnalysis(); }
-// (lihat komentar pointer yang ditinggal di app.js persis di titik ini).
-//
-// Dicek sebelum dibungkus: cabang aslinya TIDAK PERNAH membaca `html`
-// (cuma `html+=`, tidak pernah `html=` reset atau baca isi/panjang
-// `html` untuk logika apa pun) dan TIDAK memakai variabel dari scope
-// `renderASub()` lain (`nF`/`aF`/`aState` dkk sama sekali tidak dipakai
-// di cabang ini) — cuma `vars`/`data`/`escHtml` (global/lintas file) dan
-// `nF2`/`n2`/dll yang didefinisikan lokal di dalam cabang itu sendiri.
-// Karena itu membungkusnya jadi fungsi terpisah dengan `var html=''` +
-// `return html;` di akhir dijamin PERSIS SAMA perilakunya dengan
-// sebelumnya — bukan refactor, cuma perubahan bentuk pembungkus.
-//
-// Dependency (`vars`, `data`, `escHtml`) dibaca di dalam function body
-// (runtime, dipanggil dari `renderASub()` saat sub-tab "Missing Data
-// Analysis" aktif) — aman dimuat sbg file pre-app.js lewat scope-
-// fallback ke global, tidak ada top-level call di file ini.
-// ════════════════════════════════════════════════════════════════════════
+// ── Missing Data Analysis ──
 function renderMissingDataAnalysis(){
   var html='';
     var nF2=vars.filter(function(v){return v.type==='Numeric';}).map(function(v){return v.name;});

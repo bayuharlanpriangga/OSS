@@ -1,11 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/core/watercolor-bg.js
-// Fitur: Watercolor Canvas Animation (background dekoratif)
-// Depends on: elemen <canvas id="wc"> di index.html. Tidak depend ke file JS lain.
-// ════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════
 // WATERCOLOR CANVAS ANIMATION
-// ════════════════════════════════════════════════════════════
 (function(){
   var c=document.getElementById('wc'),ctx=c.getContext('2d');
   var W,H,drops=[],waves=[],pts=[];

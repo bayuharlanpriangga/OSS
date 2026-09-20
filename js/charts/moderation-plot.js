@@ -1,39 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/charts/moderation-plot.js
-// Fitur: Moderation Analysis chart (E9, split roadmap OSS 2.0) —
-// dipetakan 2026-09-19, tidak ada di baseline lama, dikelompokkan
-// bareng file stats-engine pasangannya (moderation ada di dalam
-// js/stats-engine/stats-glm-hlm.js atau file lain — cek saat E9
-// dipindah, tidak divalidasi ulang di sesi ini karena bukan bagian
-// pemindahan file ini).
-// Isi:
-//   - svgModerationPlot(res,xName,wName,yName,W,H): garis regresi X→Y
-//     pada 3 level moderator W (−1SD/Mean/+1SD) + scatter data mentah.
-//     2 pemanggil: preview di renderModerationForm() dan output di
-//     renderOutput() kasus moderation (analyze-form-render.js + app.js).
-//   - svgSimpleSlopesPlot(res,xName,wName,yName,W,H): wrapper 3 baris,
-//     langsung memanggil svgModerationPlot() dengan argumen yang sama
-//     (bukan chart terpisah, tetap 1 paket sesuai keputusan tabel E).
-//     HANYA 1 pemanggil (preview di renderModerationForm()) — tidak
-//     dipakai renderOutput() di app.js, pola sama seperti
-//     svgSEMDiagram/E7 dan svgSensitivityCurve/E8.
-//   - svgJohnsonNeymanPlot(res,xName,wName,yName,W,H): kurva simple
-//     slope vs moderator W, dengan band signifikan/tidak-signifikan dan
-//     garis vertikal titik Johnson-Neyman. 2 pemanggil: preview + output
-//     (sama seperti svgModerationPlot).
-// Depends on: escHtml() dan SE (SE.f4, SE.tP) — global, dibaca runtime,
-// aman dimuat sebelum app.js (scope-fallback ke global).
-// ✅ Temuan E9 — SUDAH DIPERBAIKI (2026-09-20, atas permintaan user;
-// pola sama seperti Temuan E2/E6/E7): di svgJohnsonNeymanPlot, `wName`
-// (nama variabel moderator, dari data user) sempat masuk teks SVG
-// (judul sumbu X) TANPA escHtml. Sekarang dibungkus escHtml(wName),
-// sama seperti `xName` di svgModerationPlot yang sudah di-escape sejak
-// awal. `yName` diterima sebagai parameter di kedua fungsi tapi TIDAK
-// PERNAH dirender ke teks SVG di salah satu fungsi (tidak ada Y axis
-// title) — jadi tidak berisiko, tidak perlu escHtml, bukan bagian
-// temuan.
-// ════════════════════════════════════════════════════════════
-
+// Moderation Analysis chart
 function svgModerationPlot(res,xName,wName,yName,W,H){
   W=W||420; H=H||220;
   var b0=parseFloat(res.coefs[0].b),b1=parseFloat(res.coefs[1].b),b2=parseFloat(res.coefs[2].b),b3_=parseFloat(res.coefs[3].b);

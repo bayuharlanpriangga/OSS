@@ -1,34 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/charts/roc-plot.js
-// Fitur: ROC chart (E10, split roadmap OSS 2.0) — dipetakan 2026-09-19,
-// tidak ada di baseline lama, dikelompokkan bareng file stats-engine
-// pasangannya (computeROC ada di js/stats-engine/stats-roc.js, B-section).
-// Isi:
-//   - svgROC(roc,W,H): kurva ROC tunggal — grid, garis diagonal referensi,
-//     area di bawah kurva (AUC fill), kurva ber-gradient (id `rocGrad`),
-//     titik cutoff optimal (Youden), label AUC + interpretasi. 2 pemanggil:
-//     preview di renderRocForm() (analyze-form-render.js) dan output di
-//     renderOutput() kasus roc (app.js).
-//   - svgROCCompare(curves,W,H): beberapa kurva ROC dalam 1 chart
-//     (maks 5 warna bergiliran), legend nama + AUC per kurva.
-//     `curves` = [{name, roc}] dengan `roc` hasil computeROC().
-//     HANYA 1 pemanggil (preview mode compare di renderRocForm()) —
-//     tidak dipakai renderOutput() di app.js, pola sama seperti
-//     svgSEMDiagram/E7, svgSensitivityCurve/E8, dan svgSimpleSlopesPlot/E9.
-// Depends on: escHtml() — global, dibaca runtime (dipanggil di svgROC untuk
-// label tick), aman dimuat sebelum app.js (scope-fallback ke global).
-// Tidak butuh SE. Tidak ada top-level call.
-// ✅ Temuan E10 — SUDAH DIPERBAIKI (2026-09-20, langsung setelah pemindahan
-// byte-exact diverifikasi; pola sama seperti Temuan E2/E6/E7/E9): di
-// svgROCCompare, `c.name` (nama variabel skor/prediktor yang dibandingkan,
-// dari data user — dibentuk di renderRocForm() dari `aState.rocCompare`)
-// sempat masuk teks legend SVG TANPA escHtml. Sekarang dibungkus
-// escHtml(c.name). svgROC tidak punya nama dari user di teks SVG:
-// `roc.auc`/`roc.aucInterp` dihasilkan computeROC() (angka terformat +
-// label tetap 'Excellent'/'Good'/'Acceptable'/'Poor'/'Fail'), tick
-// sudah escHtml sejak awal — jadi aman, bukan bagian temuan.
-// ════════════════════════════════════════════════════════════
-
+// ROC chart
 function svgROC(roc,W,H){
   W=W||380;H=H||260;
   var P={l:38,r:12,t:12,b:40};

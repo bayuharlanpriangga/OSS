@@ -1,12 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
 // HTML HELPERS
-// ════════════════════════════════════════════════════════════════════════
-// DIPINDAH dari app.js (C4, split roadmap OSS 2.0) — dipindah apa adanya
-// jadi fungsi global biasa, pola sama C1/C2. `stCard`/`mkTable` memanggil
-// `escHtml` (masih di app.js, function declaration di-hoist di scope
-// app.js sendiri) — aman karena hanya dipanggil saat render (runtime,
-// setelah app.js selesai dimuat), bukan saat parse file ini. Dimuat
-// SEBELUM app.js (kategori "1. Core & state" di index.html).
 function sigBadge(p){
   const pf=parseFloat(p);
   if(!isFinite(pf))return '';
