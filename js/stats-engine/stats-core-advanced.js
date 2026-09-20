@@ -444,7 +444,7 @@ function canonicalCorr(xNames, yNames, dataArr){
     for(var i=k;i<nRoots;i++) lambda *= (1 - canR2[i]);
     var df = (p - k) * (q - k);
     var chiSq = -(n - 1 - (p + q + 1)/2) * Math.log(Math.max(lambda, 1e-15));
-    var pVal = chiSqP(chiSq, df);
+    var pVal = chi2P(Math.max(0, chiSq), df); // F(13): dulu `chiSqP(...)` (tak terdefinisi) → Canonical Correlation selalu throw
     tests.push({
       root: k+1,
       rc: f4(canR[k]),
@@ -567,7 +567,7 @@ function efa(matrix2d, nFactors, rotation){
   if(isFinite(lnDetR)){
     chi2=-(n-1-(2*p+5)/6)*lnDetR;
     bartDf=p*(p-1)/2;
-    bartP=1-chi2CDF(chi2,bartDf);
+    bartP=chi2P(Math.max(0,chi2),bartDf); // F(14): dulu `1-chi2CDF(...)` (bare, tak terdefinisi) → EFA selalu throw
   }
 
   // 4. Eigendecomposition via power iteration (Jacobi sweep for symmetric matrix)
@@ -702,7 +702,10 @@ function cfa(dataMatrix, factorMap) {
         var eigR = jacobiEigen(subR, 60);
         var order = eigR.values.map(function(_,i){return i;}).sort(function(a,b){return eigR.values[b]-eigR.values[a];});
         var ev0 = eigR.values[order[0]];
-        var evec0 = eigR.vectors[order[0]];
+        // F(16): `jacobiEigen` mengembalikan eigenvector sebagai KOLOM (vectors[i][k]) — pola yang sama dipakai canonicalCorr.
+        // Dulu `eigR.vectors[order[0]]` (baris) → loading CFA salah (mis. -1.24). Tanda eigenvector juga sembarang → dibuat positif.
+        var evec0 = eigR.vectors.map(function(row){return row[order[0]];});
+        if(evec0.reduce(function(a,b){return a+b;},0) < 0) evec0 = evec0.map(function(x){return -x;});
         vnIdx.forEach(function(vi, ii){
           if(vi < 0) return;
           var lam = evec0[ii] * Math.sqrt(Math.max(0, ev0));
@@ -753,7 +756,7 @@ function cfa(dataMatrix, factorMap) {
   var dfModel = p*(p+1)/2 - (p*nFactors - nFactors*(nFactors-1)/2 + p);
   dfModel = Math.max(1, dfModel);
   var chiSq = (n - 1) * Fdiff;
-  var pChiSq = 1 - chi2CDF(chiSq, dfModel);
+  var pChiSq = chi2P(Math.max(0, chiSq), dfModel); // F(14): dulu `1 - chi2CDF(...)` (bare, tak terdefinisi) → CFA selalu throw
 
   // Null model chi-square (independence model: all off-diagonal = 0)
   var FNull = 0;
@@ -1159,51 +1162,7 @@ function varimaxRotate(L, p, m){
     return Math.exp(-x+a*Math.log(x)-lnG(a))*h;
   }
 
-
-// ════════════════════════════════════════════════════════════
-// [B24] Logistic Regression (Binary & Multinomial)
-// Fitur: logisticReg — IRLS untuk binary logistic regression
-// (Newton-Raphson via computeSE) dan multinomial logistic
-// regression (one-vs-rest per kategori non-referensi), termasuk
-// koefisien standar & odds ratio, Cox & Snell / Nagelkerke R²,
-// likelihood ratio chi-square test, classification accuracy.
-// Depends on: f4, f1, pFmt (sudah global sejak B2/B5, dibaca lewat
-// JS scope fallback di dalam function body — bukan lewat `SE.`
-// eksplisit, tapi tetap AMAN karena hanya dibaca saat dipanggil
-// user, bukan saat file di-parse)
-//
-// ⚠️ Temuan B24 (dicatat, tidak diperbaiki): fungsi `logisticReg`
-// ini SEBELUMNYA hidup di dalam `var SE = (() => {...})()` di
-// app.js, satu scope dengan deklarasi LOKAL `function f1(x){...}`
-// yang isinya PERSIS SAMA dengan `f1` global yang sudah dipindah
-// ke stats-core-basic.js sejak B5 (temuan duplikat `f1` di B1).
-// Karena isinya identik, memindahkan `logisticReg` keluar (jadi
-// baca `f1` global lewat scope fallback, bukan `f1` lokal lagi)
-// TIDAK mengubah perilaku sama sekali. Tapi efeknya: `function f1`
-// lokal yang tersisa di app.js (dekat awal `var SE = (()=>{...})()`)
-// sekarang jadi BENAR-BENAR dead code (sebelumnya masih dipakai
-// `logisticReg`, sekarang tidak dipakai siapapun lagi). Belum
-// dihapus — tunggu konfirmasi user, sama kasusnya dengan
-// duplikat `f1` yang sudah dicatat sejak B1.
-//
-// ⚠️ Temuan B24 lain (dicatat, TIDAK ikut dipindah dari rencana
-// tabel Bagian 3): tabel roadmap menulis "Hierarchical Regression
-// toggle helper" sebagai bagian dari B24 (target file yang sama),
-// merujuk ke fungsi `toggleHrBlock(blockIdx,field,checked)` yang
-// ada di app.js. Setelah dicek isinya, fungsi itu murni state
-// helper yang memanggil `renderASub()` (trigger re-render UI) —
-// pola PERSIS SAMA dengan `semAddLatent`/`semRemoveLatent`/dst di
-// B19 yang SENGAJA TIDAK dipindah ke stats-engine (karena itu "UI
-// state", bukan "computation"). Supaya konsisten dengan keputusan
-// B19, `toggleHrBlock` (dan `runHierarchicalReg`, UI wiring yang
-// depends `aState`/`addOutput`) TETAP DIBIARKAN di app.js, TIDAK
-// ikut dipindah ke sini — menyimpang dari teks literal tabel
-// roadmap Bagian 3, demi konsistensi pola B13/B15/B19/B21/B22.
-// Kalau user mau tetap ikuti tabel literal (pindahkan juga
-// `toggleHrBlock` ke stats-engine), tinggal bilang saja.
-// ════════════════════════════════════════════════════════════
-
-// ── Logistic Regression (Binary & Multinomial) ──
+// Logistic Regression (Binary & Multinomial)
 function logisticReg(dvName, xNames, dataArr, type) {
   type = type || 'binary';
   // Build valid cases (all fields present)
@@ -1234,7 +1193,7 @@ function logisticReg(dvName, xNames, dataArr, type) {
 
   function getX(row){ return xNames.map(function(v,i){ return (row[v]-xMeans[i])/xStds[i]; }); }
 
-  // ── Binary logistic via IRLS (Iteratively Re-weighted Least Squares) ──
+  // Binary logistic via IRLS (Iteratively Re-weighted Least Squares)
   function binaryLogistic(yBin) {
     var p = xNames.length;
     var beta = new Array(p+1).fill(0); // [intercept, b1, b2, ...]
@@ -1288,7 +1247,7 @@ function logisticReg(dvName, xNames, dataArr, type) {
     return { beta: betaOrig, betaStd: beta };
   }
 
-  // ── SE estimation via observed Fisher information (numerical) ──
+  // SE estimation via observed Fisher information (numerical)
   function computeSE(betaStd, yBin) {
     var p=xNames.length;
     var Xs=cases.map(getX);
@@ -1310,7 +1269,7 @@ function logisticReg(dvName, xNames, dataArr, type) {
     return variances;
   }
 
-  // ── Binary case ──
+  // Binary case
   if(type==='binary') {
     var yBin = cases.map(function(r){ return r[dvName]===cats[1]?1:0; });
     var fit = binaryLogistic(yBin);
@@ -1395,7 +1354,7 @@ function logisticReg(dvName, xNames, dataArr, type) {
     };
   }
 
-  // ── Multinomial case (one-vs-reference for each category) ──
+  // Multinomial case (one-vs-reference for each category)
   else {
     // Reference = cats[0], fit K-1 binary models
     var allCoefs=[];

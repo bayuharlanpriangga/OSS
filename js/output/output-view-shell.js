@@ -81,9 +81,6 @@ function _outGroups(){
   var seen=[], map={};
   outputs.forEach(function(o){
     var g=_outGroup(o);
-    // outputs[] newest-first (addOutput → unshift), jadi output pertama yang
-    // ketemu per grup = yang TERBARU. `latest` sengaja di-set sekali saja di sini.
-    // (Saat ini belum ada yang membaca field ini.)
     if(!map[g]){map[g]={key:g,count:0,latest:o.id};seen.push(g);}
     map[g].count++;
   });
@@ -160,18 +157,14 @@ function _buildInterp(o){
       :'Setelah mengontrol '+escHtml(o.pcZ)+', korelasi antara '+escHtml(o.pcX)+' dan '+escHtml(o.pcY)+' tidak signifikan (r='+r.rp+', p='+r.p_fmt+').');
   }
   if(o.type==='regression'){
-    // Keputusan signifikansi pakai r.sig (boolean, eksak dari engine) — BUKAN parseFloat(pF_fmt):
-    // pF_fmt bisa '< .001' → NaN → NaN<.05 false (model sangat signifikan salah dilaporkan tidak signifikan).
     var regSig=(typeof r.sig==='boolean')?r.sig:parseFloat(r.pF)<.05;
     return (regSig
       ?'Model regresi signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' menjelaskan '+r.R2+' varians '+escHtml(o.yF)+'. Setiap +1 '+escHtml(o.xF)+' → '+escHtml(o.yF)+' berubah '+r.b1+'.'
       :'Model regresi tidak signifikan (F p='+r.pF_fmt+'). '+escHtml(o.xF)+' tidak cukup menjelaskan varians '+escHtml(o.yF)+'.');
   }
   if(o.type==='multipleReg'){
-    // Sama seperti regression: pakai .sig (boolean); fallback ke nilai numerik p (f4), bukan p_fmt.
     var mrSig=(typeof r.sig==='boolean')?r.sig:parseFloat(r.pF)<.05;
     var sigPreds=(r.coefs||[]).filter(function(c,i){return i>0&&((typeof c.sig==='boolean')?c.sig:parseFloat(c.p)<.05);}).map(function(c){return escHtml(c.name);});
-    // r.pF sudah string hasil f4 → SE.f4(r.pF) melempar TypeError; tampilkan pF_fmt.
     return (mrSig
       ?'Model signifikan (R²='+r.R2+', p='+(r.pF_fmt||r.pF)+'). Prediktor signifikan: '+(sigPreds.length?sigPreds.join(', '):'tidak ada')+'.'
       :'Model tidak signifikan secara keseluruhan (R²='+r.R2+').');
@@ -212,9 +205,6 @@ function _buildInterp(o){
     return 'EFA mengekstrak '+nf+' faktor. Periksa loading ≥ |.40| untuk interpretasi setiap faktor. Variabel dengan cross-loading tinggi perlu diperhatikan.';
   }
   if(o.type==='mediation'){
-    // Field yang benar dari computeMediation (stats-mediation-sem.js): totalIndirect (string f4),
-    // mediators[].sobel_p, bootResults[].sig (kosong kalau bootN=0), barronKenny.p_c_prime (string f4).
-    // (Dulu membaca r.ab / r.abSig / r.c_prime_p yang tidak pernah ada → selalu "tidak signifikan".)
     var meds=(r&&r.mediators)||[];
     var boots=(r&&r.bootResults)||[];
     var ab=r&&r.totalIndirect;
@@ -231,8 +221,6 @@ function _buildInterp(o){
       :'Efek indirect tidak signifikan (ab='+ab+'). Mediasi tidak terbukti pada α=.05.');
   }
   if(o.type==='moderation'){
-    // Yang diuji = p INTERAKSI (r.interaction), bukan p model penuh (r.pF) yang jatuh ke `sig` di atas.
-    // computeModeration tidak punya r.p / r.p_fmt di level atas (dulu → "p=undefined").
     var ia=(r&&r.interaction)||{};
     var modSig=parseFloat(ia.p)<.05;
     var modP=ia.p_fmt||'n/a';
@@ -254,7 +242,7 @@ function _buildInterp(o){
   if(o.type==='hlm'){
     var icc=r&&r.ICC;
     return icc!==undefined
-      ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+escHtml(o.depVar)+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')
+      ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+escHtml(o.dep)+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')
       :'Model HLM selesai. Periksa random effects untuk variasi antar kelompok.';
   }
   if(o.type==='sem'){
