@@ -2653,7 +2653,7 @@ function renderOutput(el){
     else if(o.type==='alpha'){
       html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">'+stCard('Cronbach α',o.res.alpha,o.res.interp)+stCard('Items k',o.res.k)+stCard('Cases n',o.res.n)+'</div>';
       html+='<div class="row"><span class="tag '+(parseFloat(o.res.alpha)>=.7?'tag-green':'tag-red')+'">'+o.res.interp+' reliability</span></div>';
-      html+='<div style="margin-top:8px;font-size:11px;color:#64748b">Items: '+o.vars.join(' · ')+'</div>';
+      html+='<div style="margin-top:8px;font-size:11px;color:#64748b">Items: '+o.vars.map(escHtml).join(' · ')+'</div>';
     }
     else if(o.type==='kappa'){
       var r=o.res;
@@ -2866,7 +2866,7 @@ function renderOutput(el){
           var alphacol=parseFloat(c.alpha)>=0.7?'#34d399':parseFloat(c.alpha)>=0.6?'#fbbf24':'#f87171';
           var valid=parseFloat(c.AVE)>=0.5&&parseFloat(c.CR)>=0.7;
           html+='<tr>';
-          html+='<td class="td-label" style="color:'+col+';font-weight:700">'+c.name+'</td>';
+          html+='<td class="td-label" style="color:'+col+';font-weight:700">'+escHtml(c.name)+'</td>';
           html+='<td class="td-num">'+c.nIndics+'</td>';
           html+='<td class="td-num" style="color:'+avecol+'">'+c.AVE+'</td>';
           html+='<td class="td-num" style="color:'+crcol+'">'+c.CR+'</td>';
@@ -2887,8 +2887,8 @@ function renderOutput(el){
           var lIdx=o.latents?o.latents.indexOf(row.construct):0;
           var col=semColsPal[lIdx>=0?lIdx%semColsPal.length:0];
           html+='<tr>';
-          if(row.firstInConstruct) html+='<td class="td-label" rowspan="'+row.constructCount+'" style="color:'+col+';font-weight:800;vertical-align:top;padding-top:10px">'+row.construct+'</td>';
-          html+='<td class="td-label">'+row.indicator+'</td>';
+          if(row.firstInConstruct) html+='<td class="td-label" rowspan="'+row.constructCount+'" style="color:'+col+';font-weight:800;vertical-align:top;padding-top:10px">'+escHtml(row.construct)+'</td>';
+          html+='<td class="td-label">'+escHtml(row.indicator)+'</td>';
           html+='<td class="td-num" style="color:'+lamCol+';font-weight:'+(lamNum>=0.5?700:400)+'">'+row.lambda+'</td>';
           html+='<td class="td-num" style="color:'+(parseFloat(row.h2)>=0.4?'#a5f3fc':'#f87171')+'">'+row.h2+'</td>';
           html+='<td class="td-num" style="color:rgba(232,222,255,.5)">'+row.tvalue+'</td>';
@@ -2909,14 +2909,14 @@ function renderOutput(el){
           var fromIdx=o.latents?o.latents.indexOf(p.from):0;
           var toIdx=o.latents?o.latents.indexOf(p.to):1;
           html+='<tr>';
-          html+='<td class="td-label" style="color:'+semColsPal[fromIdx>=0?fromIdx%semColsPal.length:0]+';font-weight:700">'+p.from+'</td>';
-          html+='<td class="td-label" style="color:'+semColsPal[toIdx>=0?toIdx%semColsPal.length:1]+';font-weight:700">'+p.to+'</td>';
+          html+='<td class="td-label" style="color:'+semColsPal[fromIdx>=0?fromIdx%semColsPal.length:0]+';font-weight:700">'+escHtml(p.from)+'</td>';
+          html+='<td class="td-label" style="color:'+semColsPal[toIdx>=0?toIdx%semColsPal.length:1]+';font-weight:700">'+escHtml(p.to)+'</td>';
           html+='<td class="td-num" style="color:'+bcol+';font-weight:700">'+p.beta+'</td>';
           html+='<td class="td-num" style="color:rgba(232,222,255,.5)">'+p.se+'</td>';
           html+='<td class="td-num">'+p.t+'</td>';
           html+='<td class="td-num" style="color:'+(psig?'#34d399':'#f87171')+'">'+(psig?'<b>':'')+p.p_fmt+(psig?'</b>':'')+'</td>';
           html+='<td>'+sigBadge(p.p)+'</td>';
-          html+='<td style="font-size:11px;color:rgba(232,222,255,.55)">'+p.interpretation+'</td>';
+          html+='<td style="font-size:11px;color:rgba(232,222,255,.55)">'+escHtml(p.interpretation)+'</td>';
           html+='</tr>';
         });
         html+='</tbody></table></div>';
@@ -2929,9 +2929,9 @@ function renderOutput(el){
         r.indirectEffects.forEach(function(ie){
           var ciSig=parseFloat(ie.ci_lo)>0||parseFloat(ie.ci_hi)<0;
           html+='<tr>';
-          html+='<td class="td-label" style="color:'+semColsPal[0]+';font-weight:700">'+ie.x+'</td>';
-          html+='<td class="td-label" style="color:'+semColsPal[2]+'">'+ie.m+'</td>';
-          html+='<td class="td-label" style="color:'+semColsPal[1]+';font-weight:700">'+ie.y+'</td>';
+          html+='<td class="td-label" style="color:'+semColsPal[0]+';font-weight:700">'+escHtml(ie.x)+'</td>';
+          html+='<td class="td-label" style="color:'+semColsPal[2]+'">'+escHtml(ie.m)+'</td>';
+          html+='<td class="td-label" style="color:'+semColsPal[1]+';font-weight:700">'+escHtml(ie.y)+'</td>';
           html+='<td class="td-num" style="color:'+(Math.abs(parseFloat(ie.indirect))>=0.1?'#34d399':'#fbbf24')+'">'+ie.indirect+'</td>';
           html+='<td class="td-num" style="font-size:11px;color:'+(ciSig?'#34d399':'#f87171')+'">['+ie.ci_lo+', '+ie.ci_hi+']</td>';
           html+='<td><span class="tag" style="font-size:9px;'+(ciSig?'background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)':'background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)')+'">'+(ciSig?'✓ Signifikan':'n.s.')+'</span></td>';
@@ -2943,7 +2943,7 @@ function renderOutput(el){
       // lavaan syntax
       if(o.latents&&o.latentMap&&o.paths!==undefined){
         html+='<div class="sec-hd" style="margin-bottom:6px">lavaan / AMOS Syntax</div>';
-        html+='<textarea class="syn-area" readonly style="min-height:120px;color:#a5f3fc;font-size:10.5px">'+generateLavaanSyntax(o.latents,o.latentMap,o.paths)+'</textarea>';
+        html+='<textarea class="syn-area" readonly style="min-height:120px;color:#a5f3fc;font-size:10.5px">'+escHtml(generateLavaanSyntax(o.latents,o.latentMap,o.paths))+'</textarea>';
       }
       // Interpretation
       html+='<div class="assump" style="margin-top:10px"><b style="color:#e879f9">Interpretasi SEM:</b> '+r.overallFit+'. '

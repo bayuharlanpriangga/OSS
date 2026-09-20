@@ -725,7 +725,7 @@ function renderReliabilityForm(){
     html+='<label class="lbl" style="margin-bottom:6px">Select items (≥2 numeric):</label>';
     html+='<div style="display:flex;flex-direction:column;gap:4px;max-height:190px;overflow-y:auto;margin-bottom:11px">';
     nF.forEach(f=>{const sel=aState.alphaVars.includes(f);
-      html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(99,102,241,.07)':'transparent')+'"><input type="checkbox" data-fld="'+f+'" '+(sel?'checked':'')+' onchange="toggleAlphaVarEl(this)" style="accent-color:#818cf8"/>'+f+'</label>';
+      html+='<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px 7px;border-radius:7px;background:'+(sel?'rgba(99,102,241,.07)':'transparent')+'"><input type="checkbox" data-fld="'+escHtmlAttr(f)+'" '+(sel?'checked':'')+' onchange="toggleAlphaVarEl(this)" style="accent-color:#818cf8"/>'+escHtml(f)+'</label>';
     });
     html+='</div>';
     html+='<button class="btn btn-primary btn-sm" onclick="runAlpha()">▶ Run</button>';
@@ -1816,8 +1816,8 @@ function renderEfaForm(){
         +(sel?'background:rgba(165,243,252,.12);color:#a5f3fc;border:1px solid rgba(165,243,252,.3);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.12);')
         +'">'
         +'<input type="checkbox" '+(sel?'checked':'')
-        +' onchange="toggleEfaVar(this.dataset.fld,this.checked)" data-fld="'+f
-        +'" style="accent-color:#a5f3fc;width:12px;height:12px"/>'+f+'</label>';
+        +' onchange="toggleEfaVar(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(f)
+        +'" style="accent-color:#a5f3fc;width:12px;height:12px"/>'+escHtml(f)+'</label>';
     });
     html+='</div></div>';
     html+='<div class="row" style="gap:11px;margin-bottom:10px">';
@@ -1835,7 +1835,7 @@ function renderEfaForm(){
       html+='</div>';
     }
     if(efaPreview&&efaPreview._err){
-      html+='<div class="miss-warn" style="margin-top:10px">'+efaPreview.msg+'</div>';
+      html+='<div class="miss-warn" style="margin-top:10px">'+escHtml(efaPreview.msg)+'</div>';
     }
     html+='</div>';
 
@@ -1929,19 +1929,17 @@ function renderCfaForm(){
       html+='<div style="margin-bottom:12px;padding:10px;border-radius:8px;border:1px solid rgba(129,140,248,.18);background:rgba(129,140,248,.04)">';
       html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">';
       html+='<div style="width:8px;height:8px;border-radius:50%;background:'+factColor+';flex-shrink:0"></div>';
-      html+='<input class="inp" style="flex:1;font-weight:700;font-size:12px;padding:5px 9px" value="'+fn+'" oninput="renameCfaFactor('+fi+',this.value)" placeholder="Nama Faktor"/>';
+      html+='<input class="inp" style="flex:1;font-weight:700;font-size:12px;padding:5px 9px" value="'+escHtmlAttr(fn)+'" oninput="renameCfaFactor('+fi+',this.value)" placeholder="Nama Faktor"/>';
       html+='</div>';
-      html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-bottom:5px">Pilih indikator untuk <b style="color:'+factColor+'">'+fn+'</b> (min 2 variabel):</div>';
+      html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-bottom:5px">Pilih indikator untuk <b style="color:'+factColor+'">'+escHtml(fn)+'</b> (min 2 variabel):</div>';
       html+='<div style="display:flex;flex-wrap:wrap;gap:3px">';
       nF.forEach(function(v){
         var assigned=aState.cfaFactorMap[fn]&&aState.cfaFactorMap[fn].includes(v);
-        var safeFn=fn.replace(/'/g,"\'");
-        var safeV=v.replace(/'/g,"\'");
         html+='<label style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;cursor:pointer;font-size:11px;'
           +(assigned?'background:rgba(129,140,248,.18);color:'+factColor+';border:1px solid rgba(129,140,248,.35);':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.12);')
           +'">'
           +'<input type="checkbox" '+(assigned?'checked':'')
-          +' data-fn="'+safeFn+'" data-v="'+safeV+'" onchange="toggleCfaVar(this.dataset.fn,this.dataset.v,this.checked)" style="accent-color:'+factColor+';width:11px;height:11px"/>'+v+'</label>';
+          +' data-fn="'+escHtmlAttr(fn)+'" data-v="'+escHtmlAttr(v)+'" onchange="toggleCfaVar(this.dataset.fn,this.dataset.v,this.checked)" style="accent-color:'+factColor+';width:11px;height:11px"/>'+escHtml(v)+'</label>';
       });
       html+='</div>';
       var cnt=aState.cfaFactorMap[fn]?aState.cfaFactorMap[fn].length:0;
@@ -1957,7 +1955,7 @@ function renderCfaForm(){
     if(!cfaReady){
       html+='<div class="chart-empty" style="padding:32px 0">Assign min 2 indikator ke salah satu faktor untuk melihat fit indices.</div>';
     } else if(cfaPreview&&cfaPreview._err){
-      html+='<div class="miss-warn">'+cfaPreview.msg+'</div>';
+      html+='<div class="miss-warn">'+escHtml(cfaPreview.msg)+'</div>';
     } else if(cfaPreview){
       var r=cfaPreview;
       // Overall fit badge
@@ -2205,16 +2203,14 @@ function renderSemForm(){
         html+='<div style="margin-bottom:10px;padding:10px;border-radius:9px;border:1.5px solid '+col.replace('#','rgba(').replace(/(.{6})/,'$1,.28)')+';background:'+col.replace('#','rgba(').replace(/(.{6})/,'$1,.04)')+'">';
         html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">';
         html+='<div style="width:9px;height:9px;border-radius:50%;background:'+col+';flex-shrink:0"></div>';
-        html+='<input class="inp" style="flex:1;font-weight:700;font-size:12px;color:'+col+';padding:4px 9px;border-color:'+col.replace('#','rgba(').replace(/(.{6})/,'$1,.35)')+';" value="'+ln+'" oninput="semRenameLatent('+li+',this.value)" />';
+        html+='<input class="inp" style="flex:1;font-weight:700;font-size:12px;color:'+col+';padding:4px 9px;border-color:'+col.replace('#','rgba(').replace(/(.{6})/,'$1,.35)')+';" value="'+escHtmlAttr(ln)+'" oninput="semRenameLatent('+li+',this.value)" />';
         html+='<button onclick="semRemoveLatent('+li+')" style="background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.25);border-radius:6px;color:#f87171;cursor:pointer;padding:3px 8px;font-size:11px;font-family:Inter,sans-serif">✕</button>';
         html+='</div>';
-        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-bottom:5px">Indikator/Manifest untuk <b style="color:'+col+'">'+ln+'</b> (min 2):</div>';
+        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.35);margin-bottom:5px">Indikator/Manifest untuk <b style="color:'+col+'">'+escHtml(ln)+'</b> (min 2):</div>';
         html+='<div style="display:flex;flex-wrap:wrap;gap:3px">';
         nF.forEach(function(v){
           var sel=(aState.semLatentMap[ln]||[]).includes(v);
-          var safeLn=ln.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-          var safeV=v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-          html+='<label style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;cursor:pointer;font-size:11px;'+(sel?'background:'+col.replace('#','rgba(').replace(/(.{6})/,'$1,.18)')+';color:'+col+';border:1px solid '+col.replace('#','rgba(').replace(/(.{6})/,'$1,.4)')+'':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.12)')+'"><input type="checkbox" '+(sel?'checked':'')+' data-ln="'+safeLn+'" data-v="'+safeV+'" onchange="semToggleIndicator(this.dataset.ln,this.dataset.v,this.checked)" style="accent-color:'+col+';width:11px;height:11px"/>'+v+'</label>';
+          html+='<label style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;cursor:pointer;font-size:11px;'+(sel?'background:'+col.replace('#','rgba(').replace(/(.{6})/,'$1,.18)')+';color:'+col+';border:1px solid '+col.replace('#','rgba(').replace(/(.{6})/,'$1,.4)')+'':'background:rgba(124,58,237,.06);color:rgba(232,222,255,.4);border:1px solid rgba(124,58,237,.12)')+'"><input type="checkbox" '+(sel?'checked':'')+' data-ln="'+escHtmlAttr(ln)+'" data-v="'+escHtmlAttr(v)+'" onchange="semToggleIndicator(this.dataset.ln,this.dataset.v,this.checked)" style="accent-color:'+col+';width:11px;height:11px"/>'+escHtml(v)+'</label>';
         });
         html+='</div>';
         if(indics.length<2) html+='<div style="font-size:10px;color:#f87171;margin-top:5px">⚠ Butuh min 2 indikator</div>';
@@ -2259,7 +2255,7 @@ function renderSemForm(){
           var crcol=parseFloat(c.CR)>=0.7?'#34d399':parseFloat(c.CR)>=0.6?'#fbbf24':'#f87171';
           var alphacol=parseFloat(c.alpha)>=0.7?'#34d399':parseFloat(c.alpha)>=0.6?'#fbbf24':'#f87171';
           var valid=parseFloat(c.AVE)>=0.5&&parseFloat(c.CR)>=0.7;
-          html+='<tr><td class="td-label" style="color:'+semColors[semResult.constructs.indexOf(c)%semColors.length]+';font-weight:700">'+c.name+'</td>';
+          html+='<tr><td class="td-label" style="color:'+semColors[semResult.constructs.indexOf(c)%semColors.length]+';font-weight:700">'+escHtml(c.name)+'</td>';
           html+='<td class="td-num" style="color:'+avecol+'">'+c.AVE+'</td>';
           html+='<td class="td-num" style="color:'+crcol+'">'+c.CR+'</td>';
           html+='<td class="td-num" style="color:'+alphacol+'">'+c.alpha+'</td>';
@@ -2281,8 +2277,8 @@ function renderSemForm(){
           var constructIdx=aState.semLatents.indexOf(row.construct);
           var col=semColors[constructIdx>=0?constructIdx%semColors.length:0];
           html+='<tr>';
-          if(row.firstInConstruct) html+='<td class="td-label" rowspan="'+row.constructCount+'" style="color:'+col+';font-weight:800;vertical-align:top;padding-top:10px">'+row.construct+'</td>';
-          html+='<td class="td-label">'+row.indicator+'</td>';
+          if(row.firstInConstruct) html+='<td class="td-label" rowspan="'+row.constructCount+'" style="color:'+col+';font-weight:800;vertical-align:top;padding-top:10px">'+escHtml(row.construct)+'</td>';
+          html+='<td class="td-label">'+escHtml(row.indicator)+'</td>';
           html+='<td class="td-num" style="color:'+lamCol+';font-weight:'+(lamNum>=0.5?700:400)+'">'+row.lambda+'</td>';
           html+='<td class="td-num" style="color:'+(parseFloat(row.h2)>=0.4?'#a5f3fc':'#f87171')+'">'+row.h2+'</td>';
           html+='<td class="td-num" style="color:rgba(232,222,255,.55)">'+row.tvalue+'</td>';
@@ -2324,9 +2320,9 @@ function renderSemForm(){
             html+='<div style="display:flex;align-items:center;gap:7px;padding:8px 11px;background:rgba(232,121,249,.06);border:1px solid rgba(232,121,249,.2);border-radius:8px">';
             var fromCol=semColors[aState.semLatents.indexOf(p.from)%semColors.length]||'#e879f9';
             var toCol=semColors[aState.semLatents.indexOf(p.to)%semColors.length]||'#818cf8';
-            html+='<span style="font-weight:700;color:'+fromCol+';font-size:12px">'+p.from+'</span>';
+            html+='<span style="font-weight:700;color:'+fromCol+';font-size:12px">'+escHtml(p.from)+'</span>';
             html+='<span style="color:#e879f9;font-size:16px;font-weight:900">→</span>';
-            html+='<span style="font-weight:700;color:'+toCol+';font-size:12px;flex:1">'+p.to+'</span>';
+            html+='<span style="font-weight:700;color:'+toCol+';font-size:12px;flex:1">'+escHtml(p.to)+'</span>';
             if(semResult&&!semResult._err){
               var pathRes=semResult.paths&&semResult.paths.find(function(r){return r.from===p.from&&r.to===p.to;});
               if(pathRes){
@@ -2365,7 +2361,7 @@ function renderSemForm(){
       if(!semReady){
         html+='<div class="card" style="text-align:center;padding:38px"><div style="font-size:32px;margin-bottom:9px">⬡</div><div style="color:#475569;font-size:13px">Lengkapi Measurement Model terlebih dahulu (≥2 konstruk, ≥2 indikator masing-masing).</div></div>';
       } else if(semResult&&semResult._err){
-        html+='<div class="card"><div class="miss-warn">'+semResult.msg+'</div></div>';
+        html+='<div class="card"><div class="miss-warn">'+escHtml(semResult.msg)+'</div></div>';
       } else if(semResult){
         // Overall fit summary
         var fitCol2=semResult.overallFit==='Good Fit'?'#34d399':semResult.overallFit==='Acceptable Fit'?'#fbbf24':'#f87171';
@@ -2395,14 +2391,14 @@ function renderSemForm(){
             var fromCol=semColors[fromIdx>=0?fromIdx%semColors.length:0];
             var toCol=semColors[toIdx>=0?toIdx%semColors.length:1];
             html+='<tr>';
-            html+='<td class="td-label" style="color:'+fromCol+';font-weight:700">'+p.from+'</td>';
-            html+='<td class="td-label" style="color:'+toCol+';font-weight:700">'+p.to+'</td>';
+            html+='<td class="td-label" style="color:'+fromCol+';font-weight:700">'+escHtml(p.from)+'</td>';
+            html+='<td class="td-label" style="color:'+toCol+';font-weight:700">'+escHtml(p.to)+'</td>';
             html+='<td class="td-num" style="color:'+bcol+';font-weight:700">'+p.beta+'</td>';
             html+='<td class="td-num" style="color:rgba(232,222,255,.5)">'+p.se+'</td>';
             html+='<td class="td-num">'+p.t+'</td>';
             html+='<td class="td-num" style="color:'+(psig?'#34d399':'#f87171')+'">'+(psig?'<b>':'')+p.p_fmt+(psig?'</b>':'')+'</td>';
             html+='<td>'+sigBadge(p.p)+'</td>';
-            html+='<td style="font-size:11px;color:rgba(232,222,255,.55)">'+p.interpretation+'</td>';
+            html+='<td style="font-size:11px;color:rgba(232,222,255,.55)">'+escHtml(p.interpretation)+'</td>';
             html+='</tr>';
           });
           html+='</tbody></table></div></div>';
@@ -2415,9 +2411,9 @@ function renderSemForm(){
           semResult.indirectEffects.forEach(function(ie){
             var ciSig=parseFloat(ie.ci_lo)>0||parseFloat(ie.ci_hi)<0;
             html+='<tr>';
-            html+='<td class="td-label" style="color:'+semColors[0]+';font-weight:700">'+ie.x+'</td>';
-            html+='<td class="td-label" style="color:'+semColors[2]+'">'+ie.m+'</td>';
-            html+='<td class="td-label" style="color:'+semColors[1]+';font-weight:700">'+ie.y+'</td>';
+            html+='<td class="td-label" style="color:'+semColors[0]+';font-weight:700">'+escHtml(ie.x)+'</td>';
+            html+='<td class="td-label" style="color:'+semColors[2]+'">'+escHtml(ie.m)+'</td>';
+            html+='<td class="td-label" style="color:'+semColors[1]+';font-weight:700">'+escHtml(ie.y)+'</td>';
             html+='<td class="td-num" style="color:'+(Math.abs(parseFloat(ie.indirect))>=0.1?'#34d399':'#fbbf24')+'">'+ie.indirect+'</td>';
             html+='<td class="td-num" style="font-size:11px;color:'+(ciSig?'#34d399':'#f87171')+'">['+ie.ci_lo+', '+ie.ci_hi+']</td>';
             html+='<td><span class="tag" style="font-size:9px;'+(ciSig?'background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)':'background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)')+'">'+(ciSig?'✓ Sig':'n.s.')+'</span></td>';
@@ -2431,7 +2427,7 @@ function renderSemForm(){
         // AMOS Syntax equivalent
         html+='<div class="card"><div class="sec-hd">AMOS / lavaan Syntax Equivalent</div>';
         html+='<div style="margin-bottom:8px;font-size:11px;color:rgba(232,222,255,.4)">R lavaan syntax untuk model ini:</div>';
-        html+='<textarea class="syn-area" readonly style="min-height:160px;color:#a5f3fc;font-size:11px">'+generateLavaanSyntax(aState.semLatents,aState.semLatentMap,aState.semPaths)+'</textarea>';
+        html+='<textarea class="syn-area" readonly style="min-height:160px;color:#a5f3fc;font-size:11px">'+escHtml(generateLavaanSyntax(aState.semLatents,aState.semLatentMap,aState.semPaths))+'</textarea>';
         html+='<div style="font-size:10px;color:rgba(232,222,255,.3);margin-top:6px">Di AMOS: gunakan path diagram GUI. Di R: <code style="color:#c084fc">library(lavaan); fit &lt;- sem(model, data=df)</code></div>';
         html+='</div>';
 
