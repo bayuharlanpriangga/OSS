@@ -2705,7 +2705,7 @@ function renderOutput(el){
         html+='<td class="td-num">'+cs.recall+'</td></tr>';
       });
       html+='</tbody></table></div>';
-      html+='<div style="margin-top:8px;font-size:11px;color:#64748b">Rater 1: '+o.vars[0]+' · Rater 2: '+o.vars[1]+'</div>';
+      html+='<div style="margin-top:8px;font-size:11px;color:#64748b">Rater 1: '+escHtml(o.vars[0])+' · Rater 2: '+escHtml(o.vars[1])+'</div>';
     }
     else if(o.type==='efa'){
       var r=o.res;
