@@ -21,6 +21,9 @@
 // - (F2, DIPERBAIKI 2026-09-21) cabang 'regression'/'multipleReg' memakai parseFloat(p_fmt) → NaN untuk
 //   p<.001 ('< .001') sehingga model sangat signifikan dilaporkan tidak signifikan; SE.f4(string) juga
 //   melempar TypeError di multipleReg. Sekarang pakai .sig (boolean) dan pF_fmt untuk tampilan.
+// - (F2, DIPERBAIKI 2026-09-21) cabang 'mediation' dulu membaca r.ab/r.abSig/r.c_prime_p yang tak pernah
+//   ada (selalu "tidak signifikan"); sekarang pakai totalIndirect, bootResults[].sig / mediators[].sobel_p,
+//   barronKenny.p_c_prime. Cabang 'moderation' dulu memakai p model + "p=undefined"; sekarang p interaksi.
 // ════════════════════════════════════════════════════════════
 
 // Output tab group state
@@ -241,16 +244,33 @@ function _buildInterp(o){
     return 'EFA mengekstrak '+nf+' faktor. Periksa loading ≥ |.40| untuk interpretasi setiap faktor. Variabel dengan cross-loading tinggi perlu diperhatikan.';
   }
   if(o.type==='mediation'){
-    var ab=r&&r.ab;
-    var abSig=r&&r.abSig;
+    // Field yang benar dari computeMediation (stats-mediation-sem.js): totalIndirect (string f4),
+    // mediators[].sobel_p, bootResults[].sig (kosong kalau bootN=0), barronKenny.p_c_prime (string f4).
+    // (Dulu membaca r.ab / r.abSig / r.c_prime_p yang tidak pernah ada → selalu "tidak signifikan".)
+    var meds=(r&&r.mediators)||[];
+    var boots=(r&&r.bootResults)||[];
+    var ab=r&&r.totalIndirect;
+    var abSig=boots.length?boots.some(function(b){return b.sig;}):meds.some(function(m){return parseFloat(m.sobel_p)<.05;});
+    var abBasis=boots.length?'bootstrap CI':'uji Sobel';
+    var cpSig=parseFloat(r&&r.barronKenny&&r.barronKenny.p_c_prime)<.05;
+    var sigMed=[];
+    if(meds.length>1)meds.forEach(function(m,i){
+      var ok=boots.length?(boots[i]&&boots[i].sig):parseFloat(m.sobel_p)<.05;
+      if(ok)sigMed.push(escHtml(m.name));
+    });
     return (abSig
-      ?'Mediasi signifikan — indirect effect (ab='+ab+') berbeda dari nol berdasarkan bootstrap CI. '+(r&&parseFloat(r.c_prime_p)>=.05?'Full mediation (c\' tidak signifikan).':'Partial mediation (c\' masih signifikan).')
+      ?'Mediasi signifikan — indirect effect (ab='+ab+') berbeda dari nol berdasarkan '+abBasis+'. '+(cpSig?'Partial mediation (c\' masih signifikan).':'Full mediation (c\' tidak signifikan).')+(sigMed.length?' Mediator signifikan: '+sigMed.join(', ')+'.':'')
       :'Efek indirect tidak signifikan (ab='+ab+'). Mediasi tidak terbukti pada α=.05.');
   }
   if(o.type==='moderation'){
-    return (sig
-      ?'Efek interaksi signifikan (p='+r.p_fmt+') — hubungan antara X dan Y dimoderasi oleh W. Lihat interaction plot untuk pola.'
-      :'Efek interaksi tidak signifikan (p='+r.p_fmt+') — W tidak memoderasi hubungan X→Y.');
+    // Yang diuji = p INTERAKSI (r.interaction), bukan p model penuh (r.pF) yang jatuh ke `sig` di atas.
+    // computeModeration tidak punya r.p / r.p_fmt di level atas (dulu → "p=undefined").
+    var ia=(r&&r.interaction)||{};
+    var modSig=parseFloat(ia.p)<.05;
+    var modP=ia.p_fmt||'n/a';
+    return (modSig
+      ?'Efek interaksi signifikan (p='+modP+') — hubungan antara X dan Y dimoderasi oleh W. Lihat interaction plot untuk pola.'
+      :'Efek interaksi tidak signifikan (p='+modP+') — W tidak memoderasi hubungan X→Y.');
   }
   if(o.type==='survival'||o.type==='cox'){
     return 'Analisis survival selesai. Periksa kurva Kaplan-Meier dan hazard ratio untuk interpretasi perbedaan antar grup.';
