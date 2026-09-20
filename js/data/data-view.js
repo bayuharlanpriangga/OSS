@@ -3,7 +3,7 @@ var sortCol=null,sortDir='asc',searchQ='',selRows=new Set();
 
 var sprMode=false; // spreadsheet (bulk edit) mode
 
-// ── Windowed rendering untuk dataset besar (performa) ──────────────
+// WINDOWED RENDERING untuk dataset besar (performa)
 // Di bawah threshold ini, semua baris dirender seperti biasa (perilaku tidak berubah).
 // Di atas threshold, hanya render batch pertama + tombol "Muat lebih banyak" —
 // menghindari innerHTML raksasa untuk ribuan baris tanpa mengubah fitur edit/checkbox.

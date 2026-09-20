@@ -9,7 +9,7 @@ function renderVars(el){
   var em=_varTableEditMode;
   let html='';
 
-  // ── Missing value summary ──────────────────────────────────
+  // Missing value summary
   html+='<div class="card" style="margin-bottom:12px">';
   html+='<div class="sec-hd">Missing Value Summary</div>';
   html+='<div style="display:flex;gap:7px;flex-wrap:wrap">';
@@ -25,7 +25,7 @@ function renderVars(el){
   });
   html+='</div></div>';
 
-  // ── Variable Definitions ────────────────────────────────────
+  // Variable Definitions
   html+='<div class="card">';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
   html+='<div class="sec-hd" style="margin-bottom:0">Variable Definitions</div>';
@@ -157,7 +157,7 @@ function renderVars(el){
   el.innerHTML=html;
 }
 
-// ── Inline add var (raw blank row) ──────────────────────────
+// Inline add var (raw blank row)
 function addVarInline(){
   // Generate unique name
   var base='var',n=1;
@@ -171,7 +171,7 @@ function addVarInline(){
   showToast('Variable berhasil ditambahkan');
 }
 
-// ── Inline change handler ─────────────────────────────────────
+// Inline change handler
 function _varInlineChange(el){
   var i=parseInt(el.dataset.i);
   var fld=el.dataset.fld;
@@ -211,7 +211,7 @@ function _varInlineChange(el){
   updateBadges();
 }
 
-// ── Checkbox helpers ──────────────────────────────────────────
+// Checkbox helpers 
 function _varCheckAll(checked){
   _varChecked=new Set();
   if(checked) vars.forEach(function(_,i){_varChecked.add(i);});
@@ -258,8 +258,8 @@ function _varSyncDeleteBtn(){
   }
 }
 
-// ── Delete selected variables ─────────────────────────────────
-// ── In-web picker popup for TYPE / MEASURE / ROLE ──────────────────
+// Delete selected variables
+// In-web picker popup for TYPE / MEASURE / ROLE 
 function _varPickerOpen(triggerEl, idx, field){
   // Remove any existing picker
   var existing=document.getElementById('_var-picker-pop');
@@ -391,7 +391,7 @@ function _varDeleteSelected(){
   });
 }
 
-// ── Save / exit edit mode ────────────────────────────────────
+// Save / exit edit mode
 function _varSaveEditMode(){
   _varTableEditMode=false;
   _varChecked=new Set();
@@ -400,7 +400,7 @@ function _varSaveEditMode(){
   showToast('Variable berhasil disimpan');
 }
 
-// ── Variable editing functions ──────────────────────────────────
+// Variable editing functions
 function editVarField(i, field){
   i=parseInt(i);var v=vars[i];
   var cur=v[field]||'';

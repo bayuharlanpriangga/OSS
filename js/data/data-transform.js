@@ -1,39 +1,3 @@
-// ════════════════════════════════════════════════════════════════════════
-// TRANSFORM (COMPUTE), RECODE, FILTER CASES (C10, split roadmap OSS 2.0).
-// Dipindah sbg fungsi global apa adanya, pola sama C1-C9: `runTransform`,
-// `runCompute`, `runRecodeRange`, `runRecodeBinary`, `runRecodeExact`,
-// `safeFilter`, `applyFilter`, `var _origData`, `clearFilter`,
-// `completeCases`, `removeOutlierFilter`.
-//
-// Baseline line-range di tabel roadmap (6493–6557, 65 baris) TERNYATA
-// jauh lebih pendek dari blok fisik yang sebenarnya cocok dengan
-// deskripsi C10 (143 baris, mulai komentar "// Transform & Compute"
-// s/d akhir `removeOutlierFilter`) — kemungkinan cuma estimasi lama yang
-// sudah basi, sama seperti beberapa rentang baseline lain di split-split
-// sebelumnya (C6/C9). Isi & urutan tetap dipindah byte-exact apa adanya.
-//
-// CATATAN — ditemukan pas split ini: TEPAT SETELAH blok C10 (baris
-// ~6549 di app.js snapshot sesi ini), ada 2 kelompok fungsi lain yang
-// juga TIDAK terdaftar di roadmap manapun, dan SENGAJA TIDAK ikut
-// dipindah di sesi ini:
-//   1) `runWeightCases`/`clearWeightCases` (di bawah komentar
-//      "── WEIGHT CASES ──") — ini fungsi UI action utk fitur Weight
-//      Cases, BEDA dari C3 (Weight *helpers* seperti `getWeightedRows`,
-//      sudah selesai dipindah ke `js/data/weight-cases.js`). Kandidat
-//      target: digabung ke `weight-cases.js` yang sama (masuk akal
-//      secara nama), tapi perlu dikonfirmasi user dulu.
-//   2) `runImpute`/`imputeAllVars` (di bawah komentar "// Imputation")
-//      — fungsi UI action utk fitur Imputation, tidak ada file target
-//      di roadmap sama sekali. Kandidat: file baru `js/data/
-//      imputation.js`, atau digabung ke `data-transform.js` ini (karena
-//      sama-sama "aksi transformasi data"), tapi juga perlu dikonfirmasi.
-//
-// Dependency (`aState`, `vars`, `data`, `SE`, `isMiss`, `numFields`,
-// `showToast`, `updateBadges`, `renderASub`) semua diakses di dalam
-// function body (runtime), bukan top-level — aman dimuat sbg file
-// pre-app.js lewat scope-fallback ke global, tidak ada top-level call
-// di blok ini (`_origData` cuma deklarasi var, bukan call).
-// ════════════════════════════════════════════════════════════════════════
 // Transform & Compute
 function runTransform(){
   const fld=aState.trFld,tt=aState.trType,nn=aState.trNewName.trim();
