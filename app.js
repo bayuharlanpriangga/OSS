@@ -2883,10 +2883,10 @@ function renderModerationOutput(o){
     html+=svgJohnsonNeymanPlot(r,r.xName,r.wName,r.yName);
     if(r.jn.regions.length>0){
       html+='<div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th>JN Point</th><th>W Value</th><th>Significant Region</th><th>% Dataset</th></tr></thead><tbody>';
-      r.jn.regions.forEach(function(rp,i){html+='<tr><td class="td-label">JN-'+(i+1)+'</td><td class="td-num">'+SE.f4(rp.value)+'</td><td style="color:#c084fc;font-size:11px">'+rp.direction+'</td><td class="td-num">'+SE.f4(rp.pct)+'%</td></tr>';});
+      r.jn.regions.forEach(function(rp,i){html+='<tr><td class="td-label">JN-'+(i+1)+'</td><td class="td-num">'+SE.f4(rp.value)+'</td><td style="color:#c084fc;font-size:11px">'+rp.direction+'</td><td class="td-num">'+rp.pct+'%</td></tr>';});
       html+='</tbody></table></div>';
     } else {
-      html+='<div style="font-size:11px;color:rgba(232,222,255,.55);margin-top:5px">No JN transition points found. '+SE.f4(r.jn.pctSig)+'% of W range shows significant X&#x2192;Y relationship.</div>';
+      html+='<div style="font-size:11px;color:rgba(232,222,255,.55);margin-top:5px">No JN transition points found. '+r.jn.pctSig+'% of W range shows significant X&#x2192;Y relationship.</div>';
     }
   }
   html+='<div class="assump" style="margin-top:12px"><b style="color:#e879f9">Interpretation:</b> '+(intSig2?'Significant':'Non-significant')+' interaction b(X&#xD7;W)='+r.interaction.b+', t='+r.interaction.t+', p='+r.interaction.p_fmt+', &#x394;R&#xB2;='+r.deltaR2+'. '+(intSig2?'The effect of '+escHtml(r.xName)+' on '+escHtml(r.yName)+' is moderated by '+escHtml(r.wName)+'. Examine simple slopes and JN plot for regions of significance.':'The effect of '+escHtml(r.xName)+' on '+escHtml(r.yName)+' does not significantly differ across levels of '+escHtml(r.wName)+'.')+'</div>';

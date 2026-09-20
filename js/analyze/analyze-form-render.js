@@ -3177,13 +3177,13 @@ function renderModerationForm(){
         var jn=modPrv.jn;
         html+='<div class="stats-grid2" style="margin-bottom:12px">';
         html+=stCard('JN Point(s)',jn.regions.length>0?jn.regions.map(function(r){return SE.f4(r.value);}).join(', '):'None','W value where p=0.05');
-        html+=stCard('% W significant',SE.f4(jn.pctSig)+'%','Cases in sig region');
+        html+=stCard('% W significant',jn.pctSig+'%','Cases in sig region');
         html+='</div>';
         html+=svgJohnsonNeymanPlot(modPrv,aState.modX,aState.modW,aState.modY);
         if(jn.regions.length>0){
           html+='<div style="margin-top:10px"><div class="tbl-wrap"><table><thead><tr><th>JN Point</th><th>W Value</th><th>Sig Region</th><th>% Dataset</th></tr></thead><tbody>';
           jn.regions.forEach(function(r,i){
-            html+='<tr><td class="td-label">JN-'+(i+1)+'</td><td class="td-num">'+SE.f4(r.value)+'</td><td style="font-size:11px;color:#c084fc">'+r.direction+'</td><td class="td-num">'+SE.f4(r.pct)+'%</td></tr>';
+            html+='<tr><td class="td-label">JN-'+(i+1)+'</td><td class="td-num">'+SE.f4(r.value)+'</td><td style="font-size:11px;color:#c084fc">'+r.direction+'</td><td class="td-num">'+r.pct+'%</td></tr>';
           });
           html+='</tbody></table></div></div>';
         }

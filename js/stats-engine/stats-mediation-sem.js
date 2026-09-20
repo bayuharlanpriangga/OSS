@@ -228,7 +228,7 @@ function computeModeration(xName,wName,yName,covNames,center){
     var R2=SST>0?SSR/SST:0;
     var dfR=p2-1,dfE=n2-p2;
     var MSE=dfE>0?SSE/dfE:0,MSR=dfR>0?SSR/dfR:0;
-    var F=MSE>0?MSR/MSE:0,pF=SE.fP(F,dfR,dfE);
+    var F=MSE>0?MSR/MSE:0,pF=fP(F,dfR,dfE);
     var R2adj=1-(1-R2)*(n2-1)/(n2-p2);
     var ses=[];for(var a=0;a<p2;a++)ses.push(Math.sqrt(Math.max(0,MSE*inv[a*p2+a])));
     var ts=beta.map(function(b,a){return ses[a]>0?b/ses[a]:0;});
