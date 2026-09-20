@@ -204,7 +204,7 @@ function computeLDA(groupVar, predVars, dataArr){
 }
 
 // CLUSTER ANALYSIS (K-Means & Hierarchical)
-function computeKMeans(dataArr, varNames, k, maxIter){
+function computeKMeans(dataArr, varNames, k, maxIter, _noElbow){
   maxIter=maxIter||100;
   var f4=function(v){return isFinite(v)?+(+v).toFixed(4):NaN;};
   var isV=function(v){return typeof v==='number'&&isFinite(v);};
@@ -310,11 +310,13 @@ function computeKMeans(dataArr, varNames, k, maxIter){
     return {variable:v,F:f4(F),df1,df2,p:pval,p_fmt:isFinite(pval)?(pval<.001?'<.001':pval.toFixed(3)):'—'};
   });
 
-  // Elbow: run k=2..8 quickly (fewer iterations)
+  // Elbow: run k=2..8 quickly (fewer iterations).
+  // _noElbow=true untuk panggilan internal ini — tanpa itu tiap panggilan menjalankan
+  // elbow lagi dan rekursi tidak pernah berhenti (tab membeku).
   var elbowData=[];
-  for(var ek=2;ek<=Math.min(8,Math.floor(n/2));ek++){
+  for(var ek=2;!_noElbow&&ek<=Math.min(8,Math.floor(n/2));ek++){
     try{
-      var ekRes=computeKMeans(dataArr,varNames,ek,20);
+      var ekRes=computeKMeans(dataArr,varNames,ek,20,true);
       elbowData.push({k:ek,wss:ekRes.totalWSS});
     }catch(e){break;}
   }
