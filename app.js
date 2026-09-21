@@ -1680,7 +1680,7 @@ function renderModerationOutput(o){
 }
 
 function sigStar(p){
-  var pf=parseFloat(p);
+  var pf=parsePValue(p);
   if(!isFinite(pf)) return '';
   if(pf<.001) return '***';
   if(pf<.01)  return '**';
@@ -1693,7 +1693,7 @@ function sigStar(p){
 // sehingga SEMUA `p_fmt` engine jadi '= 0.1229189…' (regresi B5, diperbaiki 2026-09-21).
 // JANGAN dinamai ulang jadi `pFmt` lagi.
 function pFmtAPA(p){
-  var pf=parseFloat(p);
+  var pf=parsePValue(p);
   if(!isFinite(pf)) return p;
   if(pf<.001) return '< .001';
   return '= '+p;
@@ -1931,10 +1931,10 @@ function buildAPATable(o){
     lines.push(txtTable(
       ['Statistic','Value'],
       [
-        ['N',s.n],['Mean',s.mean],['Median',s.median],['SD',s.sd],
+        ['N',s.n],['Mean',s.mean],['Median',s.median],['SD',s.std],
         ['Variance',s.variance],['Min',s.min],['Max',s.max],
         ['Range',s.range],['Skewness',s.skewness],['Kurtosis',s.kurtosis],
-        ['SE Mean',s.seMean],['95% CI','['+s.ci95l+', '+s.ci95u+']'],
+        ['SE Mean',s.sem],['95% CI',s.ci95],
         ['Shapiro-Wilk W',s.shapiroW],['Shapiro-Wilk p',pFmtAPA(s.shapiroP)],
       ].filter(function(row){return row[1]!==undefined&&row[1]!==null;})
     ));
@@ -2089,7 +2089,12 @@ function buildAPATable(o){
     lines.push(txtTable(
       ['Factor','Eigenvalue','% Var','Cum %'],
       r.eigenvalues.map(function(ev,i){
-        return['F'+(i+1),ev,r.varExp[i]+'%',r.cumVar[i]+'%'];
+        // F3: r.varExp/r.cumVar hanya sepanjang nFactors (faktor yang dipertahankan);
+        // r.eigenvalues sepanjang semua variabel. Tanpa fallback, faktor yang tidak
+        // dipertahankan menulis 'undefined%'.
+        var ve=r.varExp[i]!==undefined?r.varExp[i]+'%':'—';
+        var cv=r.cumVar[i]!==undefined?r.cumVar[i]+'%':'—';
+        return['F'+(i+1),ev,ve,cv];
       })
     ));
     lines.push('');

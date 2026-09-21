@@ -1,6 +1,12 @@
 // HTML HELPERS
+function parsePValue(v){
+  if(v===undefined||v===null)return NaN;
+  if(typeof v==='number')return v;
+  var s=String(v).trim().replace(/^[<>≤≥=]\s*/,'');
+  return parseFloat(s);
+}
 function sigBadge(p){
-  const pf=parseFloat(p);
+  const pf=parsePValue(p);
   if(!isFinite(pf))return '';
   if(pf<.001)return '<span class="tag tag-pink">p &lt; .001 ***</span>';
   if(pf<.01) return '<span class="tag tag-orange">p = '+p+' **</span>';

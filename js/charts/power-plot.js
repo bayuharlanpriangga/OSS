@@ -54,7 +54,8 @@ function svgPowerCurve(test,alpha,tails,W,H,preds){
   svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   // X labels
   [10,50,100,150,200].forEach(function(n){svg+='<text x="'+tx(n)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8.5" fill="#64748b">'+n+'</text>';});
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">N per group</text>';
+  var xLabel=(test==='ttest_2samp'||test==='anova_oneway')?'N per group':'N';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+xLabel+'</text>';
   svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(-90,12,'+(P.t+ch/2)+')">Power</text>';
   return svg+'</svg>';
 }
@@ -99,7 +100,8 @@ function svgSensitivityCurve(test,alpha,power,tails,nHighlight,W,H,preds){
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>';
   [20,50,100,200,300].forEach(function(n){if(n<=Ns[Ns.length-1]) svg+='<text x="'+tx(n)+'" y="'+(H-P.b+14)+'" text-anchor="middle" font-size="8.5" fill="#64748b">'+n+'</text>';});
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">N per group</text>';
+  var xLabel2=(test==='ttest_2samp'||test==='anova_oneway')?'N per group':'N';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="#475569">'+xLabel2+'</text>';
   svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(-90,12,'+(P.t+ch/2)+')">Min Det. Effect</text>';
   return svg+'</svg>';
 }

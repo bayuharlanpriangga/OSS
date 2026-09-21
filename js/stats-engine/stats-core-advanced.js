@@ -1,4 +1,4 @@
-// ── Matrix Engine (OLS via normal equations) ────────────────────────────
+// - Matrix Engine (OLS via normal equations) -
 // Represents matrix as flat array, row-major
 // Dipakai KHUSUS oleh multipleReg di file ini (bukan oleh EFA/CFA/
 // MANOVA/canonicalCorr — mereka pakai versi 2D-array di bawah).
@@ -117,7 +117,7 @@ function multipleReg(Xnames, yName, dataArr){
     dw=den>0?num/den:NaN;
   }
 
-  // ── Breusch-Pagan heteroscedasticity test ──────────────
+  // - Breusch-Pagan heteroscedasticity test -
   // Regress squared residuals on predictors
   // BP = n * R² from auxiliary regression ~ χ²(k)
   let bpStat=NaN, bpP=NaN, bpSig=false;
@@ -149,7 +149,7 @@ function multipleReg(Xnames, yName, dataArr){
     bpSig=bpP<0.05;
   }catch(e){bpStat=NaN;bpP=NaN;}
 
-  // ── Leverage (hat values) ──────────────────────────────
+  // -  Leverage (hat values) -
   const MSE_res=SSE/Math.max(n-p,1);
   const hiiArr=Array.from({length:n},(_,i)=>{
     try{
@@ -171,7 +171,7 @@ function multipleReg(Xnames, yName, dataArr){
   const outliers2=stdRes.filter(r=>Math.abs(r)>2).length;
   const outliers3=stdRes.filter(r=>Math.abs(r)>3).length;
 
-  // ── Cook's Distance ────────────────────────────────────
+  // ─ Cook's Distance -
   const cooksD=residuals.map((r,i)=>{
     const hi=hiiArr[i];
     return MSE_res>0&&hi<1?r*r*hi/(p*MSE_res*(1-hi)*(1-hi)):0;
@@ -181,7 +181,7 @@ function multipleReg(Xnames, yName, dataArr){
   const highCooks=cooksD.filter(d=>d>cooksThr).length;
   const highLev=hiiArr.filter(h=>h>2*p/n).length;
 
-  // ── Residual normality (SW on residuals) ───────────────
+  // - Residual normality (SW on residuals) -
   let resNorm=null;
   if(residuals.length>=5&&residuals.length<=5000){
     try{resNorm=sw(residuals);}catch{}
@@ -195,7 +195,7 @@ function multipleReg(Xnames, yName, dataArr){
     return sr>0?residuals.reduce((s,r)=>s+Math.pow((r-mr)/sr,4),0)/n-3:0;
   })();
 
-  // ── Assumption Warning Engine ──────────────────────────
+  // - Assumption Warning Engine -
   const regWarnings=[];
   // VIF multicollinearity
   vif.forEach((v,i)=>{
@@ -232,7 +232,7 @@ function multipleReg(Xnames, yName, dataArr){
   if(n<p*10) regWarnings.push({level:'warn',msg:'Small sample relative to predictors (n='+n+', k='+k+'). Rule of thumb: n≥'+(p*10)+' for reliable estimates.'});
 
 
-  // ── HC3 Robust Standard Errors ─────────────────────────
+  // - HC3 Robust Standard Errors -
   const hc3SE=[];
   try{
     const meat=new Float64Array(p*p);
@@ -325,12 +325,7 @@ function repeatedMeasuresAnova(groups, labels){
   };
 }
 
-// ════════════════════════════════════════════════════════════
-// Fitur (B6 - bagian korelasi): Partial Correlation (Pearson,
-// mengontrol 1 variabel Z), Canonical Correlation.
-// ════════════════════════════════════════════════════════════
-
-// ── Partial Correlation ────────────────────────────────────
+// - Partial Correlation -
 // Pearson partial correlation between X and Y controlling for Z (one control var)
 function partialCorr(xArr, yArr, zArr){
   req(xArr.length, 5, 'Partial correlation cases');
@@ -373,7 +368,7 @@ function partialCorr(xArr, yArr, zArr){
   };
 }
 
-// ── Canonical Correlation Analysis (CCA) ─────────────────
+// - Canonical Correlation Analysis (CCA) -
 // Computes canonical correlations between two sets of variables (X-set and Y-set)
 // Uses eigendecomposition of R_xx^{-1} * R_xy * R_yy^{-1} * R_yx
 function canonicalCorr(xNames, yNames, dataArr){
@@ -501,25 +496,7 @@ function canonicalCorr(xNames, yNames, dataArr){
 }
 
 
-// ════════════════════════════════════════════════════════════
-// Fitur (B8): Exploratory Factor Analysis (EFA) — Principal Axis
-// Factoring + Varimax/Promax rotation, Confirmatory Factor Analysis
-// (CFA). Termasuk helper: kmoLabel, jacobiEigen (eigen decomposition
-// via metode Jacobi), varimaxRotate (Kaiser's algorithm).
-//
-// ⚠️ DUPLIKAT `matMul`, `matT`, `matDet`, `matInv` (signature
-// matMul(A,B) — array 2D, dipakai EFA/CFA/manovaProper) DENGAN SENGAJA
-// DIBIARKAN MENIMPA versi B3 (signature matMul(A,m,n,B,p) — flat array,
-// dipakai multipleReg) di file ini. Ini adalah REPLIKASI PERSIS dari
-// behavior yang sudah ada di app.js monolith (kedua versi di scope
-// yang sama, versi kedua/terakhir menang) — bukan bug baru akibat
-// pemisahan. Sudah dikonfirmasi user (2026-09-13): dibiarkan apa
-// adanya, jangan direname/diperbaiki saat pemisahan. Lihat catatan di
-// awal tabel Bagian 3.B ARCHITECTURE.md untuk detail penuh.
-// ════════════════════════════════════════════════════════════
-
-
-// ─── Exploratory Factor Analysis (EFA) ───────────────────────────────────
+// - Exploratory Factor Analysis (EFA) -
 // Principal Axis Factoring with Varimax/Promax rotation
 // Returns eigenvalues, factor loadings, communalities, KMO, Bartlett
 function efa(matrix2d, nFactors, rotation){
@@ -578,7 +555,11 @@ function efa(matrix2d, nFactors, rotation){
   // Sort by descending eigenvalue
   var order=eigenvalues.map(function(_,i){return i;}).sort(function(a,b){return eigenvalues[b]-eigenvalues[a];});
   var sortedEval=order.map(function(i){return eigenvalues[i];});
-  var sortedEvec=order.map(function(i){return eigenvectors[i];});
+  var sortedEvec=order.map(function(idx){
+    var col=eigenvectors.map(function(row){return row[idx];});
+    if(col.reduce(function(a,b){return a+b;},0) < 0) col=col.map(function(x){return -x;});
+    return col;
+  });
 
   // 5. Factor loading matrix: L = V * sqrt(Lambda), take first nFactors
   var loadings=[];
@@ -627,7 +608,7 @@ function efa(matrix2d, nFactors, rotation){
 }
 
 
-// ─── Confirmatory Factor Analysis (CFA) ──────────────────────────────────
+// - Confirmatory Factor Analysis (CFA) -
 // ULS (Unweighted Least Squares) estimation
 // Fit indices: Chi-Square, CFI, TLI (NNFI), RMSEA, SRMR
 // cfaFactorMap: { 'FactorName': ['var1','var2',...], ... }
@@ -731,7 +712,7 @@ function cfa(dataMatrix, factorMap) {
     }
   }
 
-  // ── Fit Indices ────────────────────────────────────────────────────────
+  // - Fit Indices -
   // SRMR: Standardized Root Mean Residual
   var srmrSum = 0, srmrCount = 0;
   for(var i = 0; i < p; i++){
@@ -1023,7 +1004,7 @@ function varimaxRotate(L, p, m){
     var dfE = n - g;      // error df
 
     // 9. F-approximations
-    // --- Pillai ---
+    // - Pillai -
     var m1 = (Math.abs(dfH-p)-1)/2;
     var n1 = (dfE-p-1)/2;
     var pillaiF=NaN, pillaiDf1=NaN, pillaiDf2=NaN, pillaiP=NaN;
@@ -1034,7 +1015,7 @@ function varimaxRotate(L, p, m){
       pillaiP = isFinite(pillaiF)&&pillaiF>0 ? 1-fCDF(pillaiF,pillaiDf1,pillaiDf2) : NaN;
     }
 
-    // --- Wilks (Rao's F-approximation) ---
+    // Wilks (Rao's F-approximation)
     var wilksF=NaN, wilksDf1=NaN, wilksDf2=NaN, wilksP=NaN;
     wilksDf1 = p * dfH;
     // Rao's approximation parameters
@@ -1049,7 +1030,7 @@ function varimaxRotate(L, p, m){
       wilksP = isFinite(wilksF)&&wilksF>0 ? 1-fCDF(wilksF,wilksDf1,wilksDf2) : NaN;
     }
 
-    // --- Hotelling-Lawley ---
+    // Hotelling-Lawley
     var hotellingF=NaN, hotellingDf1=NaN, hotellingDf2=NaN, hotellingP=NaN;
     hotellingDf1 = s * dfH;
     hotellingDf2 = s * (dfE - p - 1) + 2;
@@ -1058,7 +1039,7 @@ function varimaxRotate(L, p, m){
       hotellingP = isFinite(hotellingF)&&hotellingF>0 ? 1-fCDF(hotellingF,hotellingDf1,hotellingDf2) : NaN;
     }
 
-    // --- Roy (upper bound F, df = p, dfE-p+1) ---
+    // Roy (upper bound F, df = p, dfE-p+1)
     var royF=NaN, royDf1=NaN, royDf2=NaN, royP=NaN;
     royDf1 = Math.max(p, dfH);
     royDf2 = dfE - royDf1 + dfH;

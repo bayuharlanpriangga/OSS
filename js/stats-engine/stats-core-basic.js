@@ -301,7 +301,7 @@ function oneSampleT(arr, mu0){
   return{
     n, mean:f4(m), sd:f4(s), se:f4(se),
     mu0:f4(mu0), meanDiff:f4(m-mu0),
-    t:f4(t), df, p:pFmt(p2), p_fmt:pFmt(p2),
+    t:f4(t), df, p:f4(p2), p_fmt:pFmt(p2), sig:p2<.05,
     ci95, ciDiff,
     cohensD:f4(Math.abs(d)), dInterp:dLabel(Math.abs(d)),
     conclusion: p2<.05
@@ -362,7 +362,7 @@ function eta2CI(F,df1,df2){
   return [f4(lo),f4(hi)];
 }
 
-// ── LSD Post-hoc (Fisher's Least Significant Difference) ──
+// - LSD Post-hoc (Fisher's Least Significant Difference) -
 // Less conservative than Tukey; uses pooled MSW and t-test
 function lsdPosthoc(groups){
   req(groups.length,2,'LSD post-hoc groups');
@@ -395,7 +395,7 @@ function lsdPosthoc(groups){
   return results;
 }
 
-// ── Bonferroni Post-hoc (pairwise t-tests with Bonferroni correction) ──
+// Bonferroni Post-hoc (pairwise t-tests with Bonferroni correction)
 function bonferroniPosthoc(groups){
   req(groups.length,2,'Bonferroni post-hoc groups');
   var allVals=[].concat.apply([],groups.map(function(g){return g.vals;}));
@@ -599,13 +599,7 @@ function twowayANOVA(dataArr, depVar, factorA, factorB){
   };
 }
 
-// ════════════════════════════════════════════════════════════
-// Fitur (B11): Three-Way ANOVA (Factorial A×B×C) — Type I SS.
-// Computes: A, B, C, A×B, A×C, B×C, A×B×C, Error, plus sparse-cell
-// 3-tier warning system (empty cells hard-stop, singleton cells caution).
-// Depends on: isV, req, mean, fCDF (stats-distributions.js), f4, pFmt
-// (sudah ada di file ini dari B1/B5).
-// ════════════════════════════════════════════════════════════
+// Three-Way ANOVA (Factorial A×B×C) — Type I SS.
 function threewayANOVA(dataArr, depVar, factorA, factorB, factorC){
   var rows = dataArr.filter(function(r){
     return isV(Number(r[depVar])) &&
@@ -679,7 +673,7 @@ function threewayANOVA(dataArr, depVar, factorA, factorB, factorC){
   var ssABC = ssABCcells - ssA - ssB - ssC - ssAB - ssAC - ssBC;
   var dfABC = dfA*dfB*dfC;
 
-  // ── SPARSE CELL ANALYSIS: 3-tier warning system ─────────────────────
+  // SPARSE CELL ANALYSIS: 3-tier warning system
   var totalCells = levA.length * levB.length * levC.length;
   var emptyCells = [], singletonCells = [];
   levA.forEach(function(a){ levB.forEach(function(b){ levC.forEach(function(c){

@@ -2957,7 +2957,8 @@ function renderPoweranalysisForm(){
 
       // N input (when solving for power/effect/alpha)
       if(pw.pwSolve!=='n'){
-        html+='<div style="margin-bottom:9px"><label class="lbl">Sample Size (N per group)</label>';
+        var _pwIsGrouped=(pw.pwTest==='ttest_2samp'||pw.pwTest==='anova_oneway');
+        html+='<div style="margin-bottom:9px"><label class="lbl">'+(_pwIsGrouped?'Sample Size (N per group)':'Sample Size (N)')+'</label>';
         html+='<input type="number" class="inp" value="'+(pw.pwN||30)+'" min="3" max="10000" oninput="aState.pwN=parseInt(this.value)||30" onblur="renderASub()" style="margin-top:5px;width:130px" placeholder="N"/>';
         html+='</div>';
       }
@@ -2977,12 +2978,12 @@ function renderPoweranalysisForm(){
       html+='<div class="card"><div class="sec-hd">Results</div>';
       if(pwRes&&!pwRes.err){
         html+='<div class="stats-grid2" style="margin-bottom:12px">';
-        html+=stCard('Sample Size (N)',pwRes.n,'Per group');
+        html+=stCard('Sample Size (N)',pwRes.n,pwRes.groups>1?'Per group':'');
         html+=stCard('Power (1−β)',SE.f4(pwRes.power),pwRes.powerInterp);
         html+=stCard('Alpha (α)',SE.f4(pwRes.alpha),'Type I error');
         html+=stCard(effectLabels[pw.pwTest||'ttest_2samp'],SE.f4(pwRes.effect),pwRes.effectInterp);
         html+='</div>';
-        if(pwRes.totalN) html+='<div style="padding:8px 11px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;font-size:12px;color:#34d399;margin-bottom:10px"><b>Total N needed: '+pwRes.totalN+'</b> ('+pwRes.groups+' groups × '+pwRes.n+' per group)</div>';
+        if(pwRes.totalN) html+='<div style="padding:8px 11px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;font-size:12px;color:#34d399;margin-bottom:10px"><b>Total N needed: '+pwRes.totalN+'</b>'+(pwRes.groups>1?' ('+pwRes.groups+' groups × '+pwRes.n+' per group)':'')+'</div>';
         var pwr=parseFloat(pwRes.power);
         var pwCol=pwr>=0.9?'#34d399':pwr>=0.8?'#fbbf24':'#f87171';
         html+='<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(232,222,255,.5);margin-bottom:4px"><span>Power</span><span style="color:'+pwCol+'">'+SE.f4(pwr*100)+'%</span></div>';
@@ -3017,7 +3018,7 @@ function renderPoweranalysisForm(){
       html+=svgPowerCurve(pw.pwTest||'ttest_2samp',parseFloat(pw.pwAlpha)||0.05,parseInt(pw.pwTails||2),undefined,undefined,parseInt(pw.pwPreds||1));
       html+='</div>';
       html+='<div class="card"><div class="sec-hd">N Table — Required Sample Size</div>';
-      html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:10px">N per group untuk tiap kombinasi power dan effect size (α='+pw.pwAlpha+')</div>';
+      html+='<div style="font-size:11px;color:rgba(232,222,255,.4);margin-bottom:10px">'+((pw.pwTest==='ttest_2samp'||pw.pwTest==='anova_oneway')?'N per group':'N')+' untuk tiap kombinasi power dan effect size (α='+pw.pwAlpha+')</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Effect Size</th><th>Power 70%</th><th>Power 80%</th><th>Power 90%</th><th>Power 95%</th></tr></thead><tbody>';
       var convRef2=effectConventions[pw.pwTest||'ttest_2samp']||['0.2','0.5','0.8'];
       convRef2.forEach(function(eff,ei){
@@ -3038,7 +3039,7 @@ function renderPoweranalysisForm(){
       html+='<div>';
       html+=mkOptCsel('pw-test-sens', testOptions.map(function(t){return{val:t,label:testLabels[t]};}), pw.pwTest||'ttest_2samp', 'aState.pwTest=_cR["pw-test-sens"]._vals[_cR["pw-test-sens"].fields.indexOf(val)];renderASub()', 'Test Type', true);
       html+='</div>';
-      html+='<div><label class="lbl">N per group</label><input type="number" class="inp" style="margin-top:5px" value="'+(pw.pwN||30)+'" min="3" max="10000" oninput="aState.pwN=parseInt(this.value)||30" onblur="renderASub()" placeholder="N"/></div>';
+      html+='<div><label class="lbl">'+((pw.pwTest==='ttest_2samp'||pw.pwTest==='anova_oneway')?'N per group':'N')+'</label><input type="number" class="inp" style="margin-top:5px" value="'+(pw.pwN||30)+'" min="3" max="10000" oninput="aState.pwN=parseInt(this.value)||30" onblur="renderASub()" placeholder="N"/></div>';
       html+='</div>';
       html+='<div class="grid2" style="margin-bottom:10px">';
       html+='<div>';
@@ -3055,13 +3056,13 @@ function renderPoweranalysisForm(){
 
       if(mde&&!mde.err){
         html+='<div class="stats-grid2" style="margin:12px 0">';
-        html+=stCard('N per group',pw.pwN,'Input');
+        html+=stCard((pw.pwTest==='ttest_2samp'||pw.pwTest==='anova_oneway')?'N per group':'N',pw.pwN,'Input');
         html+=stCard('MDE',SE.f4(mde.effect),effectLabels[pw.pwTest||'ttest_2samp']);
         html+=stCard('Power',SE.f4(mde.power*100)+'%','');
         html+=stCard('Alpha',pw.pwAlpha,'');
         html+='</div>';
         html+='<div style="padding:10px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18);border-radius:8px;font-size:11.5px;color:rgba(232,222,255,.7);line-height:1.65">';
-        html+='Dengan N='+pw.pwN+' per grup, studi Anda dapat mendeteksi effect size ≥ <b style="color:#c084fc">'+SE.f4(mde.effect)+'</b> ('+effectLabels[pw.pwTest||'ttest_2samp']+') pada power '+SE.f4(parseFloat(pw.pwPower)*100)+'% dan α='+pw.pwAlpha+'.';
+        html+='Dengan N='+pw.pwN+(pw.pwTest==='ttest_2samp'||pw.pwTest==='anova_oneway'?' per grup':'')+', studi Anda dapat mendeteksi effect size ≥ <b style="color:#c084fc">'+SE.f4(mde.effect)+'</b> ('+effectLabels[pw.pwTest||'ttest_2samp']+') pada power '+SE.f4(parseFloat(pw.pwPower)*100)+'% dan α='+pw.pwAlpha+'.';
         var convRef3=effectConventions[pw.pwTest||'ttest_2samp']||['0.2','0.5','0.8'];
         var mdeV=parseFloat(mde.effect);
         if(mdeV<=parseFloat(convRef3[0])) html+=' Cukup sensitif untuk mendeteksi efek kecil.';

@@ -96,7 +96,8 @@ function _interpBox(text){
 // Build interpretation string per output type
 function _buildInterp(o){
   var r=o.res;
-  var p=r?parseFloat(r.p||r.p_fmt||r.pF||r.lrP||1):1;
+  var p=r?parsePValue(r.p!==undefined?r.p:(r.p_fmt!==undefined?r.p_fmt:(r.pF!==undefined?r.pF:(r.lrP!==undefined?r.lrP:1)))):1;
+  if(!isFinite(p))p=1;
   var sig=p<.05;
 
   if(o.type==='descriptive'){
@@ -189,11 +190,6 @@ function _buildInterp(o){
       ?'Terdapat perbedaan signifikan antara dua kondisi (W='+r.Wplus+', p='+r.p_fmt+').'
       :'Tidak terdapat perbedaan signifikan antara dua kondisi (p='+r.p_fmt+').');
   }
-  if(o.type==='chiSquare'||o.type==='nonparam'){
-    return (sig
-      ?'Terdapat hubungan signifikan antar variabel (χ²='+r.chi2+', p='+r.p_fmt+'). Kekuatan asosiasi V='+r.V+' ('+r.Vinterp+').'
-      :'Tidak terdapat hubungan signifikan antar variabel (χ²='+r.chi2+', p='+r.p_fmt+').');
-  }
   if(o.type==='alpha'){
     return 'Cronbach α='+r.alpha+' ('+r.interp+'). '+(parseFloat(r.alpha)>=.7?'Reliabilitas internal diterima.':'Reliabilitas di bawah standar minimum (α < .70).');
   }
@@ -236,7 +232,7 @@ function _buildInterp(o){
     var aucInterp=auc>.9?'excellent':auc>.8?'good':auc>.7?'fair':auc>.6?'poor':'tidak informatif';
     return 'AUC='+auc+' ('+aucInterp+'). '+(auc>.7?'Model memiliki kemampuan diskriminasi yang memadai.':'Kemampuan diskriminasi model terbatas.');
   }
-  if(o.type==='bayesian'||o.type==='bayes_ttest'){
+  if(o.type==='bayes_ttest'){
     return 'Interpretasi Bayesian: BF₁₀ > 3 menunjukkan dukungan moderat untuk H₁; BF₁₀ < 1/3 mendukung H₀. Posterior distribution merangkum estimasi parameter.';
   }
   if(o.type==='hlm'){
@@ -276,9 +272,6 @@ function _buildInterp(o){
     return lastBlock
       ?'Model final (Block '+lastBlock.block+'): R²='+lastBlock.R2+'. ΔR² setiap blok menunjukkan kontribusi inkremental prediktor baru.'
       :'Hierarchical regression selesai. Bandingkan ΔR² antar blok untuk menilai kontribusi setiap set prediktor.';
-  }
-  if(o.type==='corrmatrix'){
-    return 'Matriks korelasi selesai. Perhatikan korelasi tinggi (|r| > .70) yang bisa mengindikasikan multikollinearitas jika variabel digunakan bersama dalam regresi.';
   }
   return null;
 }

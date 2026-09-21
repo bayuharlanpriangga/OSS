@@ -221,6 +221,7 @@ function computePower(test,alpha,power,effect,groups,tails,solve,nInput,preds){
 
   if(test==='ttest_2samp'||test==='ttest_1samp'||test==='ttest_paired'){
     var nFactor=test==='ttest_2samp'?2:1;
+    groups=nFactor;
     if(solve==='n'){
       if(!effect||effect<=0) throw new Error('Effect size must be > 0');
       n=solveN_ttest(Math.abs(effect),alpha,power,tails);
@@ -267,6 +268,7 @@ function computePower(test,alpha,power,effect,groups,tails,solve,nInput,preds){
     effInterp=Math.abs(eff||0)<0.1?'Negligible':Math.abs(eff||0)<0.25?'Small':Math.abs(eff||0)<0.4?'Medium':'Large';
   }
   else if(test==='correlation'){
+    groups=1; // F3: korelasi tidak punya konsep grup — bawaan UI=2 bikin label/kalimat salah
     if(solve==='n'){
       if(!effect||Math.abs(effect)>=1) throw new Error('r must be between -1 and 1');
       n=solveN_corr(Math.abs(effect),alpha,power,tails);
@@ -288,6 +290,7 @@ function computePower(test,alpha,power,effect,groups,tails,solve,nInput,preds){
   else if(test==='regression_r2'){
     // f² = R²/(1-R²); u = jumlah prediktor (input UI 'pwPreds', default 1)
     var u=Math.max(1,Math.floor(parseInt(preds,10))||1);
+    groups=1; // F3: regresi tidak punya konsep grup — bawaan UI=2 bikin label/kalimat salah
     if(solve==='n'){
       if(!effect||effect<=0) throw new Error('Cohen\'s f² must be > 0');
       n=searchN(function(nn){return solvePower_reg(effect,alpha,nn,u);},power,u+2,'');
