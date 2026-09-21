@@ -378,6 +378,13 @@
        apa pun urutannya, tapi ditaruh di kategori Output yang sama. -->
   <script src="js/output/apa-copy.js"></script>
 
+  <!-- 4e. Export layer (G1, 2026-09-21): Export Word (.doc) — _exportSingleOutput
+       (build & download satu output). Hanya fungsi, tanpa top-level call;
+       dependency (outputs, data, vars, showToast, _buildSingleOutputHTML,
+       _wordCSS) dibaca runtime — aman dimuat sebelum app.js. G2/G3/G6/G7
+       nantinya menyusul di file yang sama. -->
+  <script src="js/export/export-word.js"></script>
+
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
