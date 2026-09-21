@@ -372,6 +372,12 @@
        per-tipe output) nantinya menyusul di file yang sama. -->
   <script src="js/output/output-view-shell.js"></script>
 
+  <!-- 4d. Output layer lanjutan (F7, 2026-09-21): APA table copy — sigStar,
+       pFmtAPA, buildAPATable, copyAPA, fallbackCopy; hanya dipanggil dari
+       onclick string ("copyAPA(...)") jadi aman resolve scope-fallback
+       apa pun urutannya, tapi ditaruh di kategori Output yang sama. -->
+  <script src="js/output/apa-copy.js"></script>
+
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
