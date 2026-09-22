@@ -378,12 +378,20 @@
        apa pun urutannya, tapi ditaruh di kategori Output yang sama. -->
   <script src="js/output/apa-copy.js"></script>
 
-  <!-- 4e. Export layer (G1, 2026-09-21): Export Word (.doc) — _exportSingleOutput
-       (build & download satu output). Hanya fungsi, tanpa top-level call;
-       dependency (outputs, data, vars, showToast, _buildSingleOutputHTML,
-       _wordCSS) dibaca runtime — aman dimuat sebelum app.js. G2/G3/G6/G7
-       nantinya menyusul di file yang sama. -->
+  <!-- 4e. Export layer (G1-G3, 2026-09-21/22): Export Word (.doc) —
+       _exportSingleOutput (G1), _buildSingleOutputHTML+helper (G2),
+       _getChartSVGForExport (G3). Hanya fungsi, tanpa top-level call;
+       dependency (outputs, data, vars, showToast, svgHistogram/svgQQ/
+       svgBoxplot/svgScatter) dibaca runtime — aman dimuat sebelum app.js.
+       G6/G7 nantinya menyusul di file yang sama. -->
   <script src="js/export/export-word.js"></script>
+
+  <!-- 4f. Export layer lanjutan (G4, 2026-09-22): Per-Output Export
+       Dialog — _exportOutputDialog. Hanya fungsi, tanpa top-level call;
+       dependency (outputs, escHtml, document, _exportSingleOutput dari
+       export-word.js, exportWordDialog dari app.js/G5) dibaca runtime —
+       aman dimuat sebelum app.js walau exportWordDialog masih di sana. -->
+  <script src="js/export/export-dialog.js"></script>
 
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
