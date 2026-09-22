@@ -2202,64 +2202,11 @@ function _doExportExcel(){
 // dipindah ke js/export/export-dialog.js (append, file sama dengan G4)
 // ═════════════════════════════════════════════════════════════════
 
-// ── Build & download selected outputs as .doc ─────────────────
-function _exportBulkWord(ids, mode){
-  var selected=outputs.filter(function(o){return ids.indexOf(o.id)!==-1;});
-  if(!selected.length){showToast('Tidak ada output yang dipilih','error');return;}
+// ═════════════════════════════════════════════════════════════════
+// G6: _exportBulkWord (Build & download selected outputs as .doc, bulk)
+// dipindah ke js/export/export-word.js (append, file sama dengan G1-G3)
+// ═════════════════════════════════════════════════════════════════
 
-  // Group selected for nice document structure
-  var groups={}, groupOrder=[];
-  var SUB_LABEL_MAP={
-    ttest:'Independent T-Test', onesamp:'One-Sample T-Test', paired:'Paired T-Test',
-    anova:'One-Way ANOVA', anova2:'Two-Way ANOVA', anova3:'Three-Way ANOVA',
-    rmanova:'Repeated Measures ANOVA', glm:'General Linear Model', manova:'MANOVA', repeated:'Repeated Mixed ANOVA',
-    correlation:'Pearson Correlation', partialCorr:'Partial Correlation', canonicalCorr:'Canonical Correlation', corrmatrix:'Correlation Matrix',
-    regression:'Simple Regression', multipleReg:'Multiple Regression', hierarchicalReg:'Hierarchical Regression',
-    logistic:'Logistic Regression', poisson:'Poisson Regression', negbin:'Negative Binomial',
-    nonparam:'Non-Parametric Test', mannwhitney:'Mann-Whitney U', kruskal:'Kruskal-Wallis', wilcoxon:'Wilcoxon Signed-Rank', chiSquare:'Chi-Square',
-    descriptive:'Descriptive Statistics',
-    alpha:'Cronbach Alpha', kappa:'Cohen Kappa',
-    efa:'Exploratory Factor Analysis', cfa:'Confirmatory Factor Analysis',
-    cluster:'Cluster Analysis', discriminant:'Discriminant Analysis',
-    timeseries:'Time Series / ARIMA', survival:'Kaplan-Meier Survival', cox:'Cox Regression',
-    roc:'ROC Analysis', moderation:'Moderation', mediation:'Mediation',
-    mi:'Missing Data Analysis', poweranalysis:'Power Analysis', metaanalysis:'Meta-Analysis',
-    sem:'SEM', hlm:'HLM', crosstab:'Crosstab', reliability:'Reliability'
-  };
-
-  selected.forEach(function(o){
-    var grp=_outGroup(o);
-    if(!groups[grp]){groups[grp]=[];groupOrder.push(grp);}
-    groups[grp].push(o);
-  });
-
-  var html='';
-  html+='<h1>OSS Analysis Report</h1>';
-  html+='<p class="meta">Generated: '+new Date().toLocaleString()+'&nbsp;&nbsp;|&nbsp;&nbsp;N = '+data.length+' cases&nbsp;&nbsp;|&nbsp;&nbsp;'+selected.length+' outputs selected</p>';
-  html+='<hr style="border:none;border-top:1px solid #d4d4d4;margin:10pt 0"/>';
-
-  groupOrder.forEach(function(grp){
-    var outs=groups[grp];
-    // Group heading
-    html+='<h1 style="font-size:14pt;color:#4a0072;border-bottom:2px solid #7c3aed;padding-bottom:4pt;margin-top:20pt;margin-bottom:6pt">'+_escHtml(grp)+'</h1>';
-
-    outs.forEach(function(o,i){
-      html+=_buildSingleOutputHTML(o, mode);
-    });
-  });
-
-  var preHtml="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='UTF-8'><title>OSS Report</title><style>"+_wordCSS()+"</style></head><body>";
-  var postHtml="</body></html>";
-  var fullHtml=preHtml+html+postHtml;
-  var blob=new Blob([fullHtml],{type:'application/msword'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  a.download='OSS_Report_'+new Date().toISOString().slice(0,10)+'.doc';
-  a.click();
-  setTimeout(function(){URL.revokeObjectURL(url);},2000);
-  showToast('Export berhasil');
-}
 
 // EXPORT TO WORD (.docx via HTML→Blob)
 // ════════════════════════════════════════════════════════════
