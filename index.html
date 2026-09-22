@@ -386,11 +386,14 @@
        G6/G7 nantinya menyusul di file yang sama. -->
   <script src="js/export/export-word.js"></script>
 
-  <!-- 4f. Export layer lanjutan (G4, 2026-09-22): Per-Output Export
-       Dialog — _exportOutputDialog. Hanya fungsi, tanpa top-level call;
-       dependency (outputs, escHtml, document, _exportSingleOutput dari
-       export-word.js, exportWordDialog dari app.js/G5) dibaca runtime —
-       aman dimuat sebelum app.js walau exportWordDialog masih di sana. -->
+  <!-- 4f. Export layer lanjutan (G4-G5, 2026-09-22): Per-Output Export
+       Dialog (_exportOutputDialog) + Export Word Dialog bulk
+       (exportWordDialog). Hanya fungsi, tanpa top-level call;
+       dependency (outputs, escHtml, document, showToast,
+       _exportSingleOutput dari export-word.js, _outGroup/_outGroupColor/
+       _outGroupIcon dari output-view-shell.js, _exportBulkWord dari
+       app.js/G6) dibaca runtime — aman dimuat sebelum app.js walau
+       _exportBulkWord masih di sana. -->
   <script src="js/export/export-dialog.js"></script>
 
   <!-- 5. Sisa monolith (belum dipisah semua) -->
