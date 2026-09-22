@@ -299,3 +299,49 @@ function _wordGenericRes(res){
   return html;
 }
 
+// Get chart SVG string for a given output
+function _getChartSVGForExport(o){
+  try{
+    if(o.type==='descriptive'&&o.field){
+      return svgHistogram(data,o.field,520,200)+'<div style="font-size:9pt;color:#64748b;margin:6px 0 4px">Normal Q-Q Plot</div>'+svgQQ(data,o.field,520,200);
+    }
+    else if((o.type==='ttest'||o.type==='anova')&&o.depV&&o.grpV){
+      return svgBoxplot(data,o.depV,o.grpV,520,200);
+    }
+    else if(o.type==='anova'&&o.avV&&o.avG){
+      return svgBoxplot(data,o.avV,o.avG,520,200);
+    }
+    else if(o.type==='correlation'&&(o.crX||o.varX)&&(o.crY||o.varY)){
+      return svgScatter(data,o.crX||o.varX,o.crY||o.varY,520,220);
+    }
+    else if((o.type==='regression'||o.type==='multipleReg')&&o.xF&&o.yF){
+      return svgScatter(data,o.xF,o.yF,520,220);
+    }
+    else if(o.type==='paired'&&o.varA&&o.varB){
+      return svgScatter(data,o.varA,o.varB,520,220);
+    }
+    else if(o.type==='rmanova'&&o.res&&o.res.tMeans){
+      var r=o.res;
+      var rMns=r.tMeans.map(parseFloat);
+      var rmx=Math.max.apply(null,rMns),rmn=Math.min.apply(null,rMns),rng=rmx-rmn||1;
+      var svgW=400,svgH=160,pL=42,pB=28,pT=16,pR=16;
+      var pW=svgW-pL-pR,pH=svgH-pB-pT;
+      var rmPts=rMns.map(function(m,i){return{x:pL+i/(Math.max(rMns.length-1,1))*pW,y:pT+pH-(((m-rmn)/(rng||1))*(pH*0.85)+0.075*pH),m:m,lb:r.labels[i]};});
+      var poly=rmPts.map(function(p){return p.x+','+p.y;}).join(' ');
+      var svg='<svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;max-width:480px;height:auto">';
+      svg+='<rect x="0" y="0" width="'+svgW+'" height="'+svgH+'" fill="#faf5ff" rx="6"/>';
+      svg+='<polyline points="'+poly+'" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      rmPts.forEach(function(p){
+        svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="5" fill="#7c3aed" opacity="0.85"/>';
+        svg+='<text x="'+p.x+'" y="'+(svgH-6)+'" text-anchor="middle" font-size="9" fill="#475569">'+p.lb+'</text>';
+        svg+='<text x="'+p.x+'" y="'+(p.y-10)+'" text-anchor="middle" font-size="8.5" fill="#5b21b6">'+p.m+'</text>';
+      });
+      svg+='<line x1="'+pL+'" y1="'+pT+'" x2="'+pL+'" y2="'+(svgH-pB)+'" stroke="#94a3b8"/>';
+      svg+='<line x1="'+pL+'" y1="'+(svgH-pB)+'" x2="'+(svgW-pR)+'" y2="'+(svgH-pB)+'" stroke="#94a3b8"/>';
+      svg+='</svg>';
+      return svg;
+    }
+  }catch(e){}
+  return null;
+}
+
