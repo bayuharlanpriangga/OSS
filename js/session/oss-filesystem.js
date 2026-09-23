@@ -1,17 +1,8 @@
-// ════════════════════════════════════════════════════════════
-// FILE SYSTEM — Save/Open .oss files (penelitian project file)
-// Uses File System Access API when available (Chrome/Edge),
-// falls back to download/upload on Firefox/Safari.
-// (H6-H9, 2026-09-23; dirty-flag/ossSnapshot/ossRestore ada di
-// js/session/session-save-restore.js — H3-H5, file terpisah)
-// ════════════════════════════════════════════════════════════
 
 var _ossFileHandle = null;       // File System Access API handle (if granted)
 var _ossFileName   = null;       // current open filename (display only)
 
-// ════════════════════════════════════════════════════════════
 // SAVE TO FILE
-// ════════════════════════════════════════════════════════════
 async function saveToFile(){
   try {
     var snap = ossSnapshot();
@@ -68,9 +59,8 @@ async function saveToFileAs(){
   await saveToFile();
 }
 
-// ════════════════════════════════════════════════════════════
+
 // IMPORT / OPEN FILE
-// ════════════════════════════════════════════════════════════
 async function importFromFile(){
   // Warn user if there's unsaved local data
   var hasCurrent = (data && data.length > 0) || (outputs && outputs.length > 0);

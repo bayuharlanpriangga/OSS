@@ -1,29 +1,3 @@
-// ════════════════════════════════════════════════════════════════════════
-// OUTPUT RENDER — BASIC (E3 + F3, split roadmap OSS 2.0)
-// ────────────────────────────────────────────────────────────────────────
-// Isi file:
-//   E3  renderAnovaTable(effects, error, total) — tabel sumber variansi
-//       Two-Way / Three-Way ANOVA.
-//   F3  renderOutBasic_<tipe>(o) — 21 fungsi render detail per-tipe output,
-//       dipindah dari cabang if/else di dalam renderOutput() (app.js):
-//       descriptive, ttest, paired, rmanova, onesamp, anova, anova2, anova3,
-//       correlation, partialCorr, canonicalCorr, regression, multipleReg,
-//       hierarchicalReg, logistic, mannwhitney, kruskal, wilcoxon, glm,
-//       poisson (juga negbin), manova.
-//
-// Kontrak F3: tiap fungsi menerima 1 objek output `o` dan MENGEMBALIKAN string
-// HTML isi kartu (di bawah header kartu). Badan fungsi = isi cabang lama apa
-// adanya (byte-exact); satu-satunya tambahan: `var html='';` di awal dan
-// `return html;` di akhir. Dispatcher (rantai if/else per `o.type`, termasuk
-// kondisi seperti `&&o.res`) MASIH di renderOutput() app.js — cabang HLM dst.
-// (F4/F5) belum dipindah, jadi rantainya belum bisa pindah utuh.
-//
-// Dependency (semua global, dibaca saat runtime — tidak ada top-level call,
-// aman dimuat sebelum app.js): stCard, mkTable, sigBadge (html-helpers.js),
-// escHtml, data (app.js/dataset-manager.js), SE, svg* chart (js/charts/*),
-// renderAnovaTable (di file ini), pFmt/f4 helper engine.
-// ════════════════════════════════════════════════════════════════════════
-
 // ANOVA Source Table renderer
 function renderAnovaTable(effects, error, total){
   var h='<div class="tbl-wrap"><table><thead><tr>';
@@ -50,10 +24,6 @@ function renderAnovaTable(effects, error, total){
   h+='</tbody></table></div>';
   return h;
 }
-
-// ════════════════════════════════════════════════════════════════════════
-// F3 — renderOutput() basic: satu fungsi per tipe output
-// ════════════════════════════════════════════════════════════════════════
 
 // o.type==='descriptive'  (app.js baris 1455–1470 sebelum F3)
 function renderOutBasic_descriptive(o){

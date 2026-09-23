@@ -1,6 +1,4 @@
-// ════════════════════════════════════════════════════════════
 // SESSION + EXPORT
-// ════════════════════════════════════════════════════════════
 function saveSession(){
   try{
     _dsSyncSave(); // push globals → active dataset object
@@ -68,11 +66,8 @@ function generateAPAReport(){
   showToast('Report berhasil diexport');
 }
 
-// ════════════════════════════════════════════════════════════
+
 // SESSION SNAPSHOT — dirty-flag tracking + build/restore snapshot
-// (H3/H4/H5, 2026-09-23; _ossFileHandle/_ossFileName ada di
-// js/session/oss-filesystem.js — H6-H9, file terpisah)
-// ════════════════════════════════════════════════════════════
 var _ossUnsaved    = false;      // dirty flag
 
 // ── Dirty-flag tracking: mark unsaved on any data/output change ──
