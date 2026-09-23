@@ -67,3 +67,83 @@ function generateAPAReport(){
   URL.revokeObjectURL(url);
   showToast('Report berhasil diexport');
 }
+
+// ════════════════════════════════════════════════════════════
+// SESSION SNAPSHOT — dirty-flag tracking + build/restore snapshot
+// (H3/H4/H5, 2026-09-23; _ossFileHandle/_ossFileName ada di
+// js/session/oss-filesystem.js — H6-H9, file terpisah)
+// ════════════════════════════════════════════════════════════
+var _ossUnsaved    = false;      // dirty flag
+
+// ── Dirty-flag tracking: mark unsaved on any data/output change ──
+(function(){
+  var _origAdd = window.addOutput;
+  var _patchInterval = setInterval(function(){
+    // Patch addOutput
+    if(typeof window.addOutput === 'function' && window.addOutput !== _origAdd){
+      _origAdd = window.addOutput;
+    }
+    var origAdd = window.addOutput;
+    if(origAdd && !origAdd._ossDirtyPatched){
+      window.addOutput = function(){
+        origAdd.apply(this, arguments);
+        ossMarkUnsaved();
+      };
+      window.addOutput._ossDirtyPatched = true;
+    }
+    // Patch handleCSV completion
+    clearInterval(_patchInterval);
+  }, 800);
+
+  // Also mark dirty on data changes via interval
+  setInterval(function(){
+    if(data && data.length > 0) ossMarkUnsaved();
+  }, 60000); // gentle reminder every 60s if data exists
+})();
+
+function ossMarkUnsaved(){
+  if(_ossFileName){
+    _ossUnsaved = true;
+    var el = document.getElementById('oss-unsaved-dot');
+    if(el) el.classList.add('visible');
+  }
+}
+
+function ossMarkSaved(){
+  _ossUnsaved = false;
+  var el = document.getElementById('oss-unsaved-dot');
+  if(el) el.classList.remove('visible');
+}
+
+function ossUpdateFileBar(name){
+  _ossFileName = name;
+  ossMarkSaved();
+}
+
+// ── Build the session snapshot (same structure as saveSession) ──
+function ossSnapshot(){
+  _dsSyncSave();
+  return {
+    _ossVersion: 1,
+    _savedAt: new Date().toISOString(),
+    _appName: 'OSS — Orias Statistik System',
+    datasets: datasets,
+    activeDatasetId: activeDatasetId
+  };
+}
+
+// ── Restore snapshot (same as loadSession but from object) ──
+function ossRestore(snap){
+  if(!snap || !snap.datasets) throw new Error('Format file tidak dikenali (.oss)');
+  datasets = snap.datasets;
+  activeDatasetId = snap.activeDatasetId || (datasets[0] && datasets[0].id) || 1;
+  _dsSyncLoad();
+  updateBadges();
+  renderDsSidebar();
+  // Re-render current view
+  if(typeof renderASub === 'function') renderASub();
+  if(typeof renderOutput === 'function'){
+    var el = document.getElementById('app-content');
+    if(el && currentTab === 'output') renderOutput(el);
+  }
+}
