@@ -396,6 +396,13 @@
        _exportBulkWord masih di sana. -->
   <script src="js/export/export-dialog.js"></script>
 
+  <!-- 4g-2. Export Excel (G8, 2026-10-04): exportToExcel/_doExportExcel
+       (SheetJS dimuat dinamis dari cdnjs saat tombol ditekan). Dependency
+       (outputs, data, vars, showToast, window.XLSX) dibaca runtime di dalam
+       function body — aman dimuat sebelum app.js. Dibungkus popup loader
+       oleh activity-loading-popup.js (SESUDAH app.js) lewat window.exportToExcel. -->
+  <script src="js/export/export-excel.js"></script>
+
   <!-- 4g. Session layer (H1, 2026-09-23): saveSession/loadSession +
        autosave interval (localStorage) + exportDataCSV + generateAPAReport
        — digabung 1 file karena sejak awal memang 1 kelompok "SESSION +
@@ -445,6 +452,13 @@
        semua fungsi tujuan dibaca runtime saat item diklik — aman dimuat
        sebelum app.js. Dipakai router.js (Ctrl+K) & custom-select.js (Esc). -->
   <script src="js/ui-misc/cmd-palette.js"></script>
+
+  <!-- 4m. UI misc (I6, 2026-10-04): PWA — registrasi Service Worker,
+       install prompt (beforeinstallprompt/appinstalled), installPWA(),
+       dismissPWABanner(). Hanya butuh DOM + showToast (dibaca runtime di
+       dalam handler) — aman dimuat sebelum app.js. installPWA/
+       dismissPWABanner dipanggil lewat onclick inline di index.html. -->
+  <script src="js/ui-misc/pwa-install.js"></script>
 
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>

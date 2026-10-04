@@ -144,6 +144,7 @@ function handleOSSImport(evt){
       window.saveSession = function(){
         // Still save to localStorage (backup), then also trigger file save
         _orig();
+        ossMarkSaved(); // 2026-10-04: sebelumnya tidak dipanggil → titik "belum tersimpan" tidak pernah hilang
         // Don't auto-trigger file picker on autosave
       };
     }

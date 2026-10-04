@@ -40,8 +40,8 @@ function computeROC(dataArr,probVar,trueVar,posClass){
     curve.push({t:t===(-Infinity)?0:t,tpr:tpr,fpr:fpr,ppv:ppv,npv:npv,f1:f1,tp:tp,fp:fp,tn:tn,fn:fn,youden:tpr+(1-fpr)-1});
   });
   // Ensure (0,0) and (1,1)
-  if(curve[0].fpr!==0||curve[0].tpr!==0) curve.unshift({t:Infinity,tpr:0,fpr:0,ppv:1,npv:1,f1:0});
-  curve.push({t:-1,tpr:1,fpr:1});
+  if(curve[0].fpr!==0||curve[0].tpr!==0) curve.unshift({t:Infinity,tpr:0,fpr:0,ppv:1,npv:1,f1:0,youden:0}); // youden:0 ditambah 2026-10-04 — tanpa field ini reduce Youden selalu berhenti di titik ini (optThresh 'N/A')
+  curve.push({t:-1,tpr:1,fpr:1,youden:0});
 
   // AUC via trapezoidal rule
   var auc=0;

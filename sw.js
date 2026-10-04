@@ -9,7 +9,7 @@ const CACHE_NAME = 'oss-v5'; // v5 (2026-09-21): fix — semua *.js kini network
 // ✅ DIPERBAIKI: base path DIHITUNG DINAMIS dari scope registrasi service
 // worker (bukan di-hardcode '/OSS/'). `self.registration.scope` selalu
 // berupa URL folder tempat sw.js didaftarkan (lihat `register('./sw.js')`
-// di app.js — scope default = folder sw.js itu sendiri), jadi otomatis
+// di js/ui-misc/pwa-install.js — scope default = folder sw.js itu sendiri), jadi otomatis
 // menyesuaikan di manapun repo ini di-deploy: '/OSS/' kalau tetap di sini,
 // '/' kalau suatu saat pindah jadi user/org page, atau '/nama-lain/' kalau
 // repo di-rename/di-fork — tanpa perlu ubah kode ini sama sekali.
