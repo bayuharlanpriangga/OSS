@@ -356,6 +356,13 @@
        aman dimuat sebelum app.js. -->
   <script src="js/analyze/analyze-form-helpers.js"></script>
 
+  <!-- 4a'. Analyze layer (ARB & ARA, 2026-10-04): analyze-run-basic.js & analyze-run-advanced.js
+       Handler eksekusi analisis dasar & lanjutan (run*). Semua dependency (SE, data, vars,
+       aState, runSafe, addOutput) dibaca runtime di dalam function body saat tombol ditekan
+       — aman dimuat sebelum app.js. -->
+  <script src="js/analyze/analyze-run-basic.js"></script>
+  <script src="js/analyze/analyze-run-advanced.js"></script>
+
   <!-- 4b. Output layer (E3, 2026-09-19): renderAnovaTable = murni string
        builder, tanpa dependency & tanpa top-level call — aman dimuat sebelum
        app.js. F3 (renderOutput basic) nantinya menyusul di file yang sama. -->

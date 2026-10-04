@@ -275,3 +275,263 @@ function _buildInterp(o){
   }
   return null;
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// OUTPUT DISPATCHER & ACTIONS (dipindah dari app.js, 2026-10-04)
+// ════════════════════════════════════════════════════════════════════════
+function renderOutput(el){
+  if(!outputs.length){
+    el.innerHTML='<div class="card" style="text-align:center;padding:48px"><div style="color:rgba(232,222,255,.4);font-size:14px">No outputs yet.<br><span style="font-size:12px;opacity:.6">Run an analysis and results will appear here.</span></div></div>';
+    return;
+  }
+
+  var groups=_outGroups();
+  var em=_outMode;
+  var ag=_outActiveGroup;
+  var html='';
+
+  // ── Top toolbar ──────────────────────────────────────────────────────
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">';
+  html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+  // Mode toggle pills
+  html+='<div style="display:flex;background:rgba(14,6,24,.7);border:1px solid rgba(124,58,237,.22);border-radius:8px;padding:2px;gap:2px">';
+  html+='<button onclick="_outMode=\'all\';_outActiveGroup=null;renderTab(\'output\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-family:Inter,sans-serif;font-weight:600;transition:.15s;'+(em==='all'?'background:rgba(124,58,237,.45);color:#e8deff':'background:transparent;color:rgba(232,222,255,.4)')+'">☰ All</button>';
+  html+='<button onclick="_outMode=\'group\';_outActiveGroup=null;renderTab(\'output\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-family:Inter,sans-serif;font-weight:600;transition:.15s;'+(em==='group'&&!ag?'background:rgba(124,58,237,.45);color:#e8deff':'background:transparent;color:rgba(232,222,255,.4)')+'">▤ Groups</button>';
+  html+='</div>';
+  // Grid layout picker
+  var gridOpts=[{c:1,lbl:'1×1'},{c:2,lbl:'1×2'},{c:3,lbl:'2×2'},{c:4,lbl:'2×3'},{c:5,lbl:'2×4'},{c:6,lbl:'3×3'},{c:7,lbl:'3×4'},{c:8,lbl:'4×4'}];
+  html+='<div style="display:flex;background:rgba(14,6,24,.7);border:1px solid rgba(124,58,237,.18);border-radius:8px;padding:2px;gap:1px;align-items:center">';
+  html+='<span style="font-size:9px;padding:3px 6px 3px 7px;background:rgba(124,58,237,.4);color:#e8deff;border-radius:5px;white-space:nowrap;letter-spacing:.4px;font-weight:700;text-transform:uppercase;border:1px solid rgba(124,58,237,.35);margin-right:2px">Grid</span>';
+  gridOpts.forEach(function(g){
+    var active=_outGrid===g.c;
+    html+='<button onclick="_outGrid='+g.c+';renderTab(\'output\')" style="padding:4px 7px;border-radius:5px;border:none;cursor:pointer;font-size:10px;font-family:Inter,sans-serif;font-weight:700;white-space:nowrap;transition:.12s;'+(active?'background:rgba(124,58,237,.5);color:#e8deff':'background:transparent;color:rgba(232,222,255,.3)')+'" title="'+g.lbl+' grid">'+g.lbl+'</button>';
+  });
+  html+='</div>';
+  // Breadcrumb when inside a group
+  if(em==='group'&&ag){
+    var crCol=_outGroupColor(ag);
+    html+='<div style="display:flex;align-items:center;gap:6px">';
+    html+='<button onclick="_outActiveGroup=null;renderTab(\'output\')" style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.22);border-radius:6px;padding:4px 9px;color:#c084fc;font-size:11px;cursor:pointer">← All Groups</button>';
+    html+='<span style="font-size:12px;font-weight:700;color:'+crCol+';display:flex;align-items:center;gap:5px">'+_outGroupIcon(ag)+' '+ag+'</span>';
+    html+='</div>';
+  }
+  html+='</div>';
+  // Right: count + clear
+  html+='<div style="display:flex;align-items:center;gap:6px">';
+  html+='<span style="font-size:10.5px;color:rgba(232,222,255,.3)">'+outputs.length+' result'+(outputs.length>1?'s':'')+'</span>';
+  html+='<button onclick="ossDialog({type:\'delete\',title:\'Clear All Outputs\',msg:\'Hapus semua hasil analisis?\',okLabel:\'Clear All\',onOk:function(){outputs.length=0;updateBadges();renderTab(\'output\');}})" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.22);border-radius:6px;padding:4px 9px;color:#f87171;font-size:11px;cursor:pointer">Clear All</button>';
+  html+='</div>';
+  html+='</div>';
+
+  // ── GROUP VIEW: preview grid ─────────────────────────────────────────
+  if(em==='group' && !ag){
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">';
+    groups.forEach(function(g){
+      var col=_outGroupColor(g.key);
+      var grpOuts=outputs.filter(function(o){return _outGroup(o)===g.key;});
+      // Derive a solid background from col (sidebar-like, not transparent)
+      html+='<div onclick="_outActiveGroup=\'' + g.key.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\';renderTab(\'output\')" ';
+      html+='style="cursor:pointer;background:rgba(14,6,28,.97);border:1px solid '+col+'45;border-top:3px solid '+col+';border-radius:12px;padding:14px 16px;transition:.18s;position:relative;box-shadow:0 2px 18px rgba(0,0,0,.45),inset 0 0 0 1px '+col+'10">';
+      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">';
+      html+='<span style="color:'+col+';display:flex">'+_outGroupIcon(g.key)+'</span>';
+      html+='<span style="font-size:13px;font-weight:700;color:#e8deff">'+g.key+'</span>';
+      html+='<span style="margin-left:auto;background:'+col+'30;color:'+col+';border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;border:1px solid '+col+'40">'+g.count+'</span>';
+      html+='</div>';
+      grpOuts.slice(0,2).forEach(function(o){
+        html+='<div style="font-size:10.5px;color:rgba(232,222,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+escHtml(o.title)+'</div>';
+      });
+      if(g.count>2) html+='<div style="font-size:10px;color:rgba(232,222,255,.25);margin-top:2px">+'+(g.count-2)+' more…</div>';
+      html+='<div style="font-size:9.5px;color:rgba(232,222,255,.2);margin-top:8px">Latest: '+new Date(grpOuts[0].id).toLocaleTimeString()+'</div>';
+      html+='<div style="position:absolute;bottom:10px;right:12px;font-size:10.5px;color:'+col+';opacity:.8">View →</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+    el.innerHTML=html;
+    return;
+  }
+
+  // ── ALL VIEW or GROUP DETAIL VIEW: render cards ──────────────────────
+  var toShow=outputs;
+  if(em==='group'&&ag){
+    toShow=outputs.filter(function(o){return _outGroup(o)===ag;});
+    // Sub-label chips
+    var subTitles=[];
+    toShow.forEach(function(o){if(subTitles.indexOf(o.title)===-1)subTitles.push(o.title);});
+    if(subTitles.length>1){
+      var col2=_outGroupColor(ag);
+      html+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;padding:10px;background:rgba(14,6,24,.5);border-radius:8px;border:1px solid '+col2+'18">';
+      html+='<span style="font-size:10px;color:rgba(232,222,255,.3);align-self:center;margin-right:4px">Tests:</span>';
+      subTitles.forEach(function(sub){
+        var cnt=toShow.filter(function(o){return o.title===sub;}).length;
+        html+='<div style="background:rgba(14,6,24,.7);border:1px solid '+col2+'25;border-radius:6px;padding:4px 10px;font-size:10.5px;color:rgba(232,222,255,.65);display:flex;align-items:center;gap:5px">';
+        html+=escHtml(sub);
+        if(cnt>1) html+='<span style="background:'+col2+'22;color:'+col2+';border-radius:999px;padding:0 6px;font-size:9.5px;font-weight:700">×'+cnt+'</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+  }
+
+  // Grid wrapper — cols based on _outGrid
+  var _gridColsMap=[1,2,2,2,2,3,3,4];
+  var _cols=_gridColsMap[(_outGrid-1)%8]||1;
+  var _gridStyle=_cols===1
+    ?'display:flex;flex-direction:column;gap:10px'
+    :'display:grid;grid-template-columns:repeat('+_cols+',1fr);gap:10px;align-items:start';
+  html+='<div style="'+_gridStyle+'">';
+
+  toShow.forEach(function(o){
+    var grpColor=_outGroupColor(_outGroup(o));
+    var _isCompact=_cols>1;
+    html+='<div class="card" style="border-top:2px solid '+grpColor+'35;margin-bottom:0;overflow:hidden'+ (_isCompact?';min-width:0':'')+'">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:6px">';
+    html+='<div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1">';
+    html+='<span style="background:'+grpColor+'18;color:'+grpColor+';border:1px solid '+grpColor+'30;border-radius:5px;padding:1px 7px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0">'+_outGroup(o)+'</span>';
+    html+='<div class="sec-hd" style="margin-bottom:0;overflow:hidden;text-overflow:ellipsis;white-space:'+ (_isCompact?'nowrap':'normal')+'">'+escHtml(o.title)+'</div>';
+    html+='</div>';
+    html+='<div class="row" style="gap:5px;flex-wrap:wrap;flex-shrink:0">';
+    html+='<span style="font-size:9.5px;color:#334155">'+new Date(o.id).toLocaleTimeString()+'</span>';
+    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA">Copy APA</button>';
+    html+='<button class="btn btn-ghost btn-sm" style="padding:3px 9px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:#c084fc;font-size:11px;font-weight:600" onclick="_exportOutputDialog('+o.id+')">⬇ Export</button>';
+    html+='<button class="btn btn-ghost btn-sm" style="padding:3px 8px" onclick="removeOutput('+o.id+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    html+='</div>';
+    html+='</div>';
+    if(o.type==='descriptive'){
+      html+=renderOutBasic_descriptive(o);
+    }
+    else if(o.type==='ttest'){
+      html+=renderOutBasic_ttest(o);
+    }
+    else if(o.type==='paired'){
+      html+=renderOutBasic_paired(o);
+    }
+    else if(o.type==='rmanova'&&o.res){
+      html+=renderOutBasic_rmanova(o);
+    }
+    else if(o.type==='onesamp'){
+      html+=renderOutBasic_onesamp(o);
+    }
+    else if(o.type==='anova'){
+      html+=renderOutBasic_anova(o);
+    }
+    else if(o.type==='anova2'){
+      html+=renderOutBasic_anova2(o);
+    }
+    else if(o.type==='anova3'){
+      html+=renderOutBasic_anova3(o);
+    }
+    else if(o.type==='correlation'){
+      html+=renderOutBasic_correlation(o);
+    }
+    else if(o.type==='partialCorr'){
+      html+=renderOutBasic_partialCorr(o);
+    }
+    else if(o.type==='canonicalCorr'){
+      html+=renderOutBasic_canonicalCorr(o);
+    }
+    else if(o.type==='regression'){
+      html+=renderOutBasic_regression(o);
+    }
+    else if(o.type==='multipleReg'){
+      html+=renderOutBasic_multipleReg(o);
+    }
+    else if(o.type==='hierarchicalReg'&&o.res){
+      html+=renderOutBasic_hierarchicalReg(o);
+    }
+    else if(o.type==='logistic'){
+      html+=renderOutBasic_logistic(o);
+    }
+    else if(o.type==='mannwhitney'){
+      html+=renderOutBasic_mannwhitney(o);
+    }
+    else if(o.type==='kruskal'){
+      html+=renderOutBasic_kruskal(o);
+    }
+    else if(o.type==='wilcoxon'){
+      html+=renderOutBasic_wilcoxon(o);
+    }
+    else if(o.type==='glm'){
+      html+=renderOutBasic_glm(o);
+    }
+    else if(o.type==='poisson'||o.type==='negbin'){
+      html+=renderOutBasic_poisson(o);
+    }
+    else if(o.type==='manova'){
+      html+=renderOutBasic_manova(o);
+    }
+    else if(o.type==='hlm'){
+      html+=renderOutAdv_hlm(o);
+    }
+    else if(o.type==='alpha'){
+      html+=renderOutAdv_alpha(o);
+    }
+    else if(o.type==='kappa'){
+      html+=renderOutAdv_kappa(o);
+    }
+    else if(o.type==='efa'){
+      html+=renderOutAdv_efa(o);
+    }
+    else if(o.type==='cfa'){
+      html+=renderOutAdv_cfa(o);
+    }
+    else if(o.type==='sem'){
+      html+=renderOutAdv_sem(o);
+    }
+    else if(o.type==='mediation'){
+      html+=renderOutAdv_mediation(o);
+    }
+    else if(o.type==='discriminant'&&o.res){
+      html+=renderOutAdv_discriminant(o);
+    }
+    else if(o.type==='cluster'&&o.res){
+      html+=renderOutAdv_cluster(o);
+    }
+    else if(o.type==='poweranalysis'&&o.res){
+      html+=renderPowerOutput(o);
+    }
+    else if(o.type==='moderation'&&o.res){
+      html+=renderModerationOutput(o);
+    }
+    else if(o.type==='mi'&&o.res){
+      html+=renderOutAdv_mi(o);
+    }
+    else if(o.type==='roc'&&o.res){
+      html+=renderOutAdv_roc(o);
+    }
+    else if(o.type==='survival'&&o.res){
+      html+=renderOutAdv_survival(o);
+    }
+    else if(o.type==='cox'&&o.res){
+      html+=renderOutAdv_cox(o);
+    }
+    else if(o.type==='bayes_ttest'&&o.res){
+      html+=renderOutAdv_bayes_ttest(o);
+    }
+    else if(o.type==='bayes_corr'&&o.res){
+      html+=renderOutAdv_bayes_corr(o);
+    }
+    else if(o.type==='bayes_posterior'&&o.res){
+      html+=renderOutAdv_bayes_posterior(o);
+    }
+    else if(o.type==='timeseries'&&o.res){
+      html+=renderOutAdv_timeseries(o);
+    }
+    else if(o.type==='metaanalysis'&&o.res){
+      html+=renderOutAdv_metaanalysis(o);
+    }
+
+    // ── Interpretation summary ────────────────────────────────────────
+    try{var _interp=_buildInterp(o);if(_interp)html+=_interpBox(_interp);}catch(e){}
+
+    html+='</div>';
+  });
+  html+='</div>'; // end grid wrapper
+  el.innerHTML=html;
+}
+
+function removeOutput(id){
+  outputs=outputs.filter(function(o){return o.id!==id;});
+  updateBadges();
+  renderTab('output');
+}
+

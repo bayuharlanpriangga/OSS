@@ -20,6 +20,8 @@
 // ════════════════════════════════════════════════════════════════════════
 var synText="DESCRIPTIVES VARIABLES=score age salary\n  /STATISTICS=MEAN STDDEV MIN MAX.\n\nT-TEST GROUPS=gender(Male,Female)\n  /VARIABLES=score.\n\nONEWAY score BY group\n  /STATISTICS DESCRIPTIVES POSTHOC.\n\nCORRELATIONS\n  /VARIABLES=age score salary.\n\nREGRESSION\n  /DEPENDENT=score\n  /METHOD=enter age.";
 var synResults=[];
+var _syntaxHistory=window._syntaxHistory||[];
+window._syntaxHistory=_syntaxHistory;
 
 function _loadSyntaxToEditor(syn){
   synText=syn;
@@ -102,3 +104,51 @@ async function execSyntax(){
   if(!results.length)results.push({type:'err',text:'No recognized commands found.'});
   synResults=results;renderSyntax(document.getElementById('app-content'));
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// AUTO-GENERATE SYNTAX FROM OUTPUT (dipindah dari app.js, 2026-10-04)
+// ════════════════════════════════════════════════════════════════════════
+function _genSyntaxFromOutput(item){
+  if(!item)return null;
+  var ts=new Date().toLocaleTimeString();
+  var lines=['/* '+ts+' — '+(item.title||item.type)+' */'];
+  var t=item.type;
+  if(t==='descriptive'){
+    lines.push('DESCRIPTIVES VARIABLES='+item.field);
+    lines.push('  /STATISTICS=MEAN STDDEV MIN MAX SKEWNESS KURTOSIS.');
+  } else if(t==='ttest'){
+    lines.push('T-TEST GROUPS='+(item.grp||'')+'('+(item.ga||'')+','+(item.gb||'')+')');
+    lines.push('  /VARIABLES='+(item.dv||'')+'.');
+  } else if(t==='onesamp'){
+    lines.push('T-TEST');
+    lines.push('  /TESTVAL='+(item.mu||0));
+    lines.push('  /VARIABLES='+(item.dv||'')+'.');
+  } else if(t==='paired'){
+    lines.push('T-TEST PAIRS='+(item.a||'')+' WITH '+(item.b||'')+'.');
+  } else if(t==='anova'){
+    lines.push('ONEWAY '+(item.dv||'')+' BY '+(item.grp||''));
+    lines.push('  /STATISTICS DESCRIPTIVES POSTHOC.');
+  } else if(t==='anova2'||t==='anova3'){
+    var ivs=((item.ivs||[]).join(' '));
+    lines.push('UNIANOVA '+(item.dv||'')+' BY '+ivs);
+    lines.push('  /METHOD=SSTYPE(3)');
+    lines.push('  /PRINT DESCRIPTIVE ETASQ.');
+  } else if(t==='correlation'){
+    var flds=((item.fields||[item.x,item.y]).filter(Boolean));
+    lines.push('CORRELATIONS');
+    lines.push('  /VARIABLES='+flds.join(' ')+'.');
+  } else if(t==='regression'){
+    lines.push('REGRESSION');
+    lines.push('  /DEPENDENT='+(item.y||''));
+    lines.push('  /METHOD=ENTER '+(item.x||'')+'.');
+  } else if(t==='multipleReg'){
+    lines.push('REGRESSION');
+    lines.push('  /DEPENDENT='+(item.y||''));
+    lines.push('  /METHOD=ENTER '+((item.xs||[]).join(' '))+'.');
+  } else if(t==='logistic'){
+    lines.push('LOGISTIC REGRESSION '+(item.y||''));
+    lines.push('  /METHOD=ENTER '+((item.xs||[]).join(' '))+'.');
+  } else { return null; }
+  return lines.join('\n');
+}
+
