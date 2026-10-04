@@ -418,6 +418,15 @@
        session-save-restore.js, sudah dimuat lebih dulu. -->
   <script src="js/session/oss-filesystem.js"></script>
 
+  <!-- 4i. UI misc (I1, 2026-10-04): Syntax View — synText/synResults,
+       _loadSyntaxToEditor/_downloadSyntax/renderSyntax/execSyntax.
+       Dependency (_syntaxHistory di app.js, SE, data, numFields, mkTable,
+       escHtml, showToast, renderTab) dibaca runtime di dalam function
+       body — aman dimuat sebelum app.js. Wajib sebelum app.js karena
+       wrapper loader execSyntax di app.js (setTimeout 400ms) membungkus
+       window.execSyntax; dan sebelum router.js (renderSyntax). -->
+  <script src="js/ui-misc/syntax-view.js"></script>
+
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
