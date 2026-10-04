@@ -1,6 +1,7 @@
 // Output tab group state
 var _outMode = 'all';       // 'all' | 'group'
 var _outActiveGroup = null; // active group key when in group mode
+var _outGridOpen = true;    // tampilkan pill pilihan grid? (toggle lewat tombol GRID)
 var _outGrid = 1;           // layout cols: 1=1×1, 2=1×2, 3=2×2, 4=2×3, 5=2×4, 6=3×3, 7=3×4, 8=4×4
 
 // Map output type → canonical group key & label
@@ -301,11 +302,13 @@ function renderOutput(el){
   // Grid layout picker
   var gridOpts=[{c:1,lbl:'1×1'},{c:2,lbl:'1×2'},{c:3,lbl:'2×2'},{c:4,lbl:'2×3'},{c:5,lbl:'2×4'},{c:6,lbl:'3×3'},{c:7,lbl:'3×4'},{c:8,lbl:'4×4'}];
   html+='<div style="display:flex;background:rgba(14,6,24,.7);border:1px solid rgba(124,58,237,.18);border-radius:8px;padding:2px;gap:1px;align-items:center">';
-  html+='<span style="font-size:9px;padding:3px 6px 3px 7px;background:rgba(124,58,237,.4);color:#e8deff;border-radius:5px;white-space:nowrap;letter-spacing:.4px;font-weight:700;text-transform:uppercase;border:1px solid rgba(124,58,237,.35);margin-right:2px">Grid</span>';
+  html+='<button onclick="_outGridOpen=!_outGridOpen;renderTab(\'output\')" title="'+(_outGridOpen?'Sembunyikan':'Tampilkan')+' pilihan grid" style="font-size:9px;padding:3px 7px;background:rgba(124,58,237,.4);color:#e8deff;border-radius:5px;white-space:nowrap;letter-spacing:.4px;font-weight:700;text-transform:uppercase;border:1px solid rgba(124,58,237,.35);margin-right:'+(_outGridOpen?'2':'0')+'px;cursor:pointer;font-family:Inter,sans-serif;display:inline-flex;align-items:center;gap:4px">Grid<span style="font-size:8px;opacity:.7">'+(_outGridOpen?'\u25C2':'\u25B8')+'</span></button>';
+  if(_outGridOpen){
   gridOpts.forEach(function(g){
     var active=_outGrid===g.c;
     html+='<button onclick="_outGrid='+g.c+';renderTab(\'output\')" style="padding:4px 7px;border-radius:5px;border:none;cursor:pointer;font-size:10px;font-family:Inter,sans-serif;font-weight:700;white-space:nowrap;transition:.12s;'+(active?'background:rgba(124,58,237,.5);color:#e8deff':'background:transparent;color:rgba(232,222,255,.3)')+'" title="'+g.lbl+' grid">'+g.lbl+'</button>';
   });
+  }
   html+='</div>';
   // Breadcrumb when inside a group
   if(em==='group'&&ag){

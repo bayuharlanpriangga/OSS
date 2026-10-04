@@ -346,30 +346,32 @@ function addDataRowInline(){
 function searchData(q){searchQ=q;_ossDataShown=_ossDataPageSize;renderTab('data');}
 function toggleSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}_ossDataShown=_ossDataPageSize;renderTab('data');}
 function _ossLoadMoreRows(){_ossDataShown+=_ossDataPageSize;renderTab('data');}
+// Sinkronkan tombol Del di toolbar dengan jumlah baris tercentang.
+// Dipakai oleh centang per-baris DAN centang "All" (header) supaya perilakunya sama.
+function syncDelButton(){
+  var toolbar=document.querySelector('.dt-actions');
+  if(!toolbar) return;
+  var existing=document.getElementById('del-btn');
+  if(selRows.size>0){
+    if(!existing){
+      var doneBtn=toolbar.querySelector('.dt-btn-done');
+      var newDel=document.createElement('button');
+      newDel.id='del-btn';newDel.className='dt-btn dt-btn-del';
+      newDel.onclick=function(){deleteSelected();};
+      newDel.innerHTML=IC.trash+' Del '+selRows.size;
+      if(doneBtn) toolbar.insertBefore(newDel,doneBtn);
+      else toolbar.appendChild(newDel);
+    } else {
+      existing.disabled=false;
+      existing.innerHTML=IC.trash+' Del '+selRows.size;
+    }
+  } else if(existing){
+    existing.remove();
+  }
+}
 function toggleRow(id,cb){
   if(cb.checked)selRows.add(id);else selRows.delete(id);
-  // Re-render toolbar if needed to show/hide del button
-  var toolbar=document.querySelector('.dt-actions');
-  if(toolbar){
-    var existing=document.getElementById('del-btn');
-    if(selRows.size>0){
-      if(!existing){
-        // Create & inject del btn before done btn
-        var doneBtn=toolbar.querySelector('.dt-btn-done');
-        var newDel=document.createElement('button');
-        newDel.id='del-btn';newDel.className='dt-btn dt-btn-del';
-        newDel.onclick=function(){deleteSelected();};
-        newDel.innerHTML=IC.trash+' Del '+selRows.size;
-        if(doneBtn) toolbar.insertBefore(newDel,doneBtn);
-        else toolbar.appendChild(newDel);
-      } else {
-        existing.innerHTML=IC.trash+' Del '+selRows.size;
-      }
-    } else {
-      if(existing) existing.remove();
-    }
-  }
-  // Sync header checkbox
+  syncDelButton();
   syncHeaderCheckbox();
 }
 
@@ -404,9 +406,8 @@ function toggleAllRows(cb){
   document.querySelectorAll('input[data-rowcb]').forEach(function(inp){
     inp.checked=selRows.has(parseInt(inp.dataset.rowcb));
   });
-  // Sync del button
-  var btn=document.getElementById('del-btn');
-  if(btn){btn.disabled=!selRows.size;btn.innerHTML=IC.trash+' Del '+selRows.size;}
+  // Sync del button (buat jika belum ada, hapus jika kosong)
+  syncDelButton();
 }
 function deleteSelected(){if(!selRows.size)return;data=data.filter(r=>!selRows.has(r.id));selRows.clear();updateBadges();renderTab('data');showToast('Data berhasil dihapus');}
 function addDataRow(){
