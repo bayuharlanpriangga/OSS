@@ -56,12 +56,19 @@ function _doExportExcel(){
     }
     else if(o.type==='ttest'&&o.res){
       rows.push(['Statistic','Group A ('+o.ga+')','Group B ('+o.gb+')']);
-      rows.push(['N',o.res.nA,o.res.nB]);
-      rows.push(['Mean',o.res.meanA,o.res.meanB]);
-      rows.push(['SD',o.res.sdA,o.res.sdB]);
+      rows.push(['N',_xlsxCell(o.res.nA),_xlsxCell(o.res.nB)]);
+      rows.push(['Mean',_xlsxCell(o.res.meanA),_xlsxCell(o.res.meanB)]);
+      rows.push(['SD',_xlsxCell(o.res.sdA),_xlsxCell(o.res.sdB)]);
       rows.push([]);
-      rows.push(['t',o.res.t]);rows.push(['df',o.res.df]);rows.push(['p',o.res.p_fmt]);
-      rows.push(["Cohen's d",o.res.cohensD,o.res.dInterp]);
+      rows.push(['t',_xlsxCell(o.res.t)]);rows.push(['df',_xlsxCell(o.res.df)]);rows.push(['p',_xlsxCell(o.res.p_fmt)]);
+      rows.push(["Cohen's d",_xlsxCell(o.res.cohensD),o.res.dInterp]);
+      if(o.lev){
+        rows.push([]);
+        rows.push(["Levene's Test for Equality of Variances"]);
+        rows.push(['F',_xlsxCell(o.lev.F)]);
+        rows.push(['p',_xlsxCell(o.lev.p_fmt||o.lev.p)]);
+        rows.push(['Variance Homogeneity',parseFloat(o.lev.p)<0.05?'Unequal variance (violated)':'Equal variance (assumed)']);
+      }
     }
     else if(o.type==='correlation'&&o.res){
       rows.push(['r','p','Strength','Direction','95% CI']);
@@ -107,8 +114,38 @@ function _doExportExcel(){
     }
     else if(o.type==='anova'&&o.res){
       rows.push(['Source','df','SS','MS','F','p','η²']);
-      rows.push(['Between',o.res.dfB,o.res.ssB,o.res.msB,o.res.F,o.res.p_fmt,o.res.eta2]);
-      rows.push(['Within',o.res.dfW,o.res.ssW,o.res.msW,'','','']);
+      rows.push(['Between',_xlsxCell(o.res.dfB),_xlsxCell(o.res.ssB),_xlsxCell(o.res.msB),_xlsxCell(o.res.F),_xlsxCell(o.res.p_fmt),_xlsxCell(o.res.eta2)]);
+      rows.push(['Within',_xlsxCell(o.res.dfW),_xlsxCell(o.res.ssW),_xlsxCell(o.res.msW),'','','']);
+      if(o.res.groupStats&&o.res.groupStats.length){
+        rows.push([]);
+        rows.push(['Descriptive Statistics (Groups)']);
+        rows.push(['Group','N','Mean','SD']);
+        o.res.groupStats.forEach(function(g){
+          rows.push([g.label,_xlsxCell(g.n),_xlsxCell(g.mean),_xlsxCell(g.sd)]);
+        });
+      }
+      if(o.posthoc&&o.posthoc.length){
+        var phName={'tukey':'Tukey HSD','bonferroni':'Bonferroni','lsd':'LSD (Fisher)','holm':'Holm-Bonferroni'}[o.posthocMethod]||'Post-Hoc';
+        var phMethod=o.posthocMethod||(o.posthoc[0]&&o.posthoc[0].q!==undefined?'tukey':'bonferroni');
+        rows.push([]);
+        rows.push([phName+' Multiple Comparisons']);
+        if(phMethod==='tukey'){
+          rows.push(['Comparison','Mean Diff','q','p','Sig']);
+          o.posthoc.forEach(function(ph){
+            rows.push([ph.a+' vs '+ph.b,_xlsxCell(ph.diff),_xlsxCell(ph.q),_xlsxCell(ph.p_fmt||ph.p),ph.sig?'*':'ns']);
+          });
+        } else if(phMethod==='bonferroni'){
+          rows.push(['Comparison','Mean Diff','SE','t','p (adj)','Sig']);
+          o.posthoc.forEach(function(ph){
+            rows.push([ph.a+' vs '+ph.b,_xlsxCell(ph.diff),_xlsxCell(ph.se),_xlsxCell(ph.t),_xlsxCell(ph.p_fmt||ph.p),ph.sig?'*':'ns']);
+          });
+        } else {
+          rows.push(['Comparison','Mean Diff','SE','t','p','Sig']);
+          o.posthoc.forEach(function(ph){
+            rows.push([ph.a+' vs '+ph.b,_xlsxCell(ph.diff),_xlsxCell(ph.se),_xlsxCell(ph.t),_xlsxCell(ph.p_fmt||ph.p),ph.sig?'*':'ns']);
+          });
+        }
+      }
     }
     else if(o.type==='logistic'&&o.res){
       rows.push(['-2LL',o.res.m2ll]);rows.push(["Cox & Snell R²",o.res.coxSnell]);

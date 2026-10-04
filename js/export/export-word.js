@@ -41,6 +41,10 @@ function _buildSingleOutputHTML(o, mode){
       html+=_wordTable(['','Group A ('+(o.ga||'')+')', 'Group B ('+(o.gb||'')+')'],
         [['N',o.res.nA,o.res.nB],['Mean',o.res.meanA,o.res.meanB],['SD',o.res.sdA,o.res.sdB]]);
       html+=_wordTable(['Statistic','Value'],[['t',o.res.t],['df',o.res.df],['p',o.res.p_fmt],["Cohen's d",o.res.cohensD+' ('+o.res.dInterp+')'],['95% CI',o.res.ci95]]);
+      if(o.lev){
+        html+='<h3>Levene\'s Test for Equality of Variances</h3>';
+        html+=_wordTable(['F','p','Variance Homogeneity'],[[o.lev.F,o.lev.p_fmt||o.lev.p,parseFloat(o.lev.p)<0.05?'Unequal variance (violated)':'Equal variance (assumed)']]);
+      }
     }
     else if(o.type==='correlation'&&o.res){
       html+='<div class="section"><p><b>r = '+o.res.r+'</b>, p = '+o.res.p_fmt+' &mdash; '+o.res.strength+' '+o.res.direction+'</p></div>';
@@ -75,6 +79,22 @@ function _buildSingleOutputHTML(o, mode){
         ['Between Groups',o.res.dfB,o.res.ssB,o.res.msB,o.res.F,o.res.p_fmt,o.res.eta2],
         ['Within Groups',o.res.dfW,o.res.ssW,o.res.msW,'','','']
       ]);
+      if(o.res.groupStats&&o.res.groupStats.length){
+        html+='<h3>Group Descriptives</h3>';
+        html+=_wordTable(['Group','N','Mean','SD'],o.res.groupStats.map(function(g){return[g.label,g.n,g.mean,g.sd];}));
+      }
+      if(o.posthoc&&o.posthoc.length){
+        var phName={'tukey':'Tukey HSD','bonferroni':'Bonferroni','lsd':'LSD (Fisher)','holm':'Holm-Bonferroni'}[o.posthocMethod]||'Post-Hoc';
+        var phMethod=o.posthocMethod||(o.posthoc[0]&&o.posthoc[0].q!==undefined?'tukey':'bonferroni');
+        html+='<h3>'+phName+' Multiple Comparisons</h3>';
+        if(phMethod==='tukey'){
+          html+=_wordTable(['Pair','Diff','q','p','Sig'],o.posthoc.map(function(ph){return[ph.a+' vs '+ph.b,ph.diff,ph.q,ph.p_fmt||ph.p,ph.sig?'*':'ns'];}));
+        } else if(phMethod==='bonferroni'){
+          html+=_wordTable(['Pair','Diff','SE','t','p (adj)','Sig'],o.posthoc.map(function(ph){return[ph.a+' vs '+ph.b,ph.diff,ph.se,ph.t,ph.p_fmt||ph.p,ph.sig?'*':'ns'];}));
+        } else {
+          html+=_wordTable(['Pair','Diff','SE','t','p','Sig'],o.posthoc.map(function(ph){return[ph.a+' vs '+ph.b,ph.diff,ph.se,ph.t,ph.p_fmt||ph.p,ph.sig?'*':'ns'];}));
+        }
+      }
     }
     else if(o.type==='logistic'&&o.res){
       html+='<div class="section"><p>−2LL = '+o.res.m2ll+' &nbsp;&bull;&nbsp; Nagelkerke R² = '+o.res.nagelkerke+' &nbsp;&bull;&nbsp; Accuracy = '+o.res.accuracy+'%</p></div>';
@@ -467,6 +487,10 @@ function _buildWordHTML(){
       html+=_wordTable(['','Group A ('+(o.ga||'')+')', 'Group B ('+(o.gb||'')+')'],
         [['N',o.res.nA,o.res.nB],['Mean',o.res.meanA,o.res.meanB],['SD',o.res.sdA,o.res.sdB]]);
       html+=_wordTable(['Statistic','Value'],[['t',o.res.t],['df',o.res.df],['p',o.res.p_fmt],["Cohen's d",o.res.cohensD+' ('+o.res.dInterp+')'],['95% CI',o.res.ci95]]);
+      if(o.lev){
+        html+='<h3>Levene\'s Test for Equality of Variances</h3>';
+        html+=_wordTable(['F','p','Variance Homogeneity'],[[o.lev.F,o.lev.p_fmt||o.lev.p,parseFloat(o.lev.p)<0.05?'Unequal variance (violated)':'Equal variance (assumed)']]);
+      }
     }
     else if(o.type==='correlation'&&o.res){
       html+='<div class="section"><p><b>r = '+o.res.r+'</b>, p = '+o.res.p_fmt+' &mdash; '+o.res.strength+' '+o.res.direction+'</p></div>';
@@ -507,6 +531,22 @@ function _buildWordHTML(){
         ['Between Groups',o.res.dfB,o.res.ssB,o.res.msB,o.res.F,o.res.p_fmt,o.res.eta2],
         ['Within Groups',o.res.dfW,o.res.ssW,o.res.msW,'','','']
       ]);
+      if(o.res.groupStats&&o.res.groupStats.length){
+        html+='<h3>Group Descriptives</h3>';
+        html+=_wordTable(['Group','N','Mean','SD'],o.res.groupStats.map(function(g){return[g.label,g.n,g.mean,g.sd];}));
+      }
+      if(o.posthoc&&o.posthoc.length){
+        var phName={'tukey':'Tukey HSD','bonferroni':'Bonferroni','lsd':'LSD (Fisher)','holm':'Holm-Bonferroni'}[o.posthocMethod]||'Post-Hoc';
+        var phMethod=o.posthocMethod||(o.posthoc[0]&&o.posthoc[0].q!==undefined?'tukey':'bonferroni');
+        html+='<h3>'+phName+' Multiple Comparisons</h3>';
+        if(phMethod==='tukey'){
+          html+=_wordTable(['Pair','Diff','q','p','Sig'],o.posthoc.map(function(ph){return[ph.a+' vs '+ph.b,ph.diff,ph.q,ph.p_fmt||ph.p,ph.sig?'*':'ns'];}));
+        } else if(phMethod==='bonferroni'){
+          html+=_wordTable(['Pair','Diff','SE','t','p (adj)','Sig'],o.posthoc.map(function(ph){return[ph.a+' vs '+ph.b,ph.diff,ph.se,ph.t,ph.p_fmt||ph.p,ph.sig?'*':'ns'];}));
+        } else {
+          html+=_wordTable(['Pair','Diff','SE','t','p','Sig'],o.posthoc.map(function(ph){return[ph.a+' vs '+ph.b,ph.diff,ph.se,ph.t,ph.p_fmt||ph.p,ph.sig?'*':'ns'];}));
+        }
+      }
     }
     else if(o.type==='logistic'&&o.res){
       html+='<div class="section"><p>&minus;2LL = '+o.res.m2ll+' &nbsp;&bull;&nbsp; Nagelkerke R&sup2; = '+o.res.nagelkerke+' &nbsp;&bull;&nbsp; Accuracy = '+o.res.accuracy+'%</p></div>';
