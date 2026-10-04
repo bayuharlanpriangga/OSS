@@ -84,7 +84,7 @@
 
   // 1. Analysis runs — wrap runSafe
   var _origRunSafe = window.runSafe;
-  window.runSafe = function(fn, label){
+  window.runSafe = function(fn, label, opts){
     var messages = {
       'Descriptives'     : ['Menghitung statistik deskriptif','Menganalisis distribusi data...'],
       'Correlation'      : ['Menghitung korelasi','Menghitung matriks korelasi...'],
@@ -107,7 +107,7 @@
     OSSLoader.show(title, sub);
     setTimeout(function(){
       try{
-        fn();
+        runWithWeights(fn, opts); // Weight Cases (js/data/weight-cases.js)
         OSSLoader.update('Analisis selesai ✓');
         OSSLoader.hide(340);
         showToast(label+' berhasil');

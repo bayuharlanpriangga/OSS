@@ -32,7 +32,7 @@ function runMultipleImputation(){
     var title='Multiple Imputation ('+res.method.toUpperCase()+', M='+res.M+'): ['+res.targetVars.join(', ')+']';
     addOutput({type:'mi',title:title,res:res});
     showToast('Imputation berhasil');
-  },'Multiple Imputation');
+  },'Multiple Imputation',{noWeight:true});
 }
 
 function runROC(){

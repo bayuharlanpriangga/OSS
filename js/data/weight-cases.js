@@ -15,37 +15,60 @@
 // clearWeightCases (depends `document.getElementById`, `updateBadges`,
 // `showToast`, `renderASub`).
 //
-// ⚠️ Temuan (belum diperbaiki, cuma dicatat): `getWeightedRows()`
-// dicek dengan grep di seluruh app.js — fungsi ini TIDAK DIPANGGIL
-// di mana pun selain disebut di komentar dokumentasi di atas
-// `runWeightCases()`. Semua fitur Weight Cases yang aktif sekarang
-// (badge "N efektif") hanya memakai `getNEff()`; tidak ada satupun
-// fungsi analisis statistik (t-test, ANOVA, regresi, dll) yang
-// benar-benar memanggil `getWeightedRows()` untuk menerapkan
-// weighting ke perhitungannya. Kemungkinan besar fitur "Weight Cases"
-// baru menghitung N efektif secara kosmetik, belum benar-benar
-// mempengaruhi hasil analisis manapun — sepertinya fitur belum
-// selesai diwire ke stats engine. Belum disentuh, tunggu konfirmasi
-// user (mirip kasus `holmBonferroni` dead code di B7).
+// ✅ DIPERBAIKI (2026-10-05): getWeightedRows() sekarang benar-benar
+// dipakai. runSafe() (js/core/app-helpers.js) menukar `data` global
+// dengan getWeightedRows() selama satu analisis berjalan, lalu
+// mengembalikannya (try/finally). Akibatnya SEMUA run* yang lewat
+// runSafe (t-test, ANOVA, regresi, korelasi, dst) otomatis memakai
+// baris tereplikasi (frequency weight): N, df, SE, p ikut berubah,
+// sama seperti SPSS "Weight Cases". Selama penukaran, data asli
+// disimpan di `_wcRawData` supaya getNEff()/getWeightedRows() tetap
+// membaca data ASLI (bukan yang sudah diexpand) — mencegah bobot
+// terhitung dua kali (mis. saat addOutput → updateBadges → getNEff).
 // ════════════════════════════════════════════════════════════
 
 // WEIGHT HELPERS (defined early so all code can use them) 
+// Data mentah (belum diexpand). `_wcRawData` hanya terisi selama runSafe
+// menjalankan analisis berbobot; selain itu = `data` biasa.
+var _wcRawData=null;
+function _wcBase(){ return _wcRawData||data; }
+// Batas aman jumlah baris virtual hasil replikasi (mencegah browser hang).
+var WC_MAX_ROWS=1000000;
+
 function getNEff(){
-  if(!aState.wcActive||!aState.wcVar) return data.length;
+  var base=_wcBase();
+  if(!aState.wcActive||!aState.wcVar) return base.length;
   var wv=aState.wcVar;
-  return data.reduce(function(s,r){
+  return base.reduce(function(s,r){
     var w=Number(r[wv]);
     return s+(isFinite(w)&&w>0?Math.round(w):0);
   },0);
 }
 function getWeightedRows(){
-  if(!aState.wcActive||!aState.wcVar) return data;
+  var base=_wcBase();
+  if(!aState.wcActive||!aState.wcVar) return base;
   var wv=aState.wcVar,result=[];
-  data.forEach(function(row){
+  base.forEach(function(row){
     var w=Number(row[wv]);
     if(!isFinite(w)||w<=0) return;
     var wInt=Math.max(1,Math.round(w));
     for(var i=0;i<wInt;i++) result.push(row);
   });
-  return result.length?result:data;
+  return result.length?result:base;
+}
+
+// runWithWeights — jalankan fn() dengan `data` global ditukar sementara oleh
+// baris virtual berbobot jika Weight Cases AKTIF; SELALU dikembalikan (finally).
+// opts.noWeight=true untuk aksi yang MENGUBAH data (mis. Multiple Imputation),
+// supaya jalan di data asli. Dipanggil dari runSafe (app-helpers.js) DAN dari
+// pembungkus runSafe di activity-loading-popup.js (yang menimpa window.runSafe).
+function runWithWeights(fn,opts){
+  if((opts&&opts.noWeight)||!aState.wcActive||!aState.wcVar) return fn();
+  var nEff=getNEff();
+  if(nEff>WC_MAX_ROWS) throw new Error('Weight Cases: N efektif (ΣW='+nEff+') melebihi batas '+WC_MAX_ROWS+' baris. Skala bobot lebih kecil.');
+  var orig=data;
+  _wcRawData=orig;
+  data=getWeightedRows();
+  try{ return fn(); }
+  finally{ data=orig; _wcRawData=null; }
 }

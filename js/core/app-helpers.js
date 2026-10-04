@@ -19,10 +19,19 @@ function showToast(msg,type='success'){
   clearTimeout(window._toastTimer);
   window._toastTimer=setTimeout(()=>t.style.display='none',2600);
 }
-function runSafe(fn,label){try{fn();showToast(label+' berhasil');}catch(e){showToast(e.message,'error');}}
+// runSafe — jalankan 1 analisis. Weight Cases diterapkan lewat runWithWeights()
+// (js/data/weight-cases.js). opts.noWeight=true untuk aksi yang mengubah data.
+function runSafe(fn,label,opts){
+  try{runWithWeights(fn,opts);showToast(label+' berhasil');}catch(e){showToast(e.message,'error');}
+}
 
 function addOutput(item){
   var entry=Object.assign({id:Date.now()},item);
+  // Tandai output yang dihitung dengan Weight Cases aktif (data sedang diexpand oleh runSafe)
+  if(_wcRawData&&aState.wcActive){
+    entry.wcInfo={wvar:aState.wcVar,nRaw:_wcRawData.length,nEff:data.length};
+    if(entry.title) entry.title+=' [⚖ '+aState.wcVar+', N='+data.length+']';
+  }
   outputs.unshift(entry);
   updateBadges();
   var syn=_genSyntaxFromOutput(item);
