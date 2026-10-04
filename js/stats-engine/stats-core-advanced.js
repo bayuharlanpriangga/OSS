@@ -1174,51 +1174,67 @@ function logisticReg(dvName, xNames, dataArr, type) {
 
   function getX(row){ return xNames.map(function(v,i){ return (row[v]-xMeans[i])/xStds[i]; }); }
 
-  // Binary logistic via IRLS (Iteratively Re-weighted Least Squares)
+  // Binary logistic via Newton-Raphson / IRLS (Fisher scoring) pada X terstandardisasi.
+  // [Fix 2026-10-05] Versi lama memakai gradient ascent langkah tetap 0.1 dengan
+  // line-search yang tidak pernah mengulang (step di-reset tiap iterasi) → pada N
+  // sedang koefisien tak pernah bergerak dari 0 (Nagelkerke negatif, akurasi ≈ chance).
   function binaryLogistic(yBin) {
     var p = xNames.length;
     var beta = new Array(p+1).fill(0); // [intercept, b1, b2, ...]
     var Xs = cases.map(getX);
 
+    function logLik(b){
+      var ll=0;
+      for(var i=0;i<n;i++){
+        var z=b[0]; for(var j=0;j<p;j++) z+=b[j+1]*Xs[i][j];
+        var pi=sigmoid(z); pi=Math.max(1e-10,Math.min(1-1e-10,pi));
+        ll+=yBin[i]*Math.log(pi)+(1-yBin[i])*Math.log(1-pi);
+      }
+      return ll;
+    }
+
+    var curLL = logLik(beta);
     for(var iter=0; iter<100; iter++){
       var grad = new Array(p+1).fill(0);
-      var H = [];
-      for(var r=0;r<=p;r++){ H.push(new Array(p+1).fill(0)); }
-      var logL=0;
+      var I = []; // information matrix X'WX (positif)
+      for(var r=0;r<=p;r++){ I.push(new Array(p+1).fill(0)); }
       for(var i=0;i<n;i++){
         var z = beta[0];
         for(var j=0;j<p;j++) z += beta[j+1]*Xs[i][j];
         var pi = sigmoid(z);
         pi = Math.max(1e-10, Math.min(1-1e-10, pi));
-        var y = yBin[i];
-        logL += y*Math.log(pi) + (1-y)*Math.log(1-pi);
-        var err = y - pi;
-        grad[0] += err;
-        for(var j=0;j<p;j++) grad[j+1] += err*Xs[i][j];
+        var err = yBin[i] - pi;
         var w = pi*(1-pi);
-        H[0][0] -= w;
+        grad[0] += err;
+        I[0][0] += w;
         for(var j=0;j<p;j++){
-          H[0][j+1] -= w*Xs[i][j];
-          H[j+1][0] -= w*Xs[i][j];
-          for(var k=0;k<p;k++) H[j+1][k+1] -= w*Xs[i][j]*Xs[i][k];
+          grad[j+1] += err*Xs[i][j];
+          I[0][j+1] += w*Xs[i][j];
+          I[j+1][0] += w*Xs[i][j];
+          for(var k=0;k<p;k++) I[j+1][k+1] += w*Xs[i][j]*Xs[i][k];
         }
       }
-      // Newton step: beta -= H^{-1} * grad (simple gradient ascent if Hessian fails)
-      // Use gradient ascent with line search for stability
-      var step = 0.1;
-      var newBeta = beta.slice();
-      for(var j=0;j<=p;j++) newBeta[j] = beta[j] + step*grad[j];
-      // Check if logL improved (line search)
-      var newLogL=0;
-      for(var i=0;i<n;i++){
-        var z2=newBeta[0]; for(var j=0;j<p;j++) z2+=newBeta[j+1]*Xs[i][j];
-        var pi2=sigmoid(z2); pi2=Math.max(1e-10,Math.min(1-1e-10,pi2));
-        newLogL+=yBin[i]*Math.log(pi2)+(1-yBin[i])*Math.log(1-pi2);
+      // Ridge sangat kecil supaya tetap bisa dibalik saat hampir separation
+      for(var d=0;d<=p;d++) I[d][d] += 1e-8;
+      var Iinv;
+      try{ Iinv = matInv(I); }
+      catch(e){ throw new Error('Matriks informasi singular — cek multikolinearitas antar prediktor atau perfect separation.'); }
+      var delta = new Array(p+1).fill(0);
+      for(var a2=0;a2<=p;a2++) for(var b2=0;b2<=p;b2++) delta[a2] += Iinv[a2][b2]*grad[b2];
+
+      // Step-halving: terima langkah hanya jika log-likelihood tidak turun
+      var step = 1, accepted = false, newBeta = beta, newLL = curLL;
+      for(var h=0;h<30;h++){
+        newBeta = beta.map(function(bv,idx){ return bv + step*delta[idx]; });
+        newLL = logLik(newBeta);
+        if(newLL >= curLL - 1e-12){ accepted = true; break; }
+        step /= 2;
       }
-      if(newLogL>=logL){ beta=newBeta; } else { step*=0.5; }
-      // Convergence check
-      var gradNorm=Math.sqrt(grad.reduce(function(s,g){return s+g*g;},0));
-      if(gradNorm<1e-5) break;
+      if(!accepted) break;
+      var maxChange = 0;
+      for(var q=0;q<=p;q++) maxChange = Math.max(maxChange, Math.abs(newBeta[q]-beta[q]));
+      beta = newBeta; curLL = newLL;
+      if(maxChange < 1e-8) break;
     }
     // Back-transform coefficients to original scale
     var betaOrig = [beta[0]];
@@ -1228,26 +1244,39 @@ function logisticReg(dvName, xNames, dataArr, type) {
     return { beta: betaOrig, betaStd: beta };
   }
 
-  // SE estimation via observed Fisher information (numerical)
+  // SE dari matriks informasi Fisher PENUH (invers X'WX), lalu ditransformasi ke skala asli.
+  // [Fix 2026-10-05] Versi lama memakai 1/diag(I) (mengabaikan kovarians antar koefisien →
+  // SE terlalu kecil) dan SE intercept dibiarkan di skala terstandardisasi.
+  // Mengembalikan array SE pada skala ASLI: [SE(const), SE(b1), SE(b2), ...].
   function computeSE(betaStd, yBin) {
     var p=xNames.length;
     var Xs=cases.map(getX);
-    // Hessian diagonal approximation (diagonal Fisher)
-    var H=new Array(p+1).fill(0).map(function(){return new Array(p+1).fill(0);});
+    var I=new Array(p+1).fill(0).map(function(){return new Array(p+1).fill(0);});
     for(var i=0;i<n;i++){
       var z=betaStd[0]; for(var j=0;j<p;j++) z+=betaStd[j+1]*Xs[i][j];
       var pi=sigmoid(z); pi=Math.max(1e-10,Math.min(1-1e-10,pi));
       var w=pi*(1-pi);
-      H[0][0]+=w;
+      I[0][0]+=w;
       for(var j=0;j<p;j++){
-        H[0][j+1]+=w*Xs[i][j]; H[j+1][0]+=w*Xs[i][j];
-        for(var k=0;k<p;k++) H[j+1][k+1]+=w*Xs[i][j]*Xs[i][k];
+        I[0][j+1]+=w*Xs[i][j]; I[j+1][0]+=w*Xs[i][j];
+        for(var k=0;k<p;k++) I[j+1][k+1]+=w*Xs[i][j]*Xs[i][k];
       }
     }
-    // Invert H (diagonal approx + small ridge for stability)
-    var variances=new Array(p+1).fill(0);
-    for(var j=0;j<=p;j++) variances[j]=H[j][j]>0?1/Math.max(H[j][j],1e-8):1;
-    return variances;
+    var cov;
+    try{ cov=matInv(I); }
+    catch(e){ throw new Error('Matriks informasi singular — cek multikolinearitas antar prediktor atau perfect separation.'); }
+    // Peta linear std → asli: b0_o = b0 - Σ b_j m_j/s_j ; b_j_o = b_j/s_j
+    var A=[];
+    for(var r=0;r<=p;r++){ A.push(new Array(p+1).fill(0)); }
+    A[0][0]=1;
+    for(var j=0;j<p;j++){ A[0][j+1]=-xMeans[j]/xStds[j]; A[j+1][j+1]=1/xStds[j]; }
+    var se=[];
+    for(var r=0;r<=p;r++){
+      var v=0;
+      for(var a3=0;a3<=p;a3++) for(var b3=0;b3<=p;b3++) v+=A[r][a3]*cov[a3][b3]*A[r][b3];
+      se.push(Math.sqrt(Math.max(0,v)));
+    }
+    return se;
   }
 
   // Binary case
@@ -1256,10 +1285,7 @@ function logisticReg(dvName, xNames, dataArr, type) {
     var fit = binaryLogistic(yBin);
     var betaOrig = fit.beta;
     var betaStd  = fit.betaStd;
-    var varSE = computeSE(betaStd, yBin);
-    // Back-transform SE to original scale
-    var seOrig = [Math.sqrt(varSE[0])];
-    for(var j=0;j<xNames.length;j++) seOrig.push(Math.sqrt(varSE[j+1])/xStds[j]);
+    var seOrig = computeSE(betaStd, yBin); // sudah pada skala asli
 
     // Log-likelihood
     var logL=0;
@@ -1345,9 +1371,7 @@ function logisticReg(dvName, xNames, dataArr, type) {
       var fit2=binaryLogistic(yBin2);
       var betaOrig2=fit2.beta;
       var betaStd2=fit2.betaStd;
-      var varSE2=computeSE(betaStd2,yBin2);
-      var seOrig2=[Math.sqrt(varSE2[0])];
-      for(var j=0;j<xNames.length;j++) seOrig2.push(Math.sqrt(varSE2[j+1])/xStds[j]);
+      var seOrig2=computeSE(betaStd2,yBin2); // sudah pada skala asli
       var catCoefs=[];
       var names2=['Constant'].concat(xNames);
       for(var j=0;j<=xNames.length;j++){

@@ -524,19 +524,16 @@ input[type="checkbox"]:focus-visible{
   background:linear-gradient(135deg,rgba(124,58,237,.09),rgba(219,39,119,.04),rgba(8,145,178,.03));
   border:1px solid rgba(124,58,237,.18);
   border-radius:13px;padding:15px;margin-bottom:13px;
-  position:relative;overflow:hidden;max-width:100%;
-  transition:border-color .2s,transform .2s,box-shadow .2s}
-.card:hover{border-color:rgba(124,58,237,.32);transform:translateY(-1px);
-  box-shadow:0 4px 24px rgba(124,58,237,.12)}
+  position:relative;overflow:hidden;max-width:100%}
+/* Card = kontainer statis, BUKAN elemen klik: tanpa efek hover/transform/denyut.
+   (dulu: .card:hover naik 1px + glow, dan splash pojok berdenyut terus-menerus) */
 /* Paint splash corners */
 .card::before{content:'';position:absolute;top:-25px;right:-25px;width:90px;height:90px;
   border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.08),transparent);
-  filter:blur(16px);pointer-events:none;animation:splashCorner 6s ease-in-out infinite alternate}
+  filter:blur(16px);pointer-events:none}
 .card::after{content:'';position:absolute;bottom:-20px;left:-20px;width:70px;height:70px;
   border-radius:50%;background:radial-gradient(circle,rgba(219,39,119,.06),transparent);
-  filter:blur(14px);pointer-events:none;animation:splashCorner2 8s ease-in-out infinite alternate}
-@keyframes splashCorner{0%{transform:scale(1)}100%{transform:scale(1.3)}}
-@keyframes splashCorner2{0%{transform:scale(1.2)}100%{transform:scale(.9)}}
+  filter:blur(14px);pointer-events:none}
 
 .card2{background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.1);border-radius:9px;padding:11px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
