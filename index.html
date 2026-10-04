@@ -439,6 +439,13 @@
        sebelum app.js; harus sebelum router.js (renderAI). -->
   <script src="js/ui-misc/ai-view.js"></script>
 
+  <!-- 4l. UI misc (I4, 2026-10-04): Command Palette — cmdOpen/cmdSelIdx,
+       openCmd/closeCmd, CMD_ACTIONS, renderCmdResults/execCmdEl/cmdKeyNav.
+       CMD_ACTIONS cuma array closure (tidak memanggil apa pun saat parse);
+       semua fungsi tujuan dibaca runtime saat item diklik — aman dimuat
+       sebelum app.js. Dipakai router.js (Ctrl+K) & custom-select.js (Esc). -->
+  <script src="js/ui-misc/cmd-palette.js"></script>
+
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
