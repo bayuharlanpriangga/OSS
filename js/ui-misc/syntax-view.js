@@ -100,5 +100,5 @@ async function execSyntax(){
   const regM=syn.match(/REGRESSION\s+\/DEPENDENT=(\w+)\s+\/METHOD=\S+\s+(\w+)/i);
   if(regM){const dv=regM[1],iv=regM[2];try{results.push({type:'reg',text:'► REGRESSION: '+dv+' ~ '+iv,res:SE.linearReg(data.map(r=>r[iv]),data.map(r=>r[dv]))});}catch(e){results.push({type:'err',text:'REGRESSION: '+e.message});}}
   if(!results.length)results.push({type:'err',text:'No recognized commands found.'});
-  synResults=results;renderSyntax(document.getElementById('view-syntax'));
+  synResults=results;renderSyntax(document.getElementById('app-content'));
 }
