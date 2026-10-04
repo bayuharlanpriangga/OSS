@@ -427,6 +427,12 @@
        window.execSyntax; dan sebelum router.js (renderSyntax). -->
   <script src="js/ui-misc/syntax-view.js"></script>
 
+  <!-- 4j. UI misc (I2, 2026-10-04): Pivot View — pvState + renderPivot.
+       Dependency (SE, data, allFields, numFields, mkSelect/mkCsel,
+       escHtml) dibaca runtime di dalam function body — aman dimuat
+       sebelum app.js; harus sebelum router.js (renderPivot). -->
+  <script src="js/ui-misc/pivot-view.js"></script>
+
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
