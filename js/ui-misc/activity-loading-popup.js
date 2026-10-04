@@ -211,27 +211,9 @@
     }
   }, 400);
 
-  // 6. Navigation between main pages (Home ↔ App)
-  // Intercept via click delegation on nav items
-  document.addEventListener('click', function(e){
-    var item = e.target.closest('.s-item, .hero-cta, .s-logo');
-    if(!item) return;
-    // Only show brief loader for sidebar navigation switches
-    if(item.classList.contains('s-item')){
-      var text = item.textContent.trim().substring(0, 30);
-      OSSLoader.show('Membuka halaman', 'Navigasi ke: ' + text + '...');
-      OSSLoader.hide(420);
-    }
-  }, true);
-
-  // 7. Tab switching inside pages (sub-tabs)
-  document.addEventListener('click', function(e){
-    var btn = e.target.closest('.sub-btn');
-    if(!btn || !btn.dataset.tab) return;
-    var tabName = btn.textContent.trim().substring(0, 24);
-    OSSLoader.show('Memuat tampilan', 'Membuka: ' + tabName + '...');
-    OSSLoader.hide(350);
-  }, true);
+  // 6 & 7. (DIHAPUS 2026-10-05) Loader saat pindah halaman sidebar (.s-item) dan
+  // saat membuka sub-tab (.sub-btn) dihilangkan — loader hanya untuk aksi yang
+  // benar-benar memproses (run analisis, import/export, simpan sesi, imputasi).
 
   // 8. Impute / data processing
   setTimeout(function(){
