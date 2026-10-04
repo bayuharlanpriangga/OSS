@@ -1,23 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/ui-misc/syntax-view.js
-// Fitur (I1): tab Syntax — editor syntax ala SPSS (DESCRIPTIVES,
-//   T-TEST, ONEWAY, CORRELATIONS, REGRESSION), "Auto-generated Syntax"
-//   history, Save .sps, dan runner execSyntax().
-// Depends on (dibaca runtime, di dalam function body — aman dimuat
-//   sebelum app.js):
-//   - _syntaxHistory (var di app.js; diisi oleh _genSyntaxFromOutput)
-//   - SE (descriptive, validNums, tTest, onewayANOVA, tukeyHSD,
-//     pearsonR, linearReg), data, numFields(), mkTable() (html-helpers.js),
-//     escHtml(), showToast(), renderTab() (router.js)
-// Dipanggil oleh: js/core/router.js (renderSyntax), wrapper loader
-//   execSyntax di app.js (setTimeout 400ms, membungkus window.execSyntax).
-// Catatan: dipindah byte-exact dari app.js (I1, 2026-10-04); tidak ada
-//   perubahan logic.
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════════════════
 // SYNTAX VIEW
-// ════════════════════════════════════════════════════════════════════════
 var synText="DESCRIPTIVES VARIABLES=score age salary\n  /STATISTICS=MEAN STDDEV MIN MAX.\n\nT-TEST GROUPS=gender(Male,Female)\n  /VARIABLES=score.\n\nONEWAY score BY group\n  /STATISTICS DESCRIPTIVES POSTHOC.\n\nCORRELATIONS\n  /VARIABLES=age score salary.\n\nREGRESSION\n  /DEPENDENT=score\n  /METHOD=enter age.";
 var synResults=[];
 var _syntaxHistory=window._syntaxHistory||[];

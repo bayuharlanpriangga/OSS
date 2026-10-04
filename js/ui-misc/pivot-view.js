@@ -1,21 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/ui-misc/pivot-view.js
-// Fitur (I2): tab Pivot — tabel pivot (row x column x value) dengan
-//   fungsi agregasi mean/sum/count/min/max/std.
-// Depends on (dibaca runtime, di dalam function body — aman dimuat
-//   sebelum app.js): SE (validNums, mean, std), data, allFields(),
-//   numFields(), mkSelect()/mkCsel() (html-helpers.js / custom-select.js),
-//   escHtml().
-// Dipanggil oleh: js/core/router.js (renderPivot).
-// Catatan: dipindah byte-exact dari app.js (I2, 2026-10-04). Satu-satunya
-//   perubahan: handler onchange 4 dropdown memakai #app-content (sebelumnya
-//   #view-pivot yang tidak ada, sehingga tabel tidak ter-render ulang;
-//   diperbaiki atas persetujuan user, lihat Temuan I2 di ARCHITECTURE.md).
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════════════════
 // PIVOT VIEW
-// ════════════════════════════════════════════════════════════════════════
 var pvState={row:'group',col:'gender',val:'score',fn:'mean'};
 function renderPivot(el){
   const rv=[...new Set(data.map(r=>String(r[pvState.row])))].sort();

@@ -1,27 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
-// js/analyze/analyze-run-basic.js
-// Handler eksekusi analisis statistik dasar (run*):
-//   - runDesc (Descriptives)
-//   - runTTest (Independent Samples T-Test)
-//   - runOneSamp (One-Sample T-Test)
-//   - runPaired (Paired Samples T-Test)
-//   - runRmAnova (Repeated Measures ANOVA)
-//   - runANOVA (One-Way ANOVA + Post-Hoc)
-//   - runANOVA2 (Two-Way ANOVA)
-//   - runANOVA3 (Three-Way ANOVA)
-//   - runCorr (Bivariate Correlation — Pearson / Spearman)
-//   - runPartialCorr (Partial Correlation)
-//   - runReg (Simple Linear Regression)
-//   - runMultipleReg (Multiple Linear Regression)
-//   - runNP (Nonparametric — Mann-Whitney / Kruskal-Wallis / Wilcoxon)
-//   - runAlpha (Cronbach's Alpha)
-//   - runKappa (Cohen's Kappa)
-//   - runWeightCases (Weight Cases)
-// Dependency (dibaca runtime di dalam function body):
-//   SE (stats engine), data, vars, aState, runSafe, addOutput, showToast,
-//   updateBadges, renderASub, numFields.
-// ════════════════════════════════════════════════════════════════════════
-
+// Run basic analyses (descriptive, t-test, ANOVA, correlation, regression, nonparametric)
 function runDesc(){runSafe(()=>{const s=SE.descriptive(data.map(r=>r[aState.dFld]));if(s.error)throw new Error(s.error);addOutput({type:'descriptive',title:'Descriptive: '+aState.dFld,stats:s,field:aState.dFld});},'Descriptives');}
 
 function runTTest(){runSafe(()=>{

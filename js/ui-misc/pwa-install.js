@@ -1,22 +1,5 @@
-// ════════════════════════════════════════════════════════════════════════
-// js/ui-misc/pwa-install.js — I6 (2026-10-04)
-// PWA: registrasi Service Worker, install prompt (beforeinstallprompt),
-// tombol "Install App" di sidebar + banner install.
-// Dipindah byte-exact dari app.js (134 baris): _pwaInstallEvent,
-// _pwaSetInstalled, _pwaCheckInstalled, 1 IIFE (listener display-mode,
-// register ./sw.js, beforeinstallprompt, appinstalled), installPWA,
-// dismissPWABanner.
-// Dependency: hanya DOM (#sidebar-install-btn, #sidebar-install-label,
-// #oss-pwa-banner — sudah ada di index.html sebelum <script>) dan
-// showToast() yang dibaca runtime di dalam handler (tidak dipanggil saat
-// parse), jadi aman dimuat sebelum app.js. installPWA/dismissPWABanner
-// dipanggil lewat onclick inline di index.html → harus tetap global.
-// ════════════════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // PWA — Service Worker Registration + Install Prompt
 // State: "installable" | "installed" | "unavailable"
-// ════════════════════════════════════════════════════════════
 var _pwaInstallEvent = null;
 
 // ── Update tampilan tombol sesuai state ──────────────────

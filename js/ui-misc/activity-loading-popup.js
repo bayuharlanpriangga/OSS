@@ -1,29 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/ui-misc/activity-loading-popup.js
-// Fitur (I5): popup "sedang memproses..." (window.OSSLoader: show/hide/
-//   update) + interceptor aktivitas yang membungkus fungsi global
-//   (runSafe, handleCSV, exportToWord/exportToExcel, runHierarchicalReg,
-//   execSyntax, runImpute, imputeAllVars, saveSession) dan klik navigasi
-//   sidebar / sub-tab supaya menampilkan popup.
-//
-// ⚠️ URUTAN MUAT: WAJIB dimuat SESUDAH app.js (dan semua file lain yang
-//   mendefinisikan fungsi yang dibungkus). Blok ini membaca window.runSafe /
-//   window.handleCSV / window.showToast SAAT PARSE lalu menimpanya dengan
-//   wrapper; kalau dimuat sebelum app.js, deklarasi `function runSafe`
-//   di app.js akan menimpa wrapper-nya dan popup analisis hilang diam-diam.
-//   Wrapper lain (export, hierarki, syntax, impute, saveSession) dipasang
-//   lewat setTimeout 300–600 ms setelah parse.
-// Depends on: showToast, runSafe, handleCSV (app.js), exportToWord
-//   (export-word.js), exportToExcel/runHierarchicalReg (app.js),
-//   execSyntax (syntax-view.js), runImpute/imputeAllVars, saveSession
-//   (session-save-restore.js); CSS #oss-loader (style.css).
-// Catatan: dipindah byte-exact dari app.js (I5, 2026-10-04); tidak ada
-//   perubahan logic.
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // ACTIVITY LOADING POPUP SYSTEM
-// ════════════════════════════════════════════════════════════
 (function(){
   // Inject HTML
   var loaderHtml=

@@ -1,32 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
-// js/analyze/analyze-run-advanced.js
-// Handler eksekusi analisis statistik lanjutan (run*):
-//   - runPowerAnalysis
-//   - runModeration
-//   - runMultipleImputation
-//   - runROC
-//   - runSurvival (Kaplan-Meier + helpers SE.chi2CDF, lnGammaSimple)
-//   - runCoxRegression
-//   - runMediation
-//   - runEFA
-//   - runCFA
-//   - runSEM
-//   - runHLM
-//   - runMANOVA
-//   - runRepeatedMeasures
-//   - runGLM, runPoissonGLM, runNegBinGLM
-//   - runTimeSeries
-//   - runBayes, runBayesCorr, runBayesPosterior
-//   - runCCA
-//   - runLogistic
-//   - runDiscriminant
-//   - runCluster
-//   - runHierarchicalReg
-// Dependency (dibaca runtime di dalam function body):
-//   SE, compute*, data, vars, aState, runSafe, addOutput, showToast,
-//   updateBadges, renderASub, numFields, tryStats, currentASub.
-// ════════════════════════════════════════════════════════════════════════
-
+// Run advanced analyses (power, moderation, mediation, EFA, CFA, SEM, HLM, MANOVA, GLM, survival, ROC, Bayesian)
 function runPowerAnalysis(){
   runSafe(function(){
     var pw=aState;

@@ -1,24 +1,4 @@
-// ════════════════════════════════════════════════════════════
-// js/ui-misc/cmd-palette.js
-// Fitur (I4): Command Palette (Ctrl/Cmd+K, tombol search di top bar &
-//   sidebar) — daftar CMD_ACTIONS, filter pencarian, navigasi keyboard.
-// Depends on (dibaca runtime di dalam function body / closure CMD_ACTIONS,
-//   tidak ada pemanggilan saat parse — aman dimuat sebelum app.js):
-//   switchTab (router.js), openAnalyze / saveSession / exportDataCSV /
-//   exportToExcel / exportWordDialog / generateAPAReport /
-//   showAddDatasetModal / dll (app.js & file split lain), elemen DOM
-//   #cmd-ov #cmd-inp #cmd-list (index.html).
-// Dipanggil oleh: index.html (onclick openCmd/closeCmd, oninput/onkeydown
-//   renderCmdResults/cmdKeyNav), js/core/router.js (Ctrl+K, Escape),
-//   js/ui-misc/custom-select.js (Escape -> closeCmd).
-// Catatan: dipindah byte-exact dari app.js (I4, 2026-10-04); tidak ada
-//   perubahan logic, KECUALI 1 baris fix di openCmd() (kosongkan #cmd-inp saat
-//   dibuka; persetujuan user, lihat Temuan I4 di ARCHITECTURE.md). Label menu "Orias AI" ikut dari perubahan I3.
-// ════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════
 // CMD PALETTE
-// ════════════════════════════════════════════════════════════
 var cmdOpen=false,cmdSelIdx=0;
 
 function openCmd(){

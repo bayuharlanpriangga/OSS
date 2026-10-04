@@ -1,33 +1,3 @@
-// ════════════════════════════════════════════════════════════
-// js/ui-misc/ai-view.js
-// Fitur (I3): tab "Orias AI" (sebelumnya "AI Statistical Advisor") —
-//   chat asisten statistik dengan sistem BYOK (Bring Your Own Key) dan
-//   dukungan multi-provider: Claude (Anthropic), OpenAI, Google Gemini,
-//   Groq, OpenRouter, xAI (Grok), Perplexity.
-//
-// Depends on (dibaca runtime, di dalam function body — aman dimuat
-//   sebelum app.js): vars, data, missCount(), escHtml() (TETAP di app.js),
-//   showToast() (app.js), renderTab() (router.js).
-// Dipanggil oleh: js/core/router.js (renderAI).
-//
-// Riwayat: dipindah byte-exact dari app.js (I3, 2026-10-04, commit
-//   terpisah), lalu ditulis ulang atas permintaan user (2026-10-04):
-//   rename "AI Advisor" -> "Orias AI" + BYOK multi-provider. Sebelumnya
-//   memanggil api.anthropic.com tanpa API key (tidak bisa jalan).
-//
-// BYOK / keamanan:
-//   - API key disimpan HANYA di localStorage browser user ('oss_ai_keys')
-//     dalam bentuk teks biasa (tidak ada server OSS; ini aplikasi statis).
-//     Key tidak ikut ke session/.oss export dan tidak pernah di-log.
-//   - Request dikirim LANGSUNG dari browser ke provider yang dipilih.
-//     Yang ikut dikirim ke provider: pertanyaan user + nama/tipe variabel,
-//     jumlah kasus, jumlah missing. Isi data (nilai sel) TIDAK dikirim.
-//   - Provider harus mengizinkan CORS dari browser. Anthropic butuh header
-//     'anthropic-dangerous-direct-browser-access'. Kalau suatu provider
-//     menolak CORS, error "Gagal terhubung" akan muncul.
-//   - Nama model bisa diedit bebas (daftar default hanya saran, bisa basi).
-// ════════════════════════════════════════════════════════════
-
 var aiHistory=[];   // [{role:'user'|'assistant', content, err?:true}]
 var _aiBusy=false;
 var _aiSettingsOpen=null; // null = otomatis (terbuka jika belum ada key)
