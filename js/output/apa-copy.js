@@ -1,9 +1,8 @@
 // APA TABLE COPY — sigStar, pFmtAPA (helper format), buildAPATable
 // (generator teks APA per-output), copyAPA, fallbackCopy (clipboard tombol
 // "Copy APA" per kartu output)
-function parsePValue(p){
-  return parseFloat(p);
-}
+// parsePValue — DIPINDAH/DISATUKAN ke js/core/html-helpers.js (2026-10-04); versi 3 baris `parseFloat(p)`
+// di sini dihapus karena menimpa versi lengkap (menghasilkan NaN untuk '< .001').
 
 function sigStar(p){
   var pf=parsePValue(p);
@@ -18,6 +17,7 @@ function pFmtAPA(p){
   var pf=parsePValue(p);
   if(!isFinite(pf)) return p;
   if(pf<.001) return '< .001';
+  if(/^\s*[<>≤≥=]/.test(String(p))) return p; // sudah berawalan pembanding ('< .05', '= 0.032')
   return '= '+p;
 }
 

@@ -124,6 +124,8 @@ function runMediation(){
     if(!aState.medX) throw new Error('Select Independent Variable (X)');
     if(!aState.medY) throw new Error('Select Dependent Variable (Y)');
     if(!aState.medM||!aState.medM.length) throw new Error('Select at least 1 Mediator (M)');
+    // medBootN=0 = tanpa bootstrap (hanya Sobel); dulu `||5000` membuat 0 diam-diam jadi 5000.
+    // Kosong/tak valid/negatif tetap memakai default 5000.
     var _medBN=parseInt(aState.medBootN,10);
     if(!isFinite(_medBN)||_medBN<0) _medBN=5000;
     var res=computeMediation(aState.medX,aState.medM,aState.medY,_medBN);
@@ -296,6 +298,7 @@ function runTimeSeries(){
     var tsVals=SE.validNums(data.map(function(r){return r[tsV];}));
     if(tsVals.length<5) throw new Error('Need at least 5 valid observations');
 
+    // Re-run compute functions (same as preview — inline)
     function tsACF2(y,maxLag){
       var n=y.length,mu=SE.mean(y);
       var denom=y.reduce(function(s,v){return s+(v-mu)*(v-mu);},0)/n;
