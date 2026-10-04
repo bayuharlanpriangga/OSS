@@ -454,6 +454,14 @@
        catatan B20 di ARCHITECTURE.md) -->
   <script src="js/stats-engine/stats-bayesian.js"></script>
 
+  <!-- 5c. Activity Loading Popup (I5, 2026-10-04): window.OSSLoader +
+       interceptor yang MEMBUNGKUS fungsi global (runSafe, handleCSV,
+       saveSession, dst). Harus SESUDAH app.js (dan file-file yang
+       mendefinisikan fungsi yang dibungkus) — kalau sebelum, deklarasi
+       `function runSafe` di app.js menimpa wrapper-nya. Sebelum badges.js
+       dan router.js. -->
+  <script src="js/ui-misc/activity-loading-popup.js"></script>
+
   <!-- 6. UI misc -->
   <script src="js/ui-misc/badges.js"></script>
 
