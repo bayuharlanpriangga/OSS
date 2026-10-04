@@ -347,6 +347,15 @@
   <script src="js/charts/imputation-plot.js"></script>
   <script src="js/analyze/analyze-form-render.js"></script>
 
+  <!-- 4a. Analyze layer (AFH, 2026-10-04): analyze-form-helpers.js — 28 handler
+       UI-state form (toggle*, sem*, setCfaFactors/renameCfaFactor/toggleCfaVar,
+       toggleHrBlock, clearWeightCases) yang dipanggil lewat onclick/onchange
+       inline. Cuma mengubah aState lalu renderASub(); dependency (aState dari
+       analyze-subtab-ui.js, renderASub dari analyze-form-render.js, updateBadges,
+       showToast) dibaca runtime di dalam function body, tanpa top-level call —
+       aman dimuat sebelum app.js. -->
+  <script src="js/analyze/analyze-form-helpers.js"></script>
+
   <!-- 4b. Output layer (E3, 2026-09-19): renderAnovaTable = murni string
        builder, tanpa dependency & tanpa top-level call — aman dimuat sebelum
        app.js. F3 (renderOutput basic) nantinya menyusul di file yang sama. -->
