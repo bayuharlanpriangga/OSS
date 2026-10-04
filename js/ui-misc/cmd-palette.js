@@ -12,7 +12,8 @@
 //   renderCmdResults/cmdKeyNav), js/core/router.js (Ctrl+K, Escape),
 //   js/ui-misc/custom-select.js (Escape -> closeCmd).
 // Catatan: dipindah byte-exact dari app.js (I4, 2026-10-04); tidak ada
-//   perubahan logic. Label menu "Orias AI" ikut dari perubahan I3.
+//   perubahan logic, KECUALI 1 baris fix di openCmd() (kosongkan #cmd-inp saat
+//   dibuka; persetujuan user, lihat Temuan I4 di ARCHITECTURE.md). Label menu "Orias AI" ikut dari perubahan I3.
 // ════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════
@@ -25,9 +26,10 @@ function openCmd(){
   var ov=document.getElementById('cmd-ov');
   if(ov){
     ov.classList.add('open');
+    var inp=document.getElementById('cmd-inp');
+    if(inp)inp.value=''; // kosongkan teks pencarian lama (fix I4, 2026-10-04)
     renderCmdResults('');
     // Only auto-focus on desktop — on mobile it would pop the keyboard immediately
-    var inp=document.getElementById('cmd-inp');
     if(inp&&!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
       inp.focus();
     } else if(inp) {
