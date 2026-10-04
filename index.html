@@ -433,6 +433,12 @@
        sebelum app.js; harus sebelum router.js (renderPivot). -->
   <script src="js/ui-misc/pivot-view.js"></script>
 
+  <!-- 4k. UI misc (I3, 2026-10-04): AI View — aiHistory, renderAI,
+       setAIMsg, sendAI. Dependency (vars, data, missCount, escHtml,
+       renderTab) dibaca runtime di dalam function body — aman dimuat
+       sebelum app.js; harus sebelum router.js (renderAI). -->
+  <script src="js/ui-misc/ai-view.js"></script>
+
   <!-- 5. Sisa monolith (belum dipisah semua) -->
   <script src="app.js"></script>
 
