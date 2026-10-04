@@ -7,10 +7,10 @@
 //   numFields(), mkSelect()/mkCsel() (html-helpers.js / custom-select.js),
 //   escHtml().
 // Dipanggil oleh: js/core/router.js (renderPivot).
-// Catatan: dipindah byte-exact dari app.js (I2, 2026-10-04); tidak ada
-//   perubahan logic. TEMUAN (belum diperbaiki): handler onchange keempat
-//   dropdown memanggil renderPivot(document.getElementById('view-pivot')),
-//   elemen itu tidak ada -> lihat Temuan I2 di ARCHITECTURE.md.
+// Catatan: dipindah byte-exact dari app.js (I2, 2026-10-04). Satu-satunya
+//   perubahan: handler onchange 4 dropdown memakai #app-content (sebelumnya
+//   #view-pivot yang tidak ada, sehingga tabel tidak ter-render ulang;
+//   diperbaiki atas persetujuan user, lihat Temuan I2 di ARCHITECTURE.md).
 // ════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════════════
@@ -23,10 +23,10 @@ function renderPivot(el){
   const cell=(r,c)=>{const sub=SE.validNums(data.filter(x=>String(x[pvState.row])===r&&String(x[pvState.col])===c).map(x=>x[pvState.val]));if(!sub.length)return '—';
     try{switch(pvState.fn){case'mean':return SE.mean(sub).toFixed(2);case'sum':return sub.reduce((a,b)=>a+b,0).toFixed(0);case'count':return sub.length;case'min':return Math.min(...sub).toFixed(2);case'max':return Math.max(...sub).toFixed(2);case'std':return sub.length>=2?SE.std(sub).toFixed(2):'N/A';default:return SE.mean(sub).toFixed(2);}}catch{return 'Err';}};
   let html='<div class="card" style="margin-bottom:12px"><div class="row" style="flex-wrap:wrap;gap:8px">';
-  html+=mkSelect('pv-row',allFields(),pvState.row,'pvState.row=val;renderPivot(document.getElementById(\'view-pivot\'))','Row');
-  html+=mkSelect('pv-col',allFields(),pvState.col,'pvState.col=val;renderPivot(document.getElementById(\'view-pivot\'))','Column');
-  html+=mkSelect('pv-val',numFields(),pvState.val,'pvState.val=val;renderPivot(document.getElementById(\'view-pivot\'))','Value');
-  html+=mkCsel('pv-fn',['mean','sum','count','min','max','std'],pvState.fn,'pvState.fn=val;renderPivot(document.getElementById(\'view-pivot\'))','Function');
+  html+=mkSelect('pv-row',allFields(),pvState.row,'pvState.row=val;renderPivot(document.getElementById(\'app-content\'))','Row');
+  html+=mkSelect('pv-col',allFields(),pvState.col,'pvState.col=val;renderPivot(document.getElementById(\'app-content\'))','Column');
+  html+=mkSelect('pv-val',numFields(),pvState.val,'pvState.val=val;renderPivot(document.getElementById(\'app-content\'))','Value');
+  html+=mkCsel('pv-fn',['mean','sum','count','min','max','std'],pvState.fn,'pvState.fn=val;renderPivot(document.getElementById(\'app-content\'))','Function');
   html+='</div></div>';
   html+='<div class="card"><div class="tbl-wrap"><table><thead><tr>';
   html+='<th style="color:#818cf8">'+escHtml(pvState.row)+' \\ '+escHtml(pvState.col)+'</th>';
