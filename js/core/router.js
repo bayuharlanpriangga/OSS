@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded',function(){
 // APP TAB SWITCHING
 // TAB SWITCHING + SIDE NAV ACTIVE STATE
 var TAB_LABELS={'data':' Data','variable':' Variables','analyze':' Analyze',
-  'syntax':' Syntax','pivot':' Pivot','ai':' AI Advisor','output':' Output'};
+  'syntax':' Syntax','pivot':' Pivot','ai':' Orias AI','output':' Output'};
 
 function switchTab(tab){
   currentTab=tab;

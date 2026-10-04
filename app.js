@@ -1629,7 +1629,7 @@ var CMD_ACTIONS=[
   {label:'Variable View',fn:function(){switchTab('variable');}},
   {label:'Syntax Editor',fn:function(){switchTab('syntax');}},
   {label:'Pivot Table',fn:function(){switchTab('pivot');}},
-  {label:'AI Advisor',fn:function(){switchTab('ai');}},
+  {label:'Orias AI',fn:function(){switchTab('ai');}},
   {label:'Output',fn:function(){switchTab('output');}},
 
   // ── Descriptive ──
