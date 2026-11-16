@@ -2184,6 +2184,219 @@ svg text {
   color: var(--ink);
 }
 
+/* Guide Icon Button & Modal (Penjelasan & Panduan Tersembunyi) */
+.oss-guide-btn {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: border-color 0.14s, background-color 0.14s, color 0.14s;
+}
+.oss-guide-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  opacity: 0.78;
+  pointer-events: none;
+}
+.oss-guide-btn:hover {
+  border-color: var(--ink);
+  background: var(--gold-tint);
+  color: var(--ink);
+}
+.oss-guide-btn:hover::after {
+  opacity: 1;
+}
+.oss-guide-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+#oss-guide-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9650;
+  background: var(--scrim);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#oss-guide-modal.open {
+  display: flex;
+}
+#oss-guide-box {
+  position: relative;
+  width: min(640px, 94vw);
+  max-height: min(680px, 86dvh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-modal);
+  animation: oriasFacetPop 0.16s ease-out both;
+}
+#oss-guide-box::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  background: var(--es);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  pointer-events: none;
+}
+#oss-guide-hdr {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.oss-guide-hdr-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
+}
+.oss-guide-hdr-ic {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-soft);
+  background: var(--gold-tint);
+  color: var(--gold-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.oss-guide-hdr-titles {
+  min-width: 0;
+}
+#oss-guide-title {
+  font-family: var(--font-serif-stack);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+}
+#oss-guide-sub {
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+#oss-guide-close {
+  min-width: 36px;
+  min-height: 36px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+#oss-guide-close:hover {
+  background: var(--surface-alt);
+  border-color: var(--line-soft);
+  color: var(--ink);
+}
+#oss-guide-body {
+  overflow-y: auto;
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.oss-guide-sec {
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm);
+}
+.oss-guide-sec-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  margin-bottom: 6px;
+}
+.oss-guide-p {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.oss-guide-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+.oss-guide-list strong {
+  color: var(--ink);
+}
+.oss-guide-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.oss-guide-kv-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 155px) 1fr;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  line-height: 1.5;
+  align-items: baseline;
+}
+.oss-guide-kv-k {
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+}
+.oss-guide-kv-v {
+  color: var(--ink-muted);
+}
+@media (max-width: 520px) {
+  .oss-guide-kv-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
 /* Prefers Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *,

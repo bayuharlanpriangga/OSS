@@ -4,10 +4,13 @@ function renderMissingDataAnalysis(){
     var nF2=vars.filter(function(v){return v.type==='Numeric';}).map(function(v){return v.name;});
     var n2=data.length;
 
-    html+='<div class="analyze-info-bar"><div class="analyze-info-title">Missing Data Analysis</div><div class="analyze-info-desc">Little\'s MCAR test: menguji apakah data hilang bersifat acak (MCAR). Pattern matrix memvisualisasikan distribusi dan ko-okurensi nilai hilang.</div></div>';
+    html+='<div class="sec-hd" style="margin-bottom:14px">Missing Data Analysis'+ossGuideBtn('missinganalysis')+'</div>';
 
     if(!n2||!nF2.length){
-      html+='<div class="card"><div class="chart-empty" style="padding:38px 0">No numeric data loaded. Import a CSV file to begin missing data analysis.</div></div>';
+      html+='<div class="grid2">';
+      html+='<div class="card"><div class="sec-hd">Overall Summary</div><div class="chart-empty" style="padding:38px 0">Belum ada data numerik yang dimuat. Impor data atau tambahkan variabel numerik.</div></div>';
+      html+='<div class="card"><div class="sec-hd">Preview</div><div class="chart-empty" style="padding:38px 0">Muat dataset numerik untuk melihat preview Little\'s MCAR Test &amp; Missingness Matrix.</div></div>';
+      html+='</div>';
     } else {
       // ── Overall missing summary ──
       var totalCells=n2*nF2.length;
@@ -18,6 +21,9 @@ function renderMissingDataAnalysis(){
       var totalMiss=missPerVar.reduce(function(s,v){return s+v.count;},0);
       var totalPct=(totalMiss/totalCells*100).toFixed(1);
 
+      html+='<div class="grid2">';
+      // Left Column: Overall Summary & Missing by Variable
+      html+='<div>';
       html+='<div class="card"><div class="sec-hd">Overall Summary</div>';
       html+='<div class="stats-grid" style="margin-bottom:14px">';
       html+='<div class="sb"><div class="sb-label">Total Cases</div><div class="sb-value">'+n2+'</div></div>';
@@ -26,7 +32,6 @@ function renderMissingDataAnalysis(){
       html+='<div class="sb"><div class="sb-label">Missing %</div><div class="sb-value" style="color:'+(parseFloat(totalPct)>5?'var(--err)':parseFloat(totalPct)>0?'var(--warn)':'var(--ok)')+'">'+totalPct+'%</div></div>';
       html+='</div>';
 
-      // Missing per variable bar chart
       html+='<div class="sec-hd-sub" style="margin-bottom:8px">Missing by Variable</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>Variable</th><th style="text-align:right">Missing N</th><th style="text-align:right">Missing %</th><th style="text-align:right">Valid N</th><th>Distribution</th></tr></thead><tbody>';
       missPerVar.forEach(function(mv){
@@ -38,15 +43,19 @@ function renderMissingDataAnalysis(){
         html+='<td class="td-num" style="color:'+(mv.count>0?'var(--err)':'var(--ok)')+';font-weight:600">'+mv.count+'</td>';
         html+='<td class="td-num">'+mv.pct+'%</td>';
         html+='<td class="td-num" style="color:var(--ok)">'+(n2-mv.count)+'</td>';
-        html+='<td style="min-width:120px"><div style="background:var(--surface-alt);border-radius:var(--r-sm);height:8px;overflow:hidden"><div style="background:'+barCol+';width:'+barW+'%;height:100%"></div></div></td>';
+        html+='<td style="min-width:110px"><div style="background:var(--surface-alt);border-radius:var(--r-sm);height:8px;overflow:hidden"><div style="background:'+barCol+';width:'+barW+'%;height:100%"></div></div></td>';
         html+='</tr>';
       });
       html+='</tbody></table></div></div>';
+      html+='</div>';
 
-      // ── Little's MCAR Test ──
-      html+='<div class="card"><div class="sec-hd">Little\'s MCAR Test</div>';
+      // Right Column: Preview
+      html+='<div>';
+      html+='<div class="card"><div class="sec-hd">Preview</div>';
+
+      html+='<div class="sec-hd-sub" style="margin-top:0">Little\'s MCAR Test</div>';
       if(totalMiss===0){
-        html+='<div style="padding:12px 14px;background:var(--ok-bg);border:1px solid var(--ok);border-radius:var(--r-sm);color:var(--ok);font-weight:600">Tidak ada data missing. Uji MCAR tidak diperlukan.</div>';
+        html+='<div style="padding:12px 14px;background:var(--ok-bg);border:1px solid var(--ok);border-radius:var(--r-sm);color:var(--ok);font-weight:600;margin-bottom:14px">Tidak ada data missing. Uji MCAR tidak diperlukan.</div>';
       } else {
         (function(){
           var f4L=function(v){return isFinite(v)?+(+v).toFixed(4):NaN;};
@@ -123,25 +132,19 @@ function renderMissingDataAnalysis(){
           var pVal=chi2pLocal(chiSqTotal,dfAdj);
           var chiSqFmt=f4loc(chiSqTotal);
           var sig=isFinite(pVal)&&pVal<0.05;
-          var interp=!isFinite(pVal)?'Cannot compute':(sig?'Asumsi MCAR ditolak — data tidak hilang secara acak sempurna (kemungkinan MAR atau MNAR)':'Data konsisten dengan MCAR — nilai hilang acak terhadap variabel teramati');
+          var interp=!isFinite(pVal)?'Cannot compute':(sig?'Not MCAR (kemungkinan MAR/MNAR)':'MCAR');
           var interpColor=!isFinite(pVal)?'var(--ink-muted)':(sig?'var(--err)':'var(--ok)');
-          var interpBg=!isFinite(pVal)?'var(--surface-alt)':(sig?'var(--err-bg)':'var(--ok-bg)');
 
           html+='<div class="stats-grid" style="margin-bottom:12px">';
           html+='<div class="sb"><div class="sb-label">χ²</div><div class="sb-value">'+chiSqFmt+'</div></div>';
           html+='<div class="sb"><div class="sb-label">df</div><div class="sb-value">'+dfAdj+'</div></div>';
           html+='<div class="sb"><div class="sb-label">p-value</div><div class="sb-value" style="color:'+interpColor+'">'+( isFinite(pVal)?(pVal<.001?'<.001':f4loc(pVal)):'—')+'</div></div>';
-          html+='<div class="sb"><div class="sb-label">Missing Patterns</div><div class="sb-value">'+nPat+'</div></div>';
+          html+='<div class="sb"><div class="sb-label">Status</div><div class="sb-value" style="font-size:14px;color:'+interpColor+'">'+interp+'</div></div>';
           html+='</div>';
-          html+='<div style="padding:11px 14px;border-radius:var(--r-sm);background:'+interpBg+';border:1px solid '+interpColor+';margin-bottom:10px">';
-          html+='<div style="font-size:12.5px;font-weight:700;color:'+interpColor+'">'+( sig?'Not MCAR':'MCAR')+'</div>';
-          html+='<div style="font-size:12px;color:var(--ink);margin-top:4px;line-height:1.6">'+interp+'</div>';
-          html+='</div>';
-          html+='<div style="font-size:11.5px;color:var(--ink-muted);line-height:1.6">Reference: Little (1988), <i>JASA</i>. Jika p &lt; .05, gunakan Multiple Imputation (MI) atau FIML dibanding listwise deletion.</div>';
 
           // Pattern table
-          html+='<div class="sec-hd-sub" style="margin-top:14px;margin-bottom:8px">Missing Patterns ('+nPat+' unique patterns)</div>';
-          html+='<div class="tbl-wrap"><table><thead><tr><th>Pattern</th><th style="text-align:right">N</th><th style="text-align:right">%</th>';
+          html+='<div class="sec-hd-sub" style="margin-top:12px;margin-bottom:8px">Missing Patterns ('+nPat+' pola)</div>';
+          html+='<div class="tbl-wrap" style="margin-bottom:14px"><table><thead><tr><th>Pattern</th><th style="text-align:right">N</th><th style="text-align:right">%</th>';
           nF2.forEach(function(v){ html+='<th style="font-size:11px;max-width:80px;word-break:break-all;text-align:center">'+escHtml(v)+'</th>'; });
           html+='</tr></thead><tbody>';
           patList.sort(function(a,b){return b.n-a.n;}).forEach(function(pat){
@@ -155,15 +158,11 @@ function renderMissingDataAnalysis(){
             html+='</tr>';
           });
           html+='</tbody></table></div>';
-          html+='<div style="margin-top:6px;font-size:11.5px;color:var(--ink-muted)">✓ Observed, × Missing (diurutkan berdasarkan frekuensi)</div>';
         })();
       }
-      html+='</div>';
 
       // ── Pattern Matrix Heatmap ──
-      html+='<div class="card"><div class="sec-hd">Missing Pattern Matrix</div>';
-      html+='<div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px">Heatmap nilai missing di seluruh kasus dan variabel. Setiap baris = satu kasus, setiap kolom = satu variabel.</div>';
-
+      html+='<div class="sec-hd-sub">Missing Pattern Matrix</div>';
       if(n2>0&&nF2.length>0){
         var T=typeof ossChartTheme==='function'?ossChartTheme():{ice:'#4F7A99',err:'#A93226',muted:'#4A5663',ink:'#0D0D0D'};
         var showN=Math.min(n2,200);
@@ -175,7 +174,7 @@ function renderMissingDataAnalysis(){
         var svgH=Math.min(sampleRows.length*cellSize+44,600);
         var svgW=Math.min(nF2.length*cellSize+68,640);
 
-        html+='<div style="overflow-x:auto"><svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;max-width:'+svgW+'px;display:block">';
+        html+='<div style="overflow-x:auto;margin-bottom:14px"><svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;max-width:'+svgW+'px;display:block">';
         nF2.forEach(function(v,vi){
           var x=60+vi*cellSize+cellSize/2;
           html+='<text x="'+x+'" y="14" font-size="'+(cellSize>=7?8.5:7)+'" fill="'+T.ink+'" font-weight="600" text-anchor="middle" transform="rotate(-55,'+x+',14)">'+escHtml(v.slice(0,8))+'</text>';
@@ -197,14 +196,11 @@ function renderMissingDataAnalysis(){
         html+='<rect x="140" y="'+legY+'" width="10" height="6" rx="1" fill="'+T.err+'" fill-opacity="0.85"/>';
         html+='<text x="154" y="'+(legY+5.5)+'" font-size="8.5" fill="'+T.muted+'">Missing</text>';
         html+='</svg></div>';
-        if(n2>200) html+='<div style="font-size:11px;color:var(--ink-subtle);margin-top:4px">Menampilkan 200 kasus pertama dari '+n2+' untuk performa.</div>';
       }
-      html+='</div>';
 
       // ── Pairwise Co-occurrence ──
       if(nF2.length>=2&&totalMiss>0){
-        html+='<div class="card"><div class="sec-hd">Pairwise Missing Co-occurrence</div>';
-        html+='<div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px">Jumlah kasus ketika dua variabel sama-sama bernilai hilang secara bersamaan.</div>';
+        html+='<div class="sec-hd-sub">Pairwise Missing Co-occurrence</div>';
         html+='<div class="tbl-wrap"><table><thead><tr><th></th>';
         nF2.forEach(function(v){html+='<th style="font-size:11px;text-align:right">'+escHtml(v)+'</th>';});
         html+='</tr></thead><tbody>';
@@ -224,28 +220,12 @@ function renderMissingDataAnalysis(){
           });
           html+='</tr>';
         });
-        html+='</tbody></table><div style="margin-top:6px;font-size:11.5px;color:var(--ink-muted)">Diagonal = total missing per variabel. Off-diagonal = kasus missing di kedua variabel bersamaan.</div></div></div>';
+        html+='</tbody></table></div>';
       }
 
-      // ── Recommendations ──
-      html+='<div class="card"><div class="sec-hd">Recommendations</div>';
-      html+='<div style="display:flex;flex-direction:column;gap:8px">';
-      var recs=[];
-      if(totalMiss===0) recs.push({col:'var(--ok)',bg:'var(--ok-bg)',tag:'Lengkap',text:'Tidak ada missing values terdeteksi. Dataset siap untuk analisis.'});
-      else{
-        if(parseFloat(totalPct)<=5) recs.push({col:'var(--ok)',bg:'var(--ok-bg)',tag:'≤5%',text:'Tingkat missing ≤5%: Listwise deletion dapat diterima. Pertimbangkan imputasi mean/median untuk mempertahankan ukuran sampel.'});
-        else if(parseFloat(totalPct)<=15) recs.push({col:'var(--warn)',bg:'var(--warn-bg)',tag:'5–15%',text:'Tingkat missing 5–15%: Gunakan Multiple Imputation (MI) atau Expectation-Maximization (EM). Hindari listwise deletion.'});
-        else recs.push({col:'var(--err)',bg:'var(--err-bg)',tag:'>15%',text:'Tingkat missing tinggi (>15%). Telusuri penyebab hilangnya data dan gunakan Multiple Imputation.'});
-        recs.push({col:'var(--line)',bg:'var(--surface)',tag:'Saran',text:'Gunakan alat Imputasi di sidebar untuk melakukan imputasi mean, median, regresi, atau MICE.'});
-        recs.push({col:'var(--ink)',bg:'var(--surface)',tag:'MCAR',text:'Jika data tidak MCAR, gunakan Full Information Maximum Likelihood (FIML) atau Multiple Imputation (MICE).'});
-      }
-      recs.forEach(function(r){
-        html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r-sm);background:'+r.bg+';border:1px solid var(--line-soft)">';
-        html+='<span class="tag" style="color:'+r.col+';border-color:'+r.col+'">'+r.tag+'</span>';
-        html+='<span style="font-size:12.5px;color:var(--ink);line-height:1.6">'+r.text+'</span>';
-        html+='</div>';
-      });
-      html+='</div></div>';
+      html+='</div>'; // end right Preview card
+      html+='</div>'; // end right column
+      html+='</div>'; // end grid2
     }
   return html;
 }

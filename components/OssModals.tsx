@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, X } from 'lucide-react';
+import { BookOpen, Search, X } from 'lucide-react';
 import { callOss } from '@/lib/oss-scripts';
 
 export default function OssModals() {
@@ -145,6 +145,39 @@ export default function OssModals() {
               zIndex: 1,
             }}
           />
+        </div>
+      </div>
+
+      <div
+        id="oss-guide-modal"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) callOss('closeAnalyzeGuide');
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="oss-guide-title"
+      >
+        <div id="oss-guide-box">
+          <div id="oss-guide-hdr">
+            <div className="oss-guide-hdr-left">
+              <span className="oss-guide-hdr-ic" aria-hidden="true">
+                <BookOpen size={17} strokeWidth={2} />
+              </span>
+              <div className="oss-guide-hdr-titles">
+                <h2 id="oss-guide-title">Panduan Analisis</h2>
+                <p id="oss-guide-sub" />
+              </div>
+            </div>
+            <button
+              id="oss-guide-close"
+              type="button"
+              onClick={() => callOss('closeAnalyzeGuide')}
+              aria-label="Tutup panduan"
+            >
+              <X size={16} strokeWidth={2} />
+            </button>
+          </div>
+          <div id="oss-guide-body" />
         </div>
       </div>
     </>

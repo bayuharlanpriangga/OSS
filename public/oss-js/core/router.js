@@ -29,7 +29,7 @@ function closeSide(){
 
 document.addEventListener('keydown',function(e){
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openCmd();}
-  if(e.key==='Escape'){closeCsel();closeCmd();}
+  if(e.key==='Escape'){closeCsel();closeCmd();if(typeof closeAnalyzeGuide==='function')closeAnalyzeGuide();}
   // a11y: Enter/Space mengaktifkan elemen non-<button> yang berperan tombol (mis. .s-item sidebar)
   if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches&&e.target.matches('[data-kbd-clickable]')){
     e.preventDefault();
