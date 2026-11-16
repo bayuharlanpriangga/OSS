@@ -1,0 +1,5 @@
+{
+  "name": "OSS — Orias Statistik System",
+  "description": "Aplikasi statistik lengkap berbasis Next.js untuk manajemen data, analisis parametrik dan nonparametrik, SEM, survival, Bayesian, visualisasi SVG, serta ekspor APA/Word/Excel.",
+  "requestFramePermissions": []
+}
