@@ -27,6 +27,7 @@ var CMD_ACTIONS=[
   // ── Navigation ──
   {label:'Data View',fn:function(){switchTab('data');}},
   {label:'Variable View',fn:function(){switchTab('variable');}},
+  {label:"Missing Data (Little's MCAR + Pattern Matrix)",fn:function(){switchTab('missing');}},
   {label:'Syntax Editor',fn:function(){switchTab('syntax');}},
   {label:'Pivot Table',fn:function(){switchTab('pivot');}},
   {label:'Orias AI',fn:function(){switchTab('ai');}},
@@ -96,9 +97,6 @@ var CMD_ACTIONS=[
   // ── Discriminant & Cluster ──
   {label:'Discriminant Analysis (LDA)',fn:function(){openAnalyze('discriminant');}},
   {label:'Cluster Analysis (K-Means & Hierarchical)',fn:function(){openAnalyze('cluster');}},
-
-  // ── Missing Data ──
-  {label:"Missing Data Analysis (Little's MCAR + Pattern Matrix)",fn:function(){openAnalyze('missinganalysis');}},
 
   // ── Power Analysis ──
   {label:'Power Analysis',fn:function(){openAnalyze('poweranalysis');}},

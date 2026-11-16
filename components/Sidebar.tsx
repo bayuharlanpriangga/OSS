@@ -79,8 +79,6 @@ function AnalyzeIcon({ sub }: { sub: string }) {
       return <GitBranch {...props} />;
     case 'cluster':
       return <Cpu {...props} />;
-    case 'missinganalysis':
-      return <AlertTriangle {...props} />;
     case 'roc':
       return <LineChart {...props} />;
     case 'survival':
@@ -145,7 +143,6 @@ const ANALYZE_MENU = [
   { sub: 'charts', group: 'charts', label: 'Charts' },
   { sub: 'discriminant', group: 'discriminant', label: 'Discriminant' },
   { sub: 'cluster', group: 'cluster', label: 'Cluster Analysis' },
-  { sub: 'missinganalysis', group: 'missinganalysis', label: 'Missing Analysis' },
   { sub: 'roc', group: 'roc', label: 'ROC Curve' },
   { sub: 'survival', group: 'survival', label: 'Survival Analysis' },
   { sub: 'poweranalysis', group: 'poweranalysis', label: 'Power Analysis' },
@@ -158,17 +155,34 @@ const ANALYZE_MENU = [
 
 export default function Sidebar() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [nav, setNav] = useState<{ tab: string; sub: string; group: string }>({
+    tab: 'data',
+    sub: '',
+    group: '',
+  });
 
   useEffect(() => {
     const sync = () => {
       const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
       setTheme(t);
     };
+    const onNavChange = (e: Event) => {
+      const detail = (e as CustomEvent<{ tab: string; sub?: string; group?: string }>).detail;
+      if (detail) {
+        setNav({
+          tab: detail.tab || 'data',
+          sub: detail.sub || '',
+          group: detail.group || '',
+        });
+      }
+    };
     const raf = requestAnimationFrame(sync);
     window.addEventListener('oss-theme-change', sync);
+    window.addEventListener('oss-nav-change', onNavChange);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('oss-theme-change', sync);
+      window.removeEventListener('oss-nav-change', onNavChange);
     };
   }, []);
 
@@ -218,20 +232,40 @@ export default function Sidebar() {
         <div className="s-cat">Data</div>
         <SideItem
           tab="data"
-          active
+          active={nav.tab === 'data'}
           onClick={() => callOss('switchTab', 'data')}
           icon={<BarChart3 size={15} strokeWidth={1.8} />}
           label="Data View"
         />
         <SideItem
           tab="variable"
+          active={nav.tab === 'variable'}
           onClick={() => callOss('switchTab', 'variable')}
           icon={<Table2 size={15} strokeWidth={1.8} />}
-          label="Variables"
+          label="Variable View"
+        />
+        <SideItem
+          tab="missing"
+          active={nav.tab === 'missing'}
+          onClick={() => callOss('switchTab', 'missing')}
+          icon={<AlertTriangle size={15} strokeWidth={1.8} />}
+          label={
+            <>
+              Missing Data
+              <span
+                id="miss-nav-badge"
+                className="s-count-tag s-count-tag-miss"
+                style={{ display: 'none' }}
+              >
+                0
+              </span>
+            </>
+          }
         />
         <SideItem
           tab="analyze"
           sub="transform"
+          active={nav.tab === 'analyze' && (nav.sub === 'transform' || nav.group === 'transform')}
           onClick={() => callOss('openAnalyze', 'transform', 'transform')}
           icon={<Wrench size={15} strokeWidth={1.8} />}
           label="Transform & Recode"
@@ -239,6 +273,7 @@ export default function Sidebar() {
         <SideItem
           tab="analyze"
           sub="weightcases"
+          active={nav.tab === 'analyze' && (nav.sub === 'weightcases' || nav.group === 'weightcases')}
           onClick={() => callOss('openAnalyze', 'weightcases', 'weightcases')}
           icon={<Scale size={15} strokeWidth={1.8} />}
           label={
@@ -257,6 +292,7 @@ export default function Sidebar() {
             key={item.sub}
             tab="analyze"
             sub={item.sub}
+            active={nav.tab === 'analyze' && (nav.sub === item.sub || nav.group === item.sub)}
             onClick={() => callOss('openAnalyze', item.sub, item.group)}
             icon={<AnalyzeIcon sub={item.sub} />}
             label={item.label}
@@ -277,24 +313,28 @@ export default function Sidebar() {
         <div className="s-cat">Tools</div>
         <SideItem
           tab="syntax"
+          active={nav.tab === 'syntax'}
           onClick={() => callOss('switchTab', 'syntax')}
           icon={<Code2 size={15} strokeWidth={1.8} />}
           label="Syntax"
         />
         <SideItem
           tab="pivot"
+          active={nav.tab === 'pivot'}
           onClick={() => callOss('switchTab', 'pivot')}
           icon={<LayoutGrid size={15} strokeWidth={1.8} />}
           label="Pivot Table"
         />
         <SideItem
           tab="ai"
+          active={nav.tab === 'ai'}
           onClick={() => callOss('switchTab', 'ai')}
           icon={<Bot size={15} strokeWidth={1.8} />}
           label="Orias AI"
         />
         <SideItem
           tab="output"
+          active={nav.tab === 'output'}
           onClick={() => callOss('switchTab', 'output')}
           icon={<Download size={15} strokeWidth={1.8} />}
           label={
@@ -311,10 +351,6 @@ export default function Sidebar() {
       <div className="s-foot">
         <div className="s-badges">
           <div className="s-badge sb-cases" id="badge-cases">N=0 kasus</div>
-          <div className="s-badge sb-miss" id="badge-miss">
-            <AlertTriangle size={12} strokeWidth={2.2} />
-            <span>0 missing</span>
-          </div>
         </div>
 
         <div id="sidebar-install-wrap" style={{ marginBottom: '6px' }}>

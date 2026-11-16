@@ -68,9 +68,6 @@ function renderAnalyze(el){
     'cluster':[
       {id:'cluster',label:'Cluster Analysis',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="6" r="2" fill="currentColor"/><circle cx="12" cy="4" r="2" fill="currentColor"/><circle cx="7" cy="13" r="2" fill="currentColor"/><circle cx="17" cy="8" r="2" fill="currentColor"/><circle cx="19" cy="17" r="2" fill="currentColor"/><circle cx="13" cy="18" r="2" fill="currentColor"/></svg>'}
     ],
-    'missinganalysis':[
-      {id:'missinganalysis',label:'Missing Analysis',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/><circle cx="6" cy="6" r="1" fill="currentColor" stroke="none"/><line x1="14" y1="12" x2="18" y2="12" stroke-dasharray="1.5 1.5"/><line x1="14" y1="18" x2="18" y2="18" stroke-dasharray="1.5 1.5"/></svg>'}
-    ],
     'poweranalysis':[
       {id:'poweranalysis',label:'Power Analysis',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'},
       {id:'powerplot',label:'Power Curves',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},

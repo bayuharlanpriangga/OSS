@@ -121,7 +121,7 @@ test('Analyze form renderers contain zero legacy inline guides and expose Previe
     'utf8'
   );
   const missingSrc = fs.readFileSync(
-    path.join(ROOT_DIR, 'public/oss-js/data/missing-data.js'),
+    path.join(ROOT_DIR, 'public/oss-js/data/data-missingdata.js'),
     'utf8'
   );
 
@@ -139,11 +139,11 @@ test('Analyze form renderers contain zero legacy inline guides and expose Previe
 
   for (const pat of forbiddenPatterns) {
     assert.equal(pat.test(formSrc), false, `Found forbidden inline guide pattern ${pat} in analyze-form-render.js`);
-    assert.equal(pat.test(missingSrc), false, `Found forbidden inline guide pattern ${pat} in missing-data.js`);
+    assert.equal(pat.test(missingSrc), false, `Found forbidden inline guide pattern ${pat} in data-missingdata.js`);
   }
 
   const previewCount = (formSrc.match(/class="sec-hd">Preview</g) || []).length;
   assert.ok(previewCount >= 40, `Expected >= 40 Preview headings in analyze-form-render.js, found ${previewCount}`);
-  assert.ok(missingSrc.includes('<div class="sec-hd">Preview</div>'), 'missing-data.js must have Preview heading');
-  assert.ok(missingSrc.includes("ossGuideBtn('missinganalysis')"), 'missing-data.js must render ossGuideBtn');
+  assert.ok(missingSrc.includes('<div class="sec-hd">Preview</div>'), 'data-missingdata.js must have Preview heading');
+  assert.ok(missingSrc.includes("ossGuideBtn('missinganalysis')"), 'data-missingdata.js must render ossGuideBtn');
 });

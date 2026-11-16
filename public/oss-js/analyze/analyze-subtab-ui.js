@@ -95,7 +95,7 @@ var aState = {
 // Missing Data Analysis, Transform, dll)
 var numFields=()=>vars.filter(v=>v.type==='Numeric'&&v.name!=='id').map(v=>v.name);
 var allFields=()=>vars.map(v=>v.name);
-var isMiss=v=>v===null||v===undefined||v==='';
+var isMiss=v=>v===null||v===undefined||v===''||(typeof v==='number'&&!isFinite(v));
 var missCount=()=>vars.map(v=>({name:v.name,count:data.filter(r=>isMiss(r[v.name])).length}));
 
 //  Sliding pill indicator for .sub-tabs groups 

@@ -1,4 +1,131 @@
-// SPREADSHEET (BULK EDIT) MODE 
+// DATA VIEW
+var sortCol=null,sortDir='asc',searchQ='',selRows=new Set();
+
+var sprMode=false; // spreadsheet (bulk edit) mode
+
+// WINDOWED RENDERING untuk dataset besar (performa)
+// Di bawah threshold ini, semua baris dirender seperti biasa (perilaku tidak berubah).
+// Di atas threshold, hanya render batch pertama + tombol "Muat lebih banyak" —
+// menghindari innerHTML raksasa untuk ribuan baris tanpa mengubah fitur edit/checkbox.
+var _ossDataPageThreshold = 300;
+var _ossDataPageSize = 300;
+var _ossDataShown = _ossDataPageSize;
+
+function renderData(el){
+  var html='';
+  // Toolbar
+  html+='<div class="data-toolbar">';
+  html+='<div class="dt-search"><span class="dt-search-ic">'+IC.search+'</span><input class="inp" id="srch-inp" placeholder="Search…" value="'+escHtmlAttr(searchQ)+'" oninput="searchData(this.value)" autocomplete="off"/></div>';
+  html+='<div class="dt-actions">';
+  // + Add: always inline blank row, no popup
+  html+='<button class="dt-btn dt-btn-add" onclick="addDataRowInline()">'+IC.plus+' Add</button>';
+  if(sprMode){
+    // In combined edit mode: single Done button saves + closes checkbox mode
+    html+='<button class="dt-btn dt-btn-done" onclick="saveSprMode()">'+IC.check+' Done</button>';
+    html+='<button class="dt-btn dt-btn-edit" onclick="exitSprMode()">Cancel</button>';
+  } else if(editMode){
+    // Delete only visible when rows are selected
+    if(selRows.size>0){
+      html+='<button class="dt-btn dt-btn-del" id="del-btn" onclick="deleteSelected()">'+IC.trash+' Del '+selRows.size+'</button>';
+    }
+    html+='<button class="dt-btn dt-btn-done" onclick="toggleEditMode()">'+IC.check+' Done</button>';
+  } else {
+    // Single Edit button: enters combined mode (checkbox + inline editing)
+    html+='<button class="dt-btn dt-btn-edit" onclick="enterCombinedEditMode()">'+IC.edit+' Edit</button>';
+  }
+  var csvBtn='<button class="dt-btn dt-btn-csv" onclick="document.getElementById(&quot;csv-input&quot;).click()">'+IC.upload+' CSV</button>';
+  html+=csvBtn;
+  html+='</div></div>';
+
+  // Table directly on surface (Aturan 3.9)
+  var d=[...data];
+  if(searchQ&&!sprMode) d=d.filter(function(r){return vars.some(function(v){return String(r[v.name]??'').toLowerCase().includes(searchQ.toLowerCase());});});
+  if(sortCol&&!sprMode) d.sort(function(a,b){var av=a[sortCol]??'',bv=b[sortCol]??'';return sortDir==='asc'?(av>bv?1:-1):(av<bv?1:-1);});
+
+  html+='<div class="tbl-wrap"><table class="data-tbl"><thead><tr>';
+  // Checkbox header col shown in editMode (includes sprMode since combined)
+  if(editMode||sprMode){
+    html+='<th style="width:36px"><input type="checkbox" id="chk-all" onchange="toggleAllRows(this)" aria-label="Select all rows"/></th>';
+  }
+  html+='<th style="width:44px;text-align:right;color:var(--ink-muted)">#</th>';
+  vars.forEach(function(v){
+    var MC={Scale:'var(--line)',Nominal:'var(--warn)',Ordinal:'var(--ok)'};
+    var sc=sortCol===v.name&&!sprMode?(sortDir==='asc'?' '+IC.sort_asc:' '+IC.sort_desc):'';
+    var dot='<span style="display:inline-block;width:6px;height:6px;margin-right:5px;vertical-align:1px;background:'+(MC[v.measure]||'var(--ink-subtle)')+';clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)"></span>';
+    var vNameSafe=escHtml(v.name);
+    var wBadge=(aState.wcActive&&aState.wcVar===v.name)
+      ?'<span class="tag tag-yellow" style="margin-left:5px;font-size:10px;padding:0 5px">W</span>':'';
+    var isNumCol=(v.type==='Numeric'||v.type==='Scale');
+    var alignStyle=isNumCol?'text-align:right;':'';
+    if(sprMode){
+      html+='<th style="'+alignStyle+'">'+dot+vNameSafe+wBadge+' <button class="col-fill-btn" onclick="colFillModal(this.dataset.vn)" data-vn="'+escHtmlAttr(v.name)+'" title="Fill entire column">Fill</button></th>';
+    } else {
+      html+='<th onclick="toggleSort(this.dataset.col)" data-col="'+escHtmlAttr(v.name)+'" style="cursor:pointer;'+alignStyle+'">'+dot+vNameSafe+wBadge+sc+'</th>';
+    }
+  });
+  html+='</tr></thead><tbody>';
+
+  var isWindowed = !sprMode && d.length > _ossDataPageThreshold;
+  var dShown = isWindowed ? d.slice(0, _ossDataShown) : d;
+
+  dShown.forEach(function(row,ri){
+    var sel=selRows.has(row.id);
+    html+='<tr class="'+(sel?'selected':ri%2===0?'alt':'')+'">';
+    if(editMode||sprMode){
+      html+='<td style="width:36px;text-align:center">';
+      html+='<input type="checkbox" data-rowcb="'+row.id+'" '+(sel?'checked':'')+' onchange="toggleRow('+row.id+',this)" aria-label="Select row '+(ri+1)+'"/>';
+      html+='</td>';
+    }
+    html+='<td class="td-num" style="color:var(--ink-subtle);font-size:11.5px">'+(ri+1)+'</td>';
+    vars.forEach(function(v){
+      var val=row[v.name];var iM=isMiss(val);
+      if(sprMode){
+        var dispVal=(iM?'':String(val??''));
+        html+='<td style="padding:3px 4px">';
+        html+='<input class="spr-cell" ';
+        html+='data-rowid="'+row.id+'" data-field="'+escHtmlAttr(v.name)+'" ';
+        html+='type="text" ';
+        if(v.type==='Numeric'||v.type==='Scale'){
+          html+='inputmode="decimal" ';
+        }
+        html+='value="'+escHtmlAttr(dispVal)+'" ';
+        html+='placeholder="—" ';
+        html+='onkeydown="sprKeyNav(event,'+row.id+',this.dataset.field)" ';
+        html+='onchange="sprCellChange(this,\''+v.type+'\')" ';
+        html+='oninput="sprCellInput(this)" />';
+        html+='</td>';
+      } else {
+        if(iM) html+='<td'+((v.type==='Numeric'||v.type==='Scale')?' style="text-align:right"':'')+'><span class="td-miss">—</span></td>';
+        else if(v.type==='Numeric'&&typeof val==='number') html+='<td class="td-num">'+val.toFixed(v.dec)+'</td>';
+        else html+='<td><span class="td-str">'+escHtml(val)+'</span></td>';
+      }
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // Footer info bar
+  html+='<div style="padding:8px 2px;color:var(--ink-muted);font-size:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-variant-numeric:tabular-nums">';
+  html+='<span>'+dShown.length+' / '+d.length+' rows'+(d.length!==data.length?' (dari '+data.length+' total)':'')+(aState.wcActive?' <span class="tag tag-yellow" style="margin-left:6px">N efektif = '+getNEff()+'</span>':'')+'</span>';
+  if(isWindowed && dShown.length<d.length){
+    html+='<button class="dt-btn" style="margin-left:auto" onclick="_ossLoadMoreRows()">Muat '+Math.min(_ossDataPageSize,d.length-dShown.length)+' baris lagi</button>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+
+  // Re-sync del btn (now only rendered when selRows.size>0, no re-sync needed)
+  // If sprMode, restore sprBuffer into inputs
+  if(sprMode&&Object.keys(sprBuffer).length){
+    Object.keys(sprBuffer).forEach(function(rowId){
+      Object.keys(sprBuffer[rowId]).forEach(function(field){
+        var inp=document.querySelector('.spr-cell[data-rowid="'+rowId+'"][data-field="'+field+'"]');
+        if(inp) inp.value=sprBuffer[rowId][field]===null?'':String(sprBuffer[rowId][field]??'');
+      });
+    });
+  }
+}
+
+// SPREADSHEET (BULK EDIT) MODE & DATA VIEW ACTIONS
 var sprBuffer={}; // {rowId: {field: value}} — pending changes
 
 function escHtmlAttr(s){
@@ -75,10 +202,8 @@ function sprCellChange(inp,vtype){
   var val=inp.value.trim();
   if(val===''||val==='.'){
     sprBuffer[rowId][field]=null;
-    inp.classList.add('missing-cell');
-    inp.placeholder='. (missing)';
+    inp.placeholder='—';
   } else {
-    inp.classList.remove('missing-cell');
     if(vtype==='Numeric'){
       var n=Number(val);
       sprBuffer[rowId][field]=isNaN(n)?null:n;
@@ -91,12 +216,7 @@ function sprCellChange(inp,vtype){
 }
 
 function sprCellInput(inp){
-  if(inp.value==='.'||inp.value===''){
-    inp.classList.add('missing-cell');
-  } else {
-    inp.classList.remove('missing-cell');
-    inp.style.borderColor='';
-  }
+  inp.style.borderColor='';
 }
 
 function sprKeyNav(e,rowId,field){
@@ -125,7 +245,10 @@ function sprKeyNav(e,rowId,field){
 function colFillModal(fieldName){
   var v=vars.find(function(x){return x.name===fieldName;});
   if(!v) return;
+  var existingModal=document.getElementById('colfill-modal');
+  if(existingModal) existingModal.remove();
   var modal=document.createElement('div');
+  modal.id='colfill-modal';
   modal.style.cssText='position:fixed;inset:0;z-index:9600;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:16px';
   var box=document.createElement('div');
   box.className='modal-box';
@@ -231,7 +354,7 @@ function applyColFill(fieldName,vtype){
   });
   
   // Close modal
-  var modal=inp.closest('[style*="position:fixed"]');
+  var modal=document.getElementById('colfill-modal')||inp._modal;
   if(modal) modal.remove();
   
   updateBadges();
@@ -257,7 +380,7 @@ function applyColSeq(fieldName,vtype){
     if(sprMode){if(!sprBuffer[row.id])sprBuffer[row.id]={};sprBuffer[row.id][fieldName]=cur;}
     cur+=step;count++;
   });
-  var modal=document.querySelector('[style*="position:fixed"][style*="9600"]');
+  var modal=document.getElementById('colfill-modal');
   if(modal) modal.remove();
   updateBadges();renderTab('data');
   showToast('Fill berhasil');
@@ -336,8 +459,6 @@ function addDataRowInline(){
     else{var tbl=document.querySelector('.data-tbl');if(tbl)tbl.scrollIntoView({behavior:'smooth',block:'end'});}
   },80);
 }
-
-
 
 function searchData(q){searchQ=q;_ossDataShown=_ossDataPageSize;renderTab('data');}
 function toggleSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}_ossDataShown=_ossDataPageSize;renderTab('data');}
@@ -582,7 +703,6 @@ function confirmAddRow(nid){
   switchTab('data');
 }
 
-
 function startEdit(rowId,field){
   const v=vars.find(x=>x.name===field),row=data.find(r=>r.id===rowId);if(!row||!v)return;
   const cur=row[field]===null||row[field]===undefined?'':String(row[field]);
@@ -599,6 +719,7 @@ function startEdit(rowId,field){
   }
   updateBadges();renderTab('data');
 }
+
 function handleCSV(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
@@ -633,3 +754,4 @@ function handleCSV(e){
   };
   reader.readAsText(file);e.target.value='';
 }
+

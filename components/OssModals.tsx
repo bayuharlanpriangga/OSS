@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Search, X } from 'lucide-react';
+import { BookOpen, Search, Smartphone, X } from 'lucide-react';
 import { callOss } from '@/lib/oss-scripts';
 
 export default function OssModals() {
@@ -178,6 +178,36 @@ export default function OssModals() {
             </button>
           </div>
           <div id="oss-guide-body" />
+        </div>
+      </div>
+
+      <div
+        id="out-display-modal"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) callOss('closeOutDisplayModal');
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="out-display-title"
+      >
+        <div id="out-display-box">
+          <div id="out-display-hdr">
+            <div className="out-display-hdr-left">
+              <span className="out-display-hdr-ic" aria-hidden="true">
+                <Smartphone size={16} strokeWidth={2} />
+              </span>
+              <h2 id="out-display-title">Tampilan Output</h2>
+            </div>
+            <button
+              id="out-display-close"
+              type="button"
+              onClick={() => callOss('closeOutDisplayModal')}
+              aria-label="Tutup pengaturan tampilan"
+            >
+              <X size={16} strokeWidth={2} />
+            </button>
+          </div>
+          <div id="out-display-body" />
         </div>
       </div>
     </>

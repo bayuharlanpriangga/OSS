@@ -1,8 +1,11 @@
 // Output tab group state
-var _outMode = 'all';       // 'all' | 'group'
-var _outActiveGroup = null; // active group key when in group mode
-var _outGridOpen = true;    // tampilkan pill pilihan grid? (toggle lewat tombol GRID)
-var _outGrid = 1;           // layout cols: 1=1×1, 2=1×2, 3=2×2, 4=2×3, 5=2×4, 6=3×3, 7=3×4, 8=4×4
+var _outMode = 'all';         // 'all' | 'group'
+var _outActiveGroup = null;   // active group key when in group mode
+var _outGridOpen = true;      // tampilkan pill pilihan grid? (toggle lewat tombol GRID)
+var _outGrid = 1;             // layout cols: 1=1×1, 2=2×2, 3=3×3, 4=4×4
+var _outGroupEdit = false;    // mode edit pilih kategori group untuk hapus sekaligus
+var _outSelectedGroups = [];  // key grup terpilih di mode edit
+var _OUT_GRID_OPTS = [{c:1,lbl:'1×1'},{c:2,lbl:'2×2'},{c:3,lbl:'3×3'},{c:4,lbl:'4×4'}];
 
 // Map output type → canonical group key & label
 function _outGroup(o){
@@ -175,6 +178,18 @@ function _buildInterp(o){
       ?'Model logistik menjelaskan ~'+r.nagelkerke+' varians (Nagelkerke R²). Akurasi klasifikasi: '+r.accuracy+'%. Periksa OR prediktor signifikan untuk arah pengaruh.'
       :'Model logistik dengan Nagelkerke R²='+r.nagelkerke+'. Akurasi: '+r.accuracy+'%.');
   }
+  if(o.type==='poisson'){
+    var pSig=r&&r.lrP!==undefined?parsePValue(r.lrP)<.05:false;
+    return (pSig
+      ?'Model Poisson signifikan (LR χ²='+r.lrChi2+', p='+r.lrP+'). Periksa IRR (e^β) dan statistik dispersi ('+r.dispersion+').'
+      :'Model Poisson tidak signifikan secara keseluruhan (p='+((r&&r.lrP)||'n/a')+').');
+  }
+  if(o.type==='negbin'){
+    var nbSig=r&&r.lrP!==undefined?parsePValue(r.lrP)<.05:false;
+    return (nbSig
+      ?'Model Negative Binomial signifikan (LR χ²='+r.lrChi2+', p='+r.lrP+', θ='+r.theta+'). Periksa IRR (e^β) untuk besaran efek prediktor.'
+      :'Model Negative Binomial tidak signifikan secara keseluruhan (p='+((r&&r.lrP)||'n/a')+').');
+  }
   if(o.type==='mannwhitney'){
     return (sig
       ?'Terdapat perbedaan signifikan antara '+escHtml(o.ga)+' dan '+escHtml(o.gb)+' (U='+r.U+', p='+r.p_fmt+'). Ukuran efek r='+r.r_eff+'.'
@@ -270,6 +285,11 @@ function _buildInterp(o){
   if(o.type==='glm'){
     return 'General Linear Model selesai. Periksa partial η² untuk ukuran efek setiap faktor.';
   }
+  if(o.type==='repeated'){
+    return (sig
+      ?'Terdapat perubahan signifikan antara kondisi pre dan post (t('+r.df+')='+r.t+', p='+r.p_fmt+', dz='+r.cohensD+').'
+      :'Tidak terdapat perubahan signifikan antara kondisi pre dan post (t('+r.df+')='+r.t+', p='+r.p_fmt+').');
+  }
   if(o.type==='manova'){
     return 'MANOVA selesai. Jika uji multivariat signifikan, lanjutkan dengan univariat ANOVA per DV dengan koreksi Bonferroni.';
   }
@@ -285,72 +305,203 @@ function _buildInterp(o){
 // ════════════════════════════════════════════════════════════════════════
 // OUTPUT DISPATCHER & ACTIONS (dipindah dari app.js, 2026-10-04)
 // ════════════════════════════════════════════════════════════════════════
+function _outNormalizeGrid(g){
+  return (g>=1&&g<=4)?g:1;
+}
+
+function setOutDisplayMode(mode){
+  _outMode=mode==='group'?'group':'all';
+  _outActiveGroup=null;
+  _outGroupEdit=false;
+  _outSelectedGroups=[];
+  var ov=document.getElementById('out-display-modal');
+  if(ov&&ov.classList.contains('open')) renderOutDisplayModal();
+  renderTab('output');
+}
+
+function setOutDisplayGrid(cols){
+  _outGrid=_outNormalizeGrid(cols);
+  var ov=document.getElementById('out-display-modal');
+  if(ov&&ov.classList.contains('open')) renderOutDisplayModal();
+  renderTab('output');
+}
+
+function renderOutDisplayModal(){
+  var body=document.getElementById('out-display-body');
+  if(!body) return;
+  var em=_outMode;
+  var gridVal=_outNormalizeGrid(_outGrid);
+  var allIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
+  var grpIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
+  var html='';
+  html+='<div>';
+  html+='<div class="out-display-sec-lbl">Mode</div>';
+  html+='<div class="out-display-mode-row">';
+  html+='<button type="button" class="out-display-opt-btn'+(em==='all'?' active':'')+'" data-out-mode="all" onclick="setOutDisplayMode(\'all\')">'+allIcon+'All</button>';
+  html+='<button type="button" class="out-display-opt-btn'+(em==='group'?' active':'')+'" data-out-mode="group" onclick="setOutDisplayMode(\'group\')">'+grpIcon+'Groups</button>';
+  html+='</div>';
+  html+='</div>';
+  if(em==='group'){
+    html+='<div>';
+    html+='<div class="out-display-sec-lbl">Tampilan</div>';
+    html+='<div class="out-display-grid-row">';
+    _OUT_GRID_OPTS.forEach(function(g){
+      html+='<button type="button" class="out-display-opt-btn'+(gridVal===g.c?' active':'')+'" data-out-grid="'+g.c+'" onclick="setOutDisplayGrid('+g.c+')">'+g.lbl+'</button>';
+    });
+    html+='</div>';
+    html+='</div>';
+  }
+  body.innerHTML=html;
+}
+
+function openOutDisplayModal(){
+  renderOutDisplayModal();
+  var ov=document.getElementById('out-display-modal');
+  if(ov) ov.classList.add('open');
+}
+
+function closeOutDisplayModal(){
+  var ov=document.getElementById('out-display-modal');
+  if(ov) ov.classList.remove('open');
+}
+
+function toggleOutGroupSelect(key){
+  var idx=_outSelectedGroups.indexOf(key);
+  if(idx===-1) _outSelectedGroups.push(key);
+  else _outSelectedGroups.splice(idx,1);
+  renderTab('output');
+}
+
+function toggleOutGroupTrash(){
+  if(!_outGroupEdit){
+    _outGroupEdit=true;
+    _outSelectedGroups=[];
+    renderTab('output');
+    return;
+  }
+  if(!_outSelectedGroups.length){
+    _outGroupEdit=false;
+    renderTab('output');
+    return;
+  }
+  var selMap={};
+  _outSelectedGroups.forEach(function(k){selMap[k]=true;});
+  var before=outputs.length;
+  outputs=outputs.filter(function(o){return !selMap[_outGroup(o)];});
+  var deleted=before-outputs.length;
+  _outSelectedGroups=[];
+  _outGroupEdit=false;
+  if(!outputs.length) _outActiveGroup=null;
+  updateBadges();
+  renderTab('output');
+  if(typeof showToast==='function'&&deleted>0) showToast(deleted+' output dihapus');
+}
+
 function renderOutput(el){
   if(!outputs.length){
+    _outGroupEdit=false;
+    _outSelectedGroups=[];
+    _outActiveGroup=null;
     el.innerHTML='<div style="text-align:center;padding:48px 16px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)"><div style="color:var(--ink);font-size:15px;font-weight:600;margin-bottom:6px">No outputs yet</div><div style="color:var(--ink-muted);font-size:13px">Run a statistical procedure from Analyze to inspect tables and plots here.</div></div>';
     return;
   }
 
   var groups=_outGroups();
+  var groupKeyMap={};
+  groups.forEach(function(g){groupKeyMap[g.key]=true;});
+  _outSelectedGroups=_outSelectedGroups.filter(function(k){return !!groupKeyMap[k];});
+
   var em=_outMode;
   var ag=_outActiveGroup;
+  var gridVal=_outNormalizeGrid(_outGrid);
+  if(em!=='group'||ag){
+    _outGroupEdit=false;
+    _outSelectedGroups=[];
+  }
+
+  var trashSvg='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  var phoneSvg='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>';
+  var copySvg='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  var exportSvg='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+
   var html='';
 
   // ── Top toolbar ──────────────────────────────────────────────────────
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line-soft)">';
-  html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
-  // Mode toggle segment
-  html+='<div style="display:flex;background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-sm);padding:2px;gap:2px">';
-  html+='<button onclick="_outMode=\'all\';_outActiveGroup=null;renderTab(\'output\')" style="padding:6px 12px;min-height:36px;border-radius:3px;border:none;cursor:pointer;font-size:12px;font-family:var(--font-sans-stack);font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px;'+(em==='all'?'background:var(--ink);color:var(--bg)':'background:transparent;color:var(--ink-muted)')+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>All</button>';
-  html+='<button onclick="_outMode=\'group\';_outActiveGroup=null;renderTab(\'output\')" style="padding:6px 12px;min-height:36px;border-radius:3px;border:none;cursor:pointer;font-size:12px;font-family:var(--font-sans-stack);font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px;'+(em==='group'&&!ag?'background:var(--ink);color:var(--bg)':'background:transparent;color:var(--ink-muted)')+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Groups</button>';
+  html+='<div class="out-toolbar">';
+  html+='<div class="out-toolbar-left">';
+  // Desktop inline Mode + Grid controls (hidden on mobile <768px)
+  html+='<div class="out-inline-controls">';
+  html+='<div class="out-seg-wrap">';
+  html+='<button type="button" class="out-seg-btn'+(em==='all'?' active':'')+'" onclick="setOutDisplayMode(\'all\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>All</button>';
+  html+='<button type="button" class="out-seg-btn'+(em==='group'&&!ag?' active':'')+'" onclick="setOutDisplayMode(\'group\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Groups</button>';
   html+='</div>';
-  // Grid layout picker
-  var gridOpts=[{c:1,lbl:'1×1'},{c:2,lbl:'1×2'},{c:3,lbl:'2×2'},{c:4,lbl:'2×3'},{c:5,lbl:'2×4'},{c:6,lbl:'3×3'},{c:7,lbl:'3×4'},{c:8,lbl:'4×4'}];
-  html+='<div style="display:flex;background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-sm);padding:2px;gap:2px;align-items:center;flex-wrap:wrap">';
-  html+='<button onclick="_outGridOpen=!_outGridOpen;renderTab(\'output\')" title="'+(_outGridOpen?'Sembunyikan':'Tampilkan')+' pilihan grid" style="font-size:10px;min-height:36px;padding:4px 9px;background:var(--surface-alt);color:var(--ink);border-radius:3px;white-space:nowrap;letter-spacing:.05em;font-weight:700;text-transform:uppercase;border:1px solid var(--line-soft);margin-right:'+(_outGridOpen?'2':'0')+'px;cursor:pointer;font-family:var(--font-sans-stack);display:inline-flex;align-items:center;gap:4px">Grid<span style="font-size:9px;opacity:.75">'+(_outGridOpen?'\u25C2':'\u25B8')+'</span></button>';
-  if(_outGridOpen){
-  gridOpts.forEach(function(g){
-    var active=_outGrid===g.c;
-    html+='<button onclick="_outGrid='+g.c+';renderTab(\'output\')" style="min-height:36px;padding:4px 8px;border-radius:3px;border:none;cursor:pointer;font-size:11px;font-family:var(--font-sans-stack);font-weight:700;white-space:nowrap;transition:.12s;'+(active?'background:var(--ink);color:var(--bg)':'background:transparent;color:var(--ink-muted)')+'" title="'+g.lbl+' grid">'+g.lbl+'</button>';
-  });
+  if(em==='group'){
+    html+='<div class="out-seg-wrap">';
+    html+='<button type="button" class="out-grid-toggle-btn" onclick="_outGridOpen=!_outGridOpen;renderTab(\'output\')" title="'+(_outGridOpen?'Sembunyikan':'Tampilkan')+' pilihan grid" style="margin-right:'+(_outGridOpen?'2':'0')+'px">Tampilan<span style="font-size:9px;opacity:.75">'+(_outGridOpen?'\u25C2':'\u25B8')+'</span></button>';
+    if(_outGridOpen){
+      _OUT_GRID_OPTS.forEach(function(g){
+        var active=gridVal===g.c;
+        html+='<button type="button" class="out-grid-opt-btn'+(active?' active':'')+'" onclick="setOutDisplayGrid('+g.c+')" title="'+g.lbl+' grid">'+g.lbl+'</button>';
+      });
+    }
+    html+='</div>';
   }
   html+='</div>';
-  // Breadcrumb when inside a group
+  // Breadcrumb when inside a group (visible on both desktop and mobile)
   if(em==='group'&&ag){
     var crCol=_outGroupColor(ag);
     html+='<div style="display:flex;align-items:center;gap:8px">';
-    html+='<button onclick="_outActiveGroup=null;renderTab(\'output\')" class="btn btn-ghost btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:4px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>All Groups</button>';
+    html+='<button type="button" onclick="_outActiveGroup=null;_outGroupEdit=false;_outSelectedGroups=[];renderTab(\'output\')" class="btn btn-ghost btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:4px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>All Groups</button>';
     html+='<span style="font-size:13px;font-weight:700;color:'+crCol+';display:flex;align-items:center;gap:5px">'+_outGroupIcon(ag)+' '+escHtml(ag)+'</span>';
     html+='</div>';
   }
   html+='</div>';
-  // Right: count + clear
-  html+='<div style="display:flex;align-items:center;gap:8px">';
-  html+='<span style="font-size:12px;color:var(--ink-muted);font-variant-numeric:tabular-nums">'+outputs.length+' result'+(outputs.length>1?'s':'')+'</span>';
-  html+='<button onclick="ossDialog({type:\'delete\',title:\'Clear All Outputs\',msg:\'Hapus semua hasil analisis?\',okLabel:\'Clear All\',onOk:function(){outputs.length=0;updateBadges();renderTab(\'output\');}})" class="btn btn-red btn-sm">Clear All</button>';
+  // Right: result count / edit status + group trash icon + mobile display settings icon
+  html+='<div class="out-toolbar-right">';
+  if(_outGroupEdit&&_outSelectedGroups.length>0){
+    html+='<span class="out-sel-count">'+_outSelectedGroups.length+' dipilih</span>';
+  } else {
+    html+='<span class="out-count-txt">'+outputs.length+' result'+(outputs.length>1?'s':'')+'</span>';
+  }
+  if(em==='group'&&!ag){
+    var trashLabel=_outGroupEdit
+      ?(_outSelectedGroups.length>0?'Hapus grup terpilih ('+_outSelectedGroups.length+')':'Keluar dari mode edit')
+      :'Pilih grup untuk dihapus';
+    html+='<button type="button" id="out-group-trash-btn" class="out-icon-btn out-trash-btn'+(_outGroupEdit?' is-edit':'')+'" onclick="toggleOutGroupTrash()" title="'+trashLabel+'" aria-label="'+trashLabel+'">'+trashSvg+'</button>';
+  }
+  html+='<button type="button" id="out-display-modal-btn" class="out-icon-btn out-mob-only" onclick="openOutDisplayModal()" title="Tampilan Output" aria-label="Pengaturan tampilan output">'+phoneSvg+'</button>';
   html+='</div>';
   html+='</div>';
 
   // ── GROUP VIEW: preview grid ─────────────────────────────────────────
   if(em==='group' && !ag){
-    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">';
+    html+='<div class="out-grp-grid'+(gridVal>=3?' is-compact':'')+'" style="--out-cols:'+gridVal+'">';
     groups.forEach(function(g){
       var col=_outGroupColor(g.key);
       var grpOuts=outputs.filter(function(o){return _outGroup(o)===g.key;});
-      html+='<div onclick="_outActiveGroup=\'' + g.key.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\';renderTab(\'output\')" ';
-      html+='style="cursor:pointer;background:var(--surface);border:1px solid var(--line-soft);border-top:2px solid '+col+';border-radius:var(--r-md);padding:14px 16px;transition:.15s;position:relative">';
+      var escapedKey=g.key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var isSel=_outGroupEdit&&_outSelectedGroups.indexOf(g.key)!==-1;
+      var clickHandler=_outGroupEdit
+        ?'toggleOutGroupSelect(\''+escapedKey+'\')'
+        :'_outActiveGroup=\''+escapedKey+'\';renderTab(\'output\')';
+      html+='<div onclick="'+clickHandler+'" class="out-grp-card'+(isSel?' is-selected':'')+'" style="border-top-color:'+col+'" data-group-key="'+escHtml(g.key)+'">';
       html+='<div class="orias-facet-corner" aria-hidden="true"></div>';
-      html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">';
-      html+='<span style="color:'+col+';display:flex">'+_outGroupIcon(g.key)+'</span>';
-      html+='<span style="font-size:13.5px;font-weight:700;color:var(--ink)">'+escHtml(g.key)+'</span>';
-      html+='<span style="margin-left:auto;background:var(--surface-alt);color:var(--ink);border-radius:var(--r-sm);padding:2px 8px;font-size:11px;font-weight:700;border:1px solid var(--line-soft);font-variant-numeric:tabular-nums">'+g.count+'</span>';
+      html+='<div class="out-grp-card-hdr">';
+      if(_outGroupEdit){
+        html+='<input type="checkbox" class="out-grp-chk"'+(isSel?' checked':'')+' onclick="event.stopPropagation();toggleOutGroupSelect(\''+escapedKey+'\')" aria-label="Pilih grup '+escHtml(g.key)+'">';
+      }
+      html+='<span style="color:'+col+';display:flex;flex-shrink:0">'+_outGroupIcon(g.key)+'</span>';
+      html+='<span class="out-grp-card-name">'+escHtml(g.key)+'</span>';
+      html+='<span class="out-grp-card-cnt">'+g.count+'</span>';
       html+='</div>';
       grpOuts.slice(0,2).forEach(function(o){
-        html+='<div style="font-size:11.5px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">'+escHtml(o.title)+'</div>';
+        html+='<div class="out-grp-preview" style="font-size:11.5px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">'+escHtml(o.title)+'</div>';
       });
-      if(g.count>2) html+='<div style="font-size:11px;color:var(--ink-subtle);margin-top:2px">+'+(g.count-2)+' more</div>';
-      html+='<div style="font-size:10.5px;color:var(--ink-subtle);margin-top:10px;font-variant-numeric:tabular-nums">Latest: '+new Date(grpOuts[0].id).toLocaleTimeString()+'</div>';
-      html+='<div style="position:absolute;bottom:12px;right:14px;font-size:11.5px;font-weight:600;color:var(--ink)">Open</div>';
+      if(g.count>2) html+='<div class="out-grp-preview" style="font-size:11px;color:var(--ink-subtle);margin-top:2px">+'+(g.count-2)+' more</div>';
+      html+='<div class="out-grp-preview" style="font-size:10.5px;color:var(--ink-subtle);margin-top:10px;font-variant-numeric:tabular-nums">Latest: '+new Date(grpOuts[0].id).toLocaleTimeString()+'</div>';
+      if(!_outGroupEdit){
+        html+='<div class="out-grp-open" style="position:absolute;bottom:12px;right:14px;font-size:11.5px;font-weight:600;color:var(--ink)">Open</div>';
+      }
       html+='</div>';
     });
     html+='</div>';
@@ -378,29 +529,27 @@ function renderOutput(el){
     }
   }
 
-  // Grid wrapper — cols based on _outGrid
-  var _gridColsMap=[1,2,2,2,2,3,3,4];
-  var _cols=_gridColsMap[(_outGrid-1)%8]||1;
-  var _gridStyle=_cols===1
-    ?'display:flex;flex-direction:column;gap:14px'
-    :'display:grid;grid-template-columns:repeat('+_cols+',1fr);gap:14px;align-items:start';
-  html+='<div style="'+_gridStyle+'">';
+  // In All mode: always 1-column stack (mobile and clean readability).
+  // In Group detail: uses gridVal on >=768px desktop, 1-column on mobile.
+  var _cols=(em==='group'&&ag)?gridVal:1;
+  var _gridClass='out-cards-grid '+(em==='all'?'out-mode-all':'out-mode-group-detail'+(_cols>1?' has-cols':''));
+  html+='<div class="'+_gridClass+'" style="--out-cols:'+_cols+'">';
 
   toShow.forEach(function(o){
     var grpColor=_outGroupColor(_outGroup(o));
     var _isCompact=_cols>1;
     html+='<div class="out-item" style="border-top-color:'+grpColor+';margin-bottom:0;overflow:hidden'+ (_isCompact?';min-width:0':'')+'">';
     html+='<div class="orias-facet-corner" aria-hidden="true"></div>';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">';
-    html+='<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">';
-    html+='<span style="background:var(--surface-alt);color:'+grpColor+';border:1px solid var(--line-soft);border-radius:var(--r-sm);padding:2px 8px;font-size:10.5px;font-weight:700;white-space:nowrap;flex-shrink:0">'+_outGroup(o)+'</span>';
-    html+='<div class="sec-hd" style="margin-bottom:0;overflow:hidden;text-overflow:ellipsis;white-space:'+ (_isCompact?'nowrap':'normal')+'">'+escHtml(o.title)+'</div>';
+    html+='<div class="out-card-head">';
+    html+='<div class="out-card-title-wrap">';
+    html+='<span class="out-card-grp-badge" style="color:'+grpColor+'">'+_outGroup(o)+'</span>';
+    html+='<div class="sec-hd out-card-title">'+escHtml(o.title)+'</div>';
     html+='</div>';
-    html+='<div class="row" style="gap:6px;flex-wrap:wrap;flex-shrink:0">';
-    html+='<span style="font-size:11px;color:var(--ink-subtle);font-variant-numeric:tabular-nums">'+new Date(o.id).toLocaleTimeString()+'</span>';
-    html+='<button class="btn-apa-copy" id="apacopy-'+o.id+'" onclick="copyAPA('+o.id+',this)" title="Copy APA">Copy APA</button>';
-    html+='<button class="btn btn-ghost btn-sm" onclick="_exportOutputDialog('+o.id+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>';
-    html+='<button class="btn btn-ghost btn-sm" style="min-width:36px;padding:0 8px;justify-content:center" onclick="removeOutput('+o.id+')" aria-label="Remove output"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    html+='<div class="out-card-actions">';
+    html+='<span class="out-card-time">'+new Date(o.id).toLocaleTimeString()+'</span>';
+    html+='<button type="button" class="out-icon-btn" id="apacopy-'+o.id+'" data-icon-only="1" onclick="copyAPA('+o.id+',this)" title="Copy APA" aria-label="Copy APA">'+copySvg+'</button>';
+    html+='<button type="button" class="out-icon-btn" onclick="_exportOutputDialog('+o.id+')" title="Export" aria-label="Export">'+exportSvg+'</button>';
+    html+='<button type="button" class="out-icon-btn" onclick="removeOutput('+o.id+')" title="Remove output" aria-label="Remove output">'+trashSvg+'</button>';
     html+='</div>';
     html+='</div>';
     if(o.type==='descriptive'){
@@ -460,14 +609,22 @@ function renderOutput(el){
     else if(o.type==='glm'){
       html+=renderOutBasic_glm(o);
     }
-    else if(o.type==='poisson'||o.type==='negbin'){
+    else if(o.type==='repeated'&&o.res){
+      html+=renderOutBasic_repeated(o);
+    }
+    else if(o.type==='poisson'){
       html+=renderOutBasic_poisson(o);
+    }
+    else if(o.type==='negbin'){
+      html+=renderOutBasic_negbin(o);
     }
     else if(o.type==='manova'){
       html+=renderOutBasic_manova(o);
     }
     else if(o.type==='hlm'){
-      html+=renderOutAdv_hlm(o);
+      if(o.res&&o.res.subtype==='hlm-3level') html+=renderOutAdv_hlm_threelevel(o);
+      else if(o.res&&o.res.subtype==='hlm-2level') html+=renderOutAdv_hlm_twolevel(o);
+      else html+=renderOutAdv_hlm_icc(o);
     }
     else if(o.type==='alpha'){
       html+=renderOutAdv_alpha(o);

@@ -13,7 +13,7 @@ var SE = (() => {
     tukeyHSD, lsdPosthoc, bonferroniPosthoc, holmBonferroni, holmBonferroniPosthoc,
     twowayANOVA, threewayANOVA,
     pearsonR, spearmanR, partialCorr, canonicalCorr,
-    linearReg, multipleReg, glmUnivariate,
+    linearReg, multipleReg, hierarchicalReg, glmUnivariate, glmRepeated,
     chiSquare, mannWhitney, kruskalWallis, wilcoxon,
     cronbachAlpha, cohenKappa, efa, cfa, levene, f4, f1, pFmt, tP,
     logisticReg, poissonReg, negbinReg,

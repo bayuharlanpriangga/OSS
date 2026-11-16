@@ -224,10 +224,8 @@ function runRepeatedMeasures(){
   runSafe(function(){
     if(!aState.pairedA||!aState.pairedB) throw new Error('Select pre and post variables');
     if(aState.pairedA===aState.pairedB) throw new Error('Pre and post variables must differ');
-    var aVals=SE.validNums(data.map(function(r){return r[aState.pairedA];}));
-    var bVals=SE.validNums(data.map(function(r){return r[aState.pairedB];}));
-    var res=SE.pairedTTest(aVals,bVals);
-    var title='Repeated Measures: '+aState.pairedA+' to '+aState.pairedB;
+    var res=SE.glmRepeated(data,aState.pairedA,aState.pairedB,aState.glmBetween||null);
+    var title='Repeated Measures: '+aState.pairedA+' to '+aState.pairedB+(aState.glmBetween?' (by '+aState.glmBetween+')':'');
     addOutput({type:'repeated',title:title,res:res,varA:aState.pairedA,varB:aState.pairedB,betweenFac:aState.glmBetween||null});
   },'Repeated Measures GLM');
 }
@@ -270,16 +268,6 @@ function runTimeSeries(){
     var tsVals=SE.validNums(data.map(function(r){return r[tsV];}));
     if(tsVals.length<5) throw new Error('Need at least 5 valid observations');
 
-    // Re-run compute functions (same as preview — inline)
-    function tsACF2(y,maxLag){
-      var n=y.length,mu=SE.mean(y);
-      var denom=y.reduce(function(s,v){return s+(v-mu)*(v-mu);},0)/n;
-      var acf=[];
-      for(var k=0;k<=maxLag;k++){var num=0;for(var i=0;i<n-k;i++)num+=(y[i]-mu)*(y[i+k]-mu);acf.push(denom>0?(num/n)/denom:0);}
-      return acf;
-    }
-    function tsDiff2(y,d){var s=y.slice();for(var i=0;i<d;i++){var t=[];for(var j=1;j<s.length;j++)t.push(s[j]-s[j-1]);s=t;}return s;}
-
     var tsP=aState.tsP!==undefined?aState.tsP:1;
     var tsD=aState.tsD!==undefined?aState.tsD:1;
     var tsQ=aState.tsQ!==undefined?aState.tsQ:1;
@@ -288,63 +276,30 @@ function runTimeSeries(){
 
     var res;
     if(tsMod==='arima'){
-      var yd=tsDiff2(tsVals,tsD);
-      var mu=SE.mean(yd);
-      var arCoefs=new Array(tsP).fill(0);
-      if(tsP>0){
-        var acfYW=tsACF2(yd,tsP);
-        var M2=[];for(var i=0;i<tsP;i++){var row=[];for(var j=0;j<tsP;j++)row.push(acfYW[Math.abs(i-j)]);row.push(acfYW[i+1]);M2.push(row);}
-        for(var col=0;col<tsP;col++){var pv=M2[col][col];if(Math.abs(pv)<1e-14)continue;for(var row=0;row<tsP;row++){if(row===col)continue;var f=M2[row][col]/pv;for(var k=0;k<=tsP;k++)M2[row][k]-=f*M2[col][k];}}
-        arCoefs=M2.map(function(row,i){return M2[i][i]!==0?row[tsP]/M2[i][i]:0;});
-      }
-      var resid2=[];
-      for(var i=tsP;i<yd.length;i++){var yhat=mu;for(var j=0;j<tsP;j++)yhat+=arCoefs[j]*(yd[i-1-j]-mu);resid2.push(yd[i]-yhat);}
-      var maCoefs=new Array(tsQ).fill(0);
-      if(tsQ>0&&resid2.length>tsQ){var acfR=tsACF2(resid2,tsQ);for(var i=0;i<tsQ;i++)maCoefs[i]=acfR[i+1];}
-      var fitted2=[],resid3=[];
-      for(var i=tsP;i<yd.length;i++){var yh=mu;for(var j=0;j<tsP;j++)yh+=arCoefs[j]*(yd[i-1-j]-mu);for(var j=0;j<tsQ;j++){var ri=i-tsP-j-1;if(ri>=0&&ri<resid2.length)yh+=maCoefs[j]*resid2[ri];}fitted2.push(yh);resid3.push(yd[i]-yh);}
-      var sse2=resid3.reduce(function(s,v){return s+v*v;},0);
-      var sigmasq=resid3.length>tsP+tsQ+1?sse2/(resid3.length-tsP-tsQ-1):NaN;
-      var aic=resid3.length>0?resid3.length*Math.log(sse2/resid3.length)+2*(tsP+tsQ+1):NaN;
-      var bic=resid3.length>0?resid3.length*Math.log(sse2/resid3.length)+(tsP+tsQ+1)*Math.log(resid3.length):NaN;
-      var lastYd=yd.slice(-Math.max(tsP,1));
-      var fc_yd=mu;for(var j=0;j<tsP;j++)if(lastYd[lastYd.length-1-j]!==undefined)fc_yd+=arCoefs[j]*(lastYd[lastYd.length-1-j]-mu);
-      var fc=fc_yd;
-      if(tsD===1)fc=tsVals[tsVals.length-1]+fc_yd;
-      else if(tsD===2)fc=2*tsVals[tsVals.length-1]-tsVals[tsVals.length-2]+fc_yd;
-      var se_fc=Math.sqrt(sigmasq||0);
-      res={model:'ARIMA('+tsP+','+tsD+','+tsQ+')',variable:tsV,n:tsVals.length,
-        arCoefs:arCoefs.map(SE.f4),maCoefs:maCoefs.map(SE.f4),
-        sse:SE.f4(sse2),sigma:SE.f4(Math.sqrt(sigmasq||0)),
-        aic:SE.f4(aic),bic:SE.f4(bic),
-        forecast:SE.f4(fc),se_fc:SE.f4(se_fc),
-        fc_lo95:SE.f4(fc-1.96*se_fc),fc_hi95:SE.f4(fc+1.96*se_fc),
-        residMean:SE.f4(SE.mean(resid3)),residSD:SE.f4(SE.std(resid3))
+      var arRes=tsARIMA(tsVals,tsP,tsD,tsQ);
+      res={
+        model:'ARIMA('+tsP+','+tsD+','+tsQ+')',variable:tsV,n:arRes.n,mu:arRes.mu,
+        arCoefs:arRes.arCoefs,maCoefs:arRes.maCoefs,
+        sse:arRes.sse,sigma:arRes.sigma,
+        aic:arRes.aic,bic:arRes.bic,
+        forecast:arRes.forecast,se_fc:arRes.se_fc,
+        fc_lo95:arRes.fc_lo95,fc_hi95:arRes.fc_hi95,
+        residMean:SE.f4(SE.mean(arRes.resid)),residSD:SE.f4(SE.std(arRes.resid))
       };
       addOutput({type:'timeseries',title:'ARIMA('+tsP+','+tsD+','+tsQ+'): '+tsV,res:res});
     } else {
-      var n=tsVals.length,period=tsPeriod,type=tsDType;
-      if(n<period*2) throw new Error('N terlalu kecil (butuh ≥'+period*2+' obs untuk decomposition)');
-      var trend=new Array(n).fill(NaN),half=Math.floor(period/2);
-      for(var i=half;i<n-half;i++){var s=0,cnt=0;for(var j=-half;j<=half;j++){s+=tsVals[i+j];cnt++;}trend[i]=s/cnt;}
-      var sIdx=new Array(period).fill(0),sCount=new Array(period).fill(0);
-      for(var i=half;i<n-half;i++){var pos=i%period;var ratio=type==='multiplicative'?(trend[i]!==0?tsVals[i]/trend[i]:NaN):(tsVals[i]-trend[i]);if(isFinite(ratio)){sIdx[pos]+=ratio;sCount[pos]++;}}
-      var sAdj=sIdx.map(function(s,i){return sCount[i]>0?s/sCount[i]:0;});
-      if(type==='multiplicative'){var sm=sAdj.reduce(function(a,b){return a+b;},0)/period;sAdj=sAdj.map(function(v){return sm!==0?v/sm:v;});}
-      else{var ss=sAdj.reduce(function(a,b){return a+b;},0)/period;sAdj=sAdj.map(function(v){return v-ss;});}
-      var seasonal=new Array(n).fill(NaN);for(var i=0;i<n;i++)seasonal[i]=sAdj[i%period];
-      var remainder=new Array(n).fill(NaN);
-      for(var i=half;i<n-half;i++){remainder[i]=type==='multiplicative'?(seasonal[i]&&trend[i]?tsVals[i]/(trend[i]*seasonal[i]):NaN):(tsVals[i]-trend[i]-seasonal[i]);}
-      var remValid=remainder.filter(isFinite);
-      var strength=1-(SE.vari(remValid)/(SE.vari(tsVals.filter(isFinite))||1));
-      res={model:'Decomposition ('+type+')',variable:tsV,n:n,period:period,type:type,
-        trendRange:[SE.f4(Math.min.apply(null,trend.filter(isFinite))),SE.f4(Math.max.apply(null,trend.filter(isFinite)))],
-        seasonalAmplitude:SE.f4(Math.max.apply(null,sAdj)-Math.min.apply(null,sAdj)),
-        remainderSD:SE.f4(SE.std(remValid)),
-        seasonalStrength:SE.f4(Math.max(0,Math.min(1,strength))),
-        seasonalIndices:sAdj.map(function(v,i){return{period:i+1,index:SE.f4(v)};})
+      var dcRes=tsDecomp(tsVals,tsPeriod,tsDType);
+      var validTrend=dcRes.trend.filter(isFinite);
+      var validRem=dcRes.remainder.filter(isFinite);
+      res={
+        model:'Decomposition ('+tsDType+')',variable:tsV,n:dcRes.n,period:dcRes.period,type:dcRes.type,
+        trendRange:[SE.f4(Math.min.apply(null,validTrend)),SE.f4(Math.max.apply(null,validTrend))],
+        seasonalAmplitude:SE.f4(Math.max.apply(null,dcRes.sAdj)-Math.min.apply(null,dcRes.sAdj)),
+        remainderSD:SE.f4(SE.std(validRem)),
+        seasonalStrength:dcRes.strength,
+        seasonalIndices:dcRes.sAdj.map(function(v,i){return{period:i+1,index:SE.f4(v)};})
       };
-      addOutput({type:'timeseries',title:'Decomposition ('+type+', period='+period+'): '+tsV,res:res});
+      addOutput({type:'timeseries',title:'Decomposition ('+tsDType+', period='+tsPeriod+'): '+tsV,res:res});
     }
   },'Time Series');
 }
@@ -435,45 +390,12 @@ function runCluster(){
 
 function runHierarchicalReg(){
   runSafe(function(){
-    if(!aState.hrY) throw new Error('Select Dependent Variable (Y)');
-    if(!aState.hrBlocks||aState.hrBlocks.every(function(b){return !b.length;})) throw new Error('Add predictors to at least one Block');
-    
-    var blockResults=[];
-    var prevR2=0;
-    for(var bi=0;bi<aState.hrBlocks.length;bi++){
-      var cumXs=[];
-      for(var ci=0;ci<=bi;ci++) aState.hrBlocks[ci].forEach(function(v){if(!cumXs.includes(v))cumXs.push(v);});
-      if(!cumXs.length) continue;
-      var res=SE.multipleReg(cumXs,aState.hrY,data);
-      var n=parseInt(res.n||data.length);
-      var kNew=aState.hrBlocks[bi].length;
-      var kCum=cumXs.length;
-      var dR2=parseFloat(res.R2)-prevR2;
-      var dfErr=n-kCum-1;
-      var Fchange=dfErr>0&&(1-parseFloat(res.R2))>0?(dR2/kNew)/((1-parseFloat(res.R2))/dfErr):0;
-      var pFchange=Fchange>0?SE.pFromF(Fchange,kNew,dfErr):1;
-      blockResults.push({
-        block:bi+1,
-        predictors:aState.hrBlocks[bi].slice(),
-        cumulativePredictors:cumXs.slice(),
-        R2:res.R2, R2adj:res.R2adj,
-        F:res.F, pF:res.pF_fmt,
-        dR2:SE.f4(dR2),
-        Fchange:SE.f4(Fchange),
-        pFchange:SE.f4(pFchange),
-        dfNum:kNew, dfDen:dfErr,
-        coefs:res.coefs,
-        vif:res.vif,
-        n:n
-      });
-      prevR2=parseFloat(res.R2);
-    }
-    
+    var res=SE.hierarchicalReg(aState.hrY,aState.hrBlocks,data);
     var title='Hierarchical Reg: '+aState.hrY+' ('+aState.hrBlocks.length+' blocks)';
     addOutput({
       type:'hierarchicalReg',
       title:title,
-      res:{blocks:blockResults,depVar:aState.hrY}
+      res:res
     });
   },'Hierarchical Regression');
 }

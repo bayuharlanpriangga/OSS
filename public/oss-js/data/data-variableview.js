@@ -5,25 +5,8 @@ var _varChecked = new Set();
 function renderVars(el){
   const MC={Scale:'var(--ink)',Nominal:'var(--line)',Ordinal:'var(--gold-text)'};
   const RC={Target:'var(--gold-text)',Input:'var(--ok)',Both:'var(--warn)',None:'var(--ink-subtle)'};
-  const mc=missCount();
   var em=_varTableEditMode;
   let html='';
-
-  // Missing value summary — flattened strip directly on Perak surface
-  html+='<section style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--line-soft)">';
-  html+='<div class="sec-hd" style="margin-bottom:10px">Missing Value Summary</div>';
-  html+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  vars.forEach(function(v){
-    const m=mc.find(function(x){return x.name===v.name;})||{count:0};
-    const pct=data.length>0?((m.count/data.length)*100).toFixed(1):'0.0';
-    const hasM=m.count>0;
-    html+='<div style="background:var(--surface);border:1px solid var(--line-soft);border-left:2px solid '+(hasM?'var(--err)':'var(--line)')+';border-radius:var(--r-sm);padding:8px 12px;min-width:96px">';
-    html+='<div style="font-size:10px;color:var(--ink-subtle);text-transform:uppercase;font-weight:700;letter-spacing:.05em;margin-bottom:3px">'+escHtml(v.name)+'</div>';
-    html+='<div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:'+(hasM?'var(--err)':'var(--ok)')+'">'+(hasM?m.count+' miss':'0 miss')+'</div>';
-    html+='<div style="font-size:10.5px;font-variant-numeric:tabular-nums;color:var(--ink-muted)">'+pct+'% of '+data.length+'</div>';
-    html+='</div>';
-  });
-  html+='</div></section>';
 
   // Variable Definitions — flattened table directly on Perak surface
   html+='<section>';
@@ -48,16 +31,16 @@ function renderVars(el){
   // Variable table
   html+='<div class="tbl-wrap"><table id="var-def-table"><thead><tr>';
   if(em) html+='<th style="width:36px;text-align:center"><input type="checkbox" id="var-chk-all" onchange="_varCheckAll(this.checked)" style="accent-color:var(--ink);width:15px;height:15px;cursor:pointer"/></th>';
-  ['#','Name','Type','Measure','Role','Decimals','Valid','Miss'].forEach(function(h){
-    var isNum=(h==='#'||h==='Decimals'||h==='Valid'||h==='Miss');
+  ['#','Name','Type','Measure','Role','Decimals','Valid'].forEach(function(h){
+    var isNum=(h==='#'||h==='Decimals'||h==='Valid');
     html+='<th'+(isNum?' class="td-num"':'')+'>'+h+'</th>';
   });
   if(!em) html+='<th>Actions</th>';
   html+='</tr></thead><tbody id="var-tbody">';
 
   vars.forEach(function(v,i){
-    const m=mc.find(function(x){return x.name===v.name;})||{count:0};
-    const nV=data.length-m.count;
+    const nMiss=data.filter(function(r){return isMiss(r[v.name]);}).length;
+    const nV=data.length-nMiss;
     var chk=_varChecked.has(i);
     html+='<tr id="var-row-'+i+'"'+(chk?' style="background:var(--err-bg)"':'')+'>';
 
@@ -109,9 +92,8 @@ function renderVars(el){
       html+='<td class="td-num" style="color:var(--ink-muted)">'+(v.type==='Numeric'?v.dec:'—')+'</td>';
     }
 
-    // Valid / Miss
+    // Valid
     html+='<td class="td-num" style="color:var(--ok);font-weight:600">'+nV+'</td>';
-    html+='<td class="td-num">'+(m.count>0?'<span style="color:var(--err);font-weight:700">'+m.count+'</span>':'<span style="color:var(--ink-muted)">0</span>')+'</td>';
 
     // Actions column (non-edit mode only)
     if(!em){
@@ -128,7 +110,7 @@ function renderVars(el){
 
   // If in edit mode, show a "new blank row" hint at the bottom
   if(em){
-    html+='<tr><td></td><td colspan="8" style="font-size:11.5px;color:var(--ink-subtle);font-style:italic;padding:10px 8px">Use "+ Add Variable" to add more rows</td></tr>';
+    html+='<tr><td></td><td colspan="7" style="font-size:11.5px;color:var(--ink-subtle);font-style:italic;padding:10px 8px">Use "+ Add Variable" to add more rows</td></tr>';
   }
 
   html+='</tbody></table></div>';

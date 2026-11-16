@@ -608,14 +608,14 @@ function renderHierarchicalRegForm(){
     if(!aState.hrBlocks[0]) aState.hrBlocks[0]=[];
     if(!aState.hrBlocks[1]) aState.hrBlocks[1]=[];
 
-    var hrPrvs = [];
-    for(var bi=0; bi<aState.hrBlocks.length; bi++){
-      var _cumXs = [];
-      for(var ci=0;ci<=bi;ci++) aState.hrBlocks[ci].forEach(function(v){if(!_cumXs.includes(v))_cumXs.push(v);});
-      if(_cumXs.length > 0 && aState.hrY){
-        hrPrvs.push((function(xs){return tryStats(function(){return SE.multipleReg(xs, aState.hrY, data);});}(_cumXs)));
-      } else {
-        hrPrvs.push(null);
+    var hrPrvs = new Array(aState.hrBlocks.length).fill(null);
+    var hrRes = null;
+    if(aState.hrY && aState.hrBlocks.some(function(b){return b.length>0;})){
+      hrRes = tryStats(function(){return SE.hierarchicalReg(aState.hrY, aState.hrBlocks, data);});
+      if(hrRes && !hrRes._err && Array.isArray(hrRes.blocks)){
+        hrRes.blocks.forEach(function(b){
+          if(b.block >= 1 && b.block <= hrPrvs.length) hrPrvs[b.block - 1] = b;
+        });
       }
     }
 
@@ -657,11 +657,10 @@ function renderHierarchicalRegForm(){
       html += '</div>';
       if(hrPrvs[bi] && !hrPrvs[bi]._err){
         var bp = hrPrvs[bi];
-        var dR2 = bi===0 ? parseFloat(bp.R2) : parseFloat(bp.R2) - (hrPrvs[bi-1]&&!hrPrvs[bi-1]._err?parseFloat(hrPrvs[bi-1].R2):0);
         html += '<div style="margin-top:8px;padding:7px 10px;background:var(--surface-alt);border:1px solid var(--line-soft);border-radius:var(--r-sm);font-size:11px;display:flex;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums">';
         html += '<span style="color:var(--ink)">R²=<b>'+bp.R2+'</b></span>';
         html += '<span style="color:var(--ink-muted)">Adj R²='+bp.R2adj+'</span>';
-        if(bi>0) html += '<span style="color:var(--gold-text)">ΔR²=<b>'+dR2.toFixed(4)+'</b></span>';
+        if(bi>0) html += '<span style="color:var(--gold-text)">ΔR²=<b>'+bp.dR2+'</b></span>';
         html += '</div>';
       }
       html += '</div>';
@@ -683,33 +682,25 @@ function renderHierarchicalRegForm(){
         html+='<th'+(hi>=2?' style="text-align:right"':'')+'>'+h+'</th>';
       });
       html += '</tr></thead><tbody>';
-      var prevR2 = 0, prevN = 0;
       for(var bi=0;bi<aState.hrBlocks.length;bi++){
         if(!hrPrvs[bi]||hrPrvs[bi]._err) continue;
         var bp = hrPrvs[bi];
-        var _cumXs2 = [];
-        for(var ci=0;ci<=bi;ci++) aState.hrBlocks[ci].forEach(function(v){if(!_cumXs2.includes(v))_cumXs2.push(v);});
-        var dR2 = parseFloat(bp.R2) - prevR2;
-        var n = parseInt(bp.n||data.length), kNew = aState.hrBlocks[bi].length;
-        var dfErr = n - _cumXs2.length - 1;
-        var Fchange = dfErr>0 && (1-parseFloat(bp.R2))>0 ? (dR2/kNew) / ((1-parseFloat(bp.R2))/dfErr) : 0;
-        var pFchange = Fchange>0 ? SE.pFromF(Fchange, kNew, dfErr) : 1;
-        var sig = pFchange < 0.05;
+        var sig = parseFloat(bp.pFchange) < 0.05;
         html += '<tr>';
         html += '<td class="td-label" style="color:var(--ink);font-weight:700">Block '+(bi+1)+'</td>';
-        html += '<td style="font-size:11px;color:var(--ink-muted)">'+escHtml(aState.hrBlocks[bi].join(', '))+'</td>';
+        html += '<td style="font-size:11px;color:var(--ink-muted)">'+escHtml(bp.predictors.join(', '))+'</td>';
         html += '<td class="td-num" style="color:var(--ink);font-weight:700">'+bp.R2+'</td>';
         html += '<td class="td-num">'+bp.R2adj+'</td>';
-        html += '<td class="td-num" style="color:var(--gold-text);font-weight:700">'+dR2.toFixed(4)+'</td>';
-        html += '<td class="td-num">'+Fchange.toFixed(3)+'</td>';
-        html += '<td class="td-num">'+kNew+'</td>';
-        html += '<td class="td-num">'+dfErr+'</td>';
-        html += '<td class="td-num">'+(sig?'<b style="color:var(--ok)">':'<span style="color:var(--ink-muted)">')+SE.f4(pFchange)+(sig?'</b>':'</span>')+'</td>';
+        html += '<td class="td-num" style="color:var(--gold-text);font-weight:700">'+bp.dR2+'</td>';
+        html += '<td class="td-num">'+bp.Fchange+'</td>';
+        html += '<td class="td-num">'+bp.dfNum+'</td>';
+        html += '<td class="td-num">'+bp.dfDen+'</td>';
+        html += '<td class="td-num">'+(sig?'<b style="color:var(--ok)">':'<span style="color:var(--ink-muted)">')+bp.pFchange+(sig?'</b>':'</span>')+'</td>';
         html += '</tr>';
-        prevR2 = parseFloat(bp.R2);
-        prevN = n;
       }
       html += '</tbody></table></div>';
+    } else if(hrRes && hrRes._err){
+      html += '<div class="notice-box notice-err">'+escHtml(hrRes._err)+'</div>';
     } else {
       html += '<div class="chart-empty">Tambah prediktor ke setiap Block untuk melihat preview tabel ΔR².</div>';
     }
@@ -1593,7 +1584,7 @@ function renderGlmForm(){
 
     else if(aState.glmSubType==='repeated'){
       var rmRes=(aState.pairedA&&aState.pairedB&&aState.pairedA!==aState.pairedB)
-        ?tryStats(function(){return SE.pairedTTest(SE.validNums(data.map(function(r){return r[aState.pairedA];})),SE.validNums(data.map(function(r){return r[aState.pairedB];})));})
+        ?tryStats(function(){return SE.glmRepeated(data,aState.pairedA,aState.pairedB,aState.glmBetween||null);})
         :null;
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Repeated Measures'+ossGuideBtn('glm-rep')+'</div>';
@@ -1612,10 +1603,13 @@ function renderGlmForm(){
       html+='<div class="card"><div class="sec-hd">Preview</div>';
       if(rmRes&&!rmRes._err){
         html+='<div class="stats-grid2" style="margin-bottom:11px">';
-        html+=stCard('Mean Diff',rmRes.meanDiff,'SE='+rmRes.se)+stCard('t',rmRes.t,'df='+rmRes.df);
+        html+=stCard('Mean Diff',rmRes.meanDiff,'SE='+(rmRes.seDiff||rmRes.se||'—'))+stCard('t',rmRes.t,'df='+rmRes.df);
         html+=stCard("Cohen's d",rmRes.cohensD,rmRes.dInterp)+stCard('p-value',rmRes.p_fmt,rmRes.sig?'Significant':'n.s.');
         html+='</div>';
         html+='<div class="row" style="margin-bottom:10px">'+sigBadge(rmRes.p)+'</div>';
+        if(rmRes.interaction){
+          html+='<div class="notice-box" style="margin-bottom:10px;font-size:11.5px"><b>Time × '+escHtml(rmRes.interaction.factor)+':</b> F('+rmRes.interaction.dfB+', '+rmRes.interaction.dfW+') = '+rmRes.interaction.F+', p = '+rmRes.interaction.p_fmt+', η² = '+rmRes.interaction.eta2+'</div>';
+        }
         html+='<div class="sec-hd-sub" style="margin-top:4px">Pre vs Post</div>'+svgScatter(data,aState.pairedA,aState.pairedB);
       } else if(rmRes&&rmRes._err){
         html+='<div class="notice-box notice-err">'+escHtml(rmRes._err)+'</div>';
@@ -3573,11 +3567,6 @@ function renderASub(){
   // CLUSTER ANALYSIS (K-Means & Hierarchical)
   else if(currentASub==='cluster'){
     html+=renderClusterForm();
-  }
-
-  // MISSING DATA ANALYSIS — Little's MCAR + Pattern Matrix — badan
-  else if(currentASub==='missinganalysis'){
-    html+=renderMissingDataAnalysis();
   }
 
 

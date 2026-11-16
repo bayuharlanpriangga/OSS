@@ -55,7 +55,7 @@ if(document.readyState==='loading'){
 
 // APP TAB SWITCHING
 // TAB SWITCHING + SIDE NAV ACTIVE STATE
-var TAB_LABELS={'data':' Data','variable':' Variables','analyze':' Analyze',
+var TAB_LABELS={'data':' Data','variable':' Variable View','missing':' Missing Data','analyze':' Analyze',
   'syntax':' Syntax','pivot':' Pivot','ai':' Orias AI','output':' Output'};
 
 function switchTab(tab){
@@ -66,6 +66,7 @@ function switchTab(tab){
     var subMatch=!b.dataset.sub;
     b.classList.toggle('active', tabMatch && subMatch);
   });
+  window.dispatchEvent(new CustomEvent('oss-nav-change',{detail:{tab:tab,sub:'',group:''}}));
   var el=document.getElementById('app-content');
   if(!el)return;
   el.innerHTML='';
@@ -74,6 +75,7 @@ function switchTab(tab){
   else{
     if(sprMode){sprMode=false;sprBuffer={};}
     if(tab==='variable')renderVars(el);
+    else if(tab==='missing'){el.innerHTML=renderMissingDataAnalysis();}
     else if(tab==='analyze')renderAnalyze(el);
     else if(tab==='syntax')renderSyntax(el);
     else if(tab==='pivot')renderPivot(el);
@@ -104,7 +106,6 @@ var SUB_TO_GROUP={
   'charts':'charts',
   'discriminant':'discriminant',
   'cluster':'cluster',
-  'missinganalysis':'missinganalysis',
   'poweranalysis':'poweranalysis','powerplot':'poweranalysis','sensitivity':'poweranalysis',
   'moderation':'moderation','simpleslopes':'moderation','jn':'moderation',
   'transform':'transform','recode':'transform','filter':'transform',
@@ -127,6 +128,7 @@ function openAnalyze(sub,group){
     var bSub=b.dataset.sub;
     b.classList.toggle('active', b.dataset.tab==='analyze' && (bSub===sub || bSub===currentGroup));
   });
+  window.dispatchEvent(new CustomEvent('oss-nav-change',{detail:{tab:'analyze',sub:sub,group:currentGroup}}));
   var el=document.getElementById('app-content');
   if(!el)return;
   // Always force a full re-render regardless of previous tab state

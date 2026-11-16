@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AlertTriangle, Menu, Moon, Search, Sun } from 'lucide-react';
+import { Menu, Moon, Search, Sun } from 'lucide-react';
 import { callOss } from '@/lib/oss-scripts';
 
 export default function TopBar() {
@@ -36,9 +36,6 @@ export default function TopBar() {
 
       <div className="tb-badges">
         <span className="tb-badge" id="tb-cases">N=0</span>
-        <span className="tb-badge tb-miss" id="tb-miss" style={{ display: 'none' }} title="Data hilang terdeteksi">
-          <AlertTriangle size={13} strokeWidth={2.2} />
-        </span>
       </div>
 
       <button

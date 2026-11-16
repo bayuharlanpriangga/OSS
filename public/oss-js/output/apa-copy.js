@@ -96,6 +96,34 @@ function buildAPATable(o){
     lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
   }
 
+  else if(o.type==='repeated'&&o.res){
+    var r=o.res;
+    lines.push('General Linear Model — Repeated Measures');
+    lines.push('');
+    lines.push(txtTable(
+      ['Condition','N','M','SD'],
+      [[o.varA,r.n,r.meanA||'—',r.sdA||'—'],[o.varB,r.n,r.meanB||'—',r.sdB||'—']]
+    ));
+    lines.push('');
+    lines.push(txtTable(
+      ['Statistic','Value'],
+      [
+        ['Mean Difference',r.meanDiff],
+        ['SD Difference',r.sdDiff],
+        ['t('+r.df+')',r.t+sigStar(r.p)],
+        ['p',pFmtAPA(r.p)],
+        ["Cohen's dz",r.cohensD+' ('+r.dInterp+')'],
+        ['95% CI',r.ci95],
+      ]
+    ));
+    if(r.interaction){
+      lines.push('');
+      lines.push('  Time × '+r.interaction.factor+': F('+r.interaction.dfB+', '+r.interaction.dfW+') = '+r.interaction.F+', p '+pFmtAPA(r.interaction.p_fmt)+', η² = '+r.interaction.eta2);
+    }
+    lines.push('');
+    lines.push('  Note. * p < .05. ** p < .01. *** p < .001.');
+  }
+
   else if(o.type==='onesamp'){
     var r=o.res;
     lines.push('One-Sample T-Test');
@@ -527,15 +555,35 @@ function buildAPATable(o){
   return lines.join('\n');
 }
 
+function _markApaCopied(btn){
+  if(!btn) return;
+  var isIconOnly=btn.getAttribute('data-icon-only')==='1';
+  if(isIconOnly){
+    var origHtml=btn.getAttribute('data-orig-html');
+    if(!origHtml){
+      origHtml=btn.innerHTML;
+      btn.setAttribute('data-orig-html',origHtml);
+    }
+    btn.innerHTML=(typeof IC!=='undefined'&&IC.check)?IC.check:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    btn.classList.add('copied');
+    setTimeout(function(){
+      btn.innerHTML=origHtml;
+      btn.classList.remove('copied');
+    },2200);
+    return;
+  }
+  btn.textContent='Copied!';
+  btn.classList.add('copied');
+  setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);
+}
+
 function copyAPA(id,btn){
   var o=outputs.find(function(x){return x.id===id;});
   if(!o){showToast('Output not found','error');return;}
   var text=buildAPATable(o);
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(function(){
-      btn.textContent='Copied!';
-      btn.classList.add('copied');
-      setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);
+      _markApaCopied(btn);
       showToast('APA berhasil disalin');
     }).catch(function(){fallbackCopy(text,btn);});
   } else {
@@ -552,7 +600,7 @@ function fallbackCopy(text,btn){
   ta.focus();ta.select();
   try{
     document.execCommand('copy');
-    if(btn){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy APA';btn.classList.remove('copied');},2200);}
+    _markApaCopied(btn);
     showToast('APA berhasil disalin');
   }catch(e){
     showToast('Copy gagal — coba manual select teks','error');

@@ -2,7 +2,7 @@
 var OSS_ANALYZE_GUIDES = OSS_ANALYZE_GUIDES || {};
 Object.assign(OSS_ANALYZE_GUIDES, {
   missinganalysis: {
-    title: 'Missing Value Analysis & Little\'s MCAR',
+    title: "Missing Data (Little's MCAR & Pattern Matrix)",
     subtitle: 'Audit pola data hilang, uji mekanisme MCAR, & ko-okurensi',
     summary: 'Mendiagnosis persentase nilai hilang per variabel, mengidentifikasi pola missing antar variabel, serta menjalankan Little\'s MCAR Test untuk menguji apakah data hilang terjadi sepenuhnya acak.',
     when: [

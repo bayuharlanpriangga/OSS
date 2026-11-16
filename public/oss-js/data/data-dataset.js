@@ -106,9 +106,11 @@ function renderDsSidebar(){
   _dsSyncSave();
   el.innerHTML=datasets.map(function(ds){
     var active=ds.id===activeDatasetId;
-    var mc=ds.vars.reduce(function(s,v){
-      return s+ds.data.filter(function(r){return r[v.name]===null||r[v.name]===undefined;}).length;
-    },0);
+    var mc=ds.data.length===0&&ds.vars.length>0
+      ?ds.vars.length
+      :ds.vars.reduce(function(s,v){
+        return s+ds.data.filter(function(r){return r[v.name]===null||r[v.name]===undefined||r[v.name]==='';}).length;
+      },0);
     var delBtn='';
     if(datasets.length>1){
       delBtn='<button type="button" onclick="event.stopPropagation();deleteDataset('+ds.id+')" style="background:none;border:none;color:var(--err);cursor:pointer;padding:2px 6px;min-height:28px;font-size:12px;line-height:1" title="Hapus dataset" aria-label="Hapus '+escHtmlAttr(ds.name)+'">×</button>';
