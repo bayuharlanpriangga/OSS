@@ -229,6 +229,27 @@ export default function Sidebar() {
           icon={<Table2 size={15} strokeWidth={1.8} />}
           label="Variables"
         />
+        <SideItem
+          tab="analyze"
+          sub="transform"
+          onClick={() => callOss('openAnalyze', 'transform', 'transform')}
+          icon={<Wrench size={15} strokeWidth={1.8} />}
+          label="Transform & Recode"
+        />
+        <SideItem
+          tab="analyze"
+          sub="weightcases"
+          onClick={() => callOss('openAnalyze', 'weightcases', 'weightcases')}
+          icon={<Scale size={15} strokeWidth={1.8} />}
+          label={
+            <>
+              Weight Cases
+              <span id="wc-badge" className="s-count-tag" style={{ display: 'none' }}>
+                ON
+              </span>
+            </>
+          }
+        />
 
         <div className="s-cat">Analyze</div>
         {ANALYZE_MENU.map((item) => (
@@ -252,29 +273,6 @@ export default function Sidebar() {
           <Plus size={14} strokeWidth={2} />
           <span>Dataset Baru</span>
         </button>
-
-        <div className="s-cat">Transform</div>
-        <SideItem
-          tab="analyze"
-          sub="transform"
-          onClick={() => callOss('openAnalyze', 'transform', 'transform')}
-          icon={<Wrench size={15} strokeWidth={1.8} />}
-          label="Transform & Recode"
-        />
-        <SideItem
-          tab="analyze"
-          sub="weightcases"
-          onClick={() => callOss('openAnalyze', 'weightcases', 'weightcases')}
-          icon={<Scale size={15} strokeWidth={1.8} />}
-          label={
-            <>
-              Weight Cases
-              <span id="wc-badge" className="s-count-tag" style={{ display: 'none' }}>
-                ON
-              </span>
-            </>
-          }
-        />
 
         <div className="s-cat">Tools</div>
         <SideItem

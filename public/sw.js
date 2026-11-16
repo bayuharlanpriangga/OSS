@@ -4,7 +4,7 @@
 ════════════════════════════════════════════════════════════ */
 
 // ⚠ Bump this version string setiap kali deploy biar cache lama otomatis dihapus
-const CACHE_NAME = 'oss-v6';
+const CACHE_NAME = 'oss-v8';
 const BASE = new URL(self.registration.scope).pathname;
 const APP_SHELL = [BASE, BASE + 'manifest.json'];
 const NETWORK_FIRST = [BASE + 'oss-js/app.js', BASE];

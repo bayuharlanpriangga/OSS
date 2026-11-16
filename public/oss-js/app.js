@@ -58,16 +58,17 @@ if(!SE.chiCritApprox){
 if(!SE.chi2CDF){
   SE.chi2CDF=function(x,df){
     if(x<=0) return 0;
+    var _lg=typeof lnGammaSimple==='function'?lnGammaSimple:lnG;
     var a=df/2,z=x/2;
     if(z<0) return 0;
     if(z<a+1){
       var ap=a,s=1/a,d=s;
       for(var i=0;i<100;i++){ap++;d*=z/ap;s+=d;if(Math.abs(d)<1e-8)break;}
-      return Math.min(1,s*Math.exp(-z+a*Math.log(z)-lnGammaSimple(a)));
+      return Math.min(1,s*Math.exp(-z+a*Math.log(z)-_lg(a)));
     } else {
       var b=z+1-a,c=1/1e-30,d2=1/b,h=d2;
       for(var i=1;i<=100;i++){var an=-i*(i-a);b+=2;d2=an*d2+b;if(Math.abs(d2)<1e-30)d2=1e-30;c=b+an/c;if(Math.abs(c)<1e-30)c=1e-30;d2=1/d2;var del=d2*c;h*=del;if(Math.abs(del-1)<1e-8)break;}
-      return Math.max(0,1-Math.exp(-z+a*Math.log(z)-lnGammaSimple(a))*h);
+      return Math.max(0,1-Math.exp(-z+a*Math.log(z)-_lg(a))*h);
     }
   };
 }

@@ -77,7 +77,7 @@ var aState = {
   miVars: [], miM: 5, miMethod: 'pmm', miSeed: 42,
   // ROC Curve
   rocProb: '', rocTrue: '', rocPosClass: '',
-  rocCompare: [],
+  rocCompareMode: false, rocCompare: [],
   // Survival Analysis
   survTime: '', survEvent: '', survGroup: '', survCovs: [], survMethod: 'km',
   survCutpoints: [],

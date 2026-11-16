@@ -112,7 +112,7 @@ var CMD_ACTIONS=[
 
   // ── ROC ──
   {label:'ROC Curve Analysis',fn:function(){openAnalyze('roc');}},
-  {label:'Compare ROC Curves',fn:function(){openAnalyze('roc_compare','roc');}},
+  {label:'Compare ROC Curves (DeLong Test)',fn:function(){aState.rocCompareMode=true;openAnalyze('roc');}},
 
   // ── Survival ──
   {label:'Survival Analysis',fn:function(){openAnalyze('survival');}},

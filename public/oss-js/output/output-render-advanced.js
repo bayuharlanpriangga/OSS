@@ -4,22 +4,80 @@ function renderOutAdv_hlm(o){
   var html='';
       var r=o.res;
       if(!r){ html+='<div class="notice-box notice-err">No HLM result.</div>'; }
-      else if(r._err){ html+='<div class="notice-box notice-err">⚠ '+r._err+'</div>'; }
+      else if(r._err){ html+='<div class="notice-box notice-err">⚠ '+escHtml(r._err)+'</div>'; }
+      else if(r.subtype==='hlm-3level'){
+        html+='<div class="stats-grid" style="margin-bottom:11px">';
+        html+=stCard('ICC (Level-3)',r.ICC_L3,'τ_β = '+r.varL3)+stCard('ICC (L2|L3)',r.ICC_L2_within_L3,'τ_π+τ_β = '+r.varBetween);
+        html+=stCard('L3 / L2 Units',r.k3+' / '+r.k2,'N obs = '+r.n)+stCard('AIC / BIC',r.AIC+' / '+r.BIC,'-2LL = '+r.deviance);
+        html+='</div>';
+        html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Three-Level Variance Partitioning (VPC)</div>';
+        html+='<div class="tbl-wrap" style="margin-bottom:11px"><table><thead><tr><th>Level</th><th style="text-align:right">Component</th><th style="text-align:right">Variance</th><th style="text-align:right">% Total</th><th style="text-align:right">F</th><th style="text-align:right">p</th></tr></thead><tbody>';
+        html+='<tr><td class="td-label">Level-3 ('+escHtml(o.group2||'Cluster L3')+')</td><td class="td-label">τ_β</td><td class="td-num">'+r.varL3+'</td><td class="td-num">'+r.vpcL3+'%</td><td class="td-num">'+r.F_L3+'</td><td class="td-num">'+r.p_L3_fmt+(r.sig_L3?' *':'')+'</td></tr>';
+        html+='<tr><td class="td-label">Level-2 ('+escHtml(o.group||'Cluster L2')+')</td><td class="td-label">τ_π</td><td class="td-num">'+r.varL2+'</td><td class="td-num">'+r.vpcL2+'%</td><td class="td-num">'+r.F_L2+'</td><td class="td-num">'+r.p_L2_fmt+(r.sig_L2?' *':'')+'</td></tr>';
+        html+='<tr><td class="td-label">Level-1 (Residual)</td><td class="td-label">σ²</td><td class="td-num">'+r.varL1+'</td><td class="td-num">'+r.vpcL1+'%</td><td class="td-num">—</td><td class="td-num">—</td></tr>';
+        html+='</tbody></table></div>';
+        if(r.fixedEffects&&r.fixedEffects.length){
+          html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Fixed Effects (Three-Level GLS)</div>';
+          html+='<div class="tbl-wrap" style="margin-bottom:11px"><table><thead><tr><th>Parameter</th><th>Level</th><th style="text-align:right">γ</th><th style="text-align:right">SE</th><th style="text-align:right">t</th><th style="text-align:right">p</th><th style="text-align:right">95% CI</th></tr></thead><tbody>';
+          r.fixedEffects.forEach(function(fe){
+            html+='<tr><td class="td-label">'+escHtml(fe.name)+'</td><td class="td-label">'+escHtml(fe.level)+'</td><td class="td-num">'+fe.gamma+'</td><td class="td-num">'+fe.se+'</td><td class="td-num">'+fe.t+'</td><td class="td-num"><span class="tag '+(fe.sig?'tag-green':'tag-gray')+'">'+fe.p_fmt+'</span></td><td class="td-num">'+fe.ci95+'</td></tr>';
+          });
+          html+='</tbody></table></div>';
+        }
+        if(r.l3Stats&&r.l3Stats.length){
+          html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Level-3 Cluster Summary ('+escHtml(o.group2||'')+')</div>';
+          html+='<div class="tbl-wrap"><table><thead><tr><th>Level-3 Cluster</th><th style="text-align:right">L2 Units</th><th style="text-align:right">N obs</th><th style="text-align:right">Mean</th><th style="text-align:right">SD</th></tr></thead><tbody>';
+          r.l3Stats.slice(0,20).forEach(function(g){
+            html+='<tr><td class="td-label">'+escHtml(g.group)+'</td><td class="td-num">'+g.nL2+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td></tr>';
+          });
+          html+='</tbody></table></div>';
+        }
+      }
+      else if(r.subtype==='hlm-2level'){
+        html+='<div class="stats-grid" style="margin-bottom:11px">';
+        html+=stCard('Conditional ICC',r.ICC,'Null ICC = '+r.ICC_null)+stCard('Groups (k)',r.k,'N obs = '+r.n);
+        html+=stCard('Pseudo-R² (L1 / L2)',r.pseudoR2_L1+' / '+r.pseudoR2_L2,'Snijders & Bosker')+stCard('AIC / BIC',r.AIC+' / '+r.BIC,'-2LL = '+r.deviance);
+        html+='</div>';
+        html+='<div class="stats-grid2" style="margin-bottom:11px">';
+        html+=stCard('τ₀₀ (Intercept Var)',r.varBetween,'Null τ₀₀ = '+r.nullTau00)+stCard('σ² (Residual Var)',r.varWithin,'Null σ² = '+r.nullSigma2);
+        if(r.tau11!==null&&r.tau11!==undefined){
+          html+=stCard('τ₁₁ (Slope Var)',r.tau11,'Model: '+escHtml(r.modelType));
+        }
+        html+=stCard('LRT vs Null', 'χ²('+r.lrtDf+')='+r.lrtChi2, 'p = '+r.lrtP_fmt);
+        html+='</div>';
+        if(r.fixedEffects&&r.fixedEffects.length){
+          html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Fixed Effects (IGLS — '+escHtml(r.modelType)+')</div>';
+          html+='<div class="tbl-wrap" style="margin-bottom:11px"><table><thead><tr><th>Parameter</th><th>Level</th><th style="text-align:right">γ</th><th style="text-align:right">SE</th><th style="text-align:right">t</th><th style="text-align:right">p</th><th style="text-align:right">95% CI</th></tr></thead><tbody>';
+          r.fixedEffects.forEach(function(fe){
+            html+='<tr><td class="td-label">'+escHtml(fe.name)+'</td><td class="td-label">'+escHtml(fe.level)+'</td><td class="td-num">'+fe.gamma+'</td><td class="td-num">'+fe.se+'</td><td class="td-num">'+fe.t+'</td><td class="td-num"><span class="tag '+(fe.sig?'tag-green':'tag-gray')+'">'+fe.p_fmt+'</span></td><td class="td-num">'+fe.ci95+'</td></tr>';
+          });
+          html+='</tbody></table></div>';
+        }
+        if(r.grpStats&&r.grpStats.length){
+          html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Cluster Summary &amp; Empirical Bayes Intercepts ('+escHtml(o.group)+')</div>';
+          html+='<div class="tbl-wrap"><table><thead><tr><th>Cluster</th><th style="text-align:right">n</th><th style="text-align:right">Mean</th><th style="text-align:right">SD</th><th style="text-align:right">EB u₀ⱼ</th></tr></thead><tbody>';
+          r.grpStats.slice(0,20).forEach(function(g){
+            html+='<tr><td class="td-label">'+escHtml(g.group)+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td><td class="td-num">'+(g.ebIntercept!==undefined?g.ebIntercept:'—')+'</td></tr>';
+          });
+          if(r.grpStats.length>20) html+='<tr><td colspan="5" style="color:var(--ink-subtle);font-size:11px;text-align:center">… '+(r.grpStats.length-20)+' more clusters</td></tr>';
+          html+='</tbody></table></div>';
+        }
+      }
       else {
         var iccV=parseFloat(r.ICC);
         var iccColor=iccV<.05?'var(--ok)':iccV<.25?'var(--warn)':'var(--err)';
         var iccCls=iccV<.05?'notice-ok':iccV<.25?'notice-warn':'notice-err';
         var iccLabel=iccV<.05?'Negligible clustering':iccV<.10?'Small – HLM recommended':iccV<.25?'Moderate – HLM important':'Strong – HLM essential';
         html+='<div class="stats-grid" style="margin-bottom:11px">';
-        html+=stCard('ICC',r.ICC,'Intraclass Correlation')+stCard('Groups (k)',r.k,'Level-2 units');
-        html+=stCard('N obs',r.n,'Level-1 units')+stCard('Grand Mean',r.grandMean,escHtml(o.dep));
+        html+=stCard('ICC (1)',r.ICC,'Intraclass Correlation')+stCard('ICC (2)',r.ICC2||'—','Group-mean reliability');
+        html+=stCard('Groups (k)',r.k,'N obs = '+r.n)+stCard('Grand Mean',r.grandMean,escHtml(o.dep));
         html+='</div>';
         html+='<div class="notice-box '+iccCls+'" style="margin-bottom:11px">';
-        html+='<div style="font-size:13px;font-weight:700;color:'+iccColor+'">ICC = '+r.ICC+'</div>';
+        html+='<div style="font-size:13px;font-weight:700;color:'+iccColor+'">ICC = '+r.ICC+' ('+(r.pctBetween||'—')+'% between-group)</div>';
         html+='<div style="font-size:11.5px;color:var(--ink-muted);margin-top:3px">'+iccLabel+'</div></div>';
         html+='<div class="stats-grid2" style="margin-bottom:11px">';
         html+=stCard('τ₀₀ (Between)',r.varBetween,'Level-2 variance')+stCard('σ² (Within)',r.varWithin,'Level-1 residual');
-        html+=stCard('Design Effect',r.design_effect,'DEFF = 1+(ñ–1)·ICC')+stCard('F (null model)',r.F+(r.sig?' *':' ns'),'One-way ANOVA test');
+        html+=stCard('Design Effect',r.design_effect,'Eff N = '+(r.effectiveN||r.n))+stCard('F (null model)',r.F+(r.sig?' *':' ns'),'p = '+r.p_fmt);
         html+='</div>';
         if(r.grpStats&&r.grpStats.length){
           html+='<div class="sec-hd" style="font-size:11px;margin-bottom:6px">Group-Level Descriptives ('+escHtml(o.group)+')</div>';
@@ -33,7 +91,7 @@ function renderOutAdv_hlm(o){
         html+='<div class="assump" style="margin-top:11px;font-size:11.5px">';
         html+='<b style="color:var(--ink)">Interpretation:</b> ICC = '+r.ICC+'. '+iccLabel+'. ';
         html+='Between-group variance τ₀₀ = '+r.varBetween+', within-group σ² = '+r.varWithin+'. ';
-        html+='Design effect = '+r.design_effect+' (effective N is approximately 1/DEFF of observed N). ';
+        html+='Design effect = '+r.design_effect+' (effective N is approximately '+(r.effectiveN||r.n)+'). ';
         if(iccV>.05) html+='<span style="color:var(--warn)">Recommend using HLM over OLS regression for this nested data structure.</span>';
         else html+='<span style="color:var(--ok)">Clustering is minimal; single-level analysis may be adequate, but verify theoretical justification for grouping.</span>';
         html+='</div>';
@@ -555,7 +613,27 @@ function renderOutAdv_roc(o){
       html+=stCard('F1 Score',r.optF1,'');
       html+=stCard('Youden J',r.optYouden,'');
       html+='</div>';
-      html+=svgROC(r);
+      html+='<div style="max-width:560px">'+svgROC(r)+'</div>';
+      if(o.compare&&o.compare.curves&&o.compare.curves.length>=2){
+        var T=typeof ossChartTheme==='function'?ossChartTheme():{series:['#4F7A99','#D4A72C','#2F7048','#A8530E']};
+        html+='<div style="margin-top:14px"><div class="sec-hd" style="margin-bottom:6px">ROC Curve Comparison (DeLong Test)</div>';
+        html+='<div style="max-width:580px">'+svgROCCompare(o.compare.curves)+'</div>';
+        html+='<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Model / Score</th><th style="text-align:right">AUC</th><th style="text-align:right">95% CI</th><th style="text-align:right">Cutoff</th><th style="text-align:right">Sens</th><th style="text-align:right">Spec</th></tr></thead><tbody>';
+        o.compare.curves.forEach(function(c,ci){
+          var cr=c.roc, col=T.series[ci%T.series.length];
+          html+='<tr><td class="td-label"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:'+col+';display:inline-block"></span>'+escHtml(c.name)+'</span></td><td class="td-num" style="color:var(--gold-text);font-weight:700">'+cr.auc+'</td><td class="td-num">'+cr.aucCI+'</td><td class="td-num">'+cr.optThresh+'</td><td class="td-num">'+cr.optSens+'</td><td class="td-num">'+cr.optSpec+'</td></tr>';
+        });
+        html+='</tbody></table></div>';
+        if(o.compare.delongPairs&&o.compare.delongPairs.length){
+          html+='<div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th>Comparison</th><th style="text-align:right">z</th><th style="text-align:right">p</th><th>Result</th></tr></thead><tbody>';
+          o.compare.delongPairs.forEach(function(dp){
+            var dSig=parseFloat(dp.test.p)<0.05;
+            html+='<tr><td class="td-label">'+escHtml(dp.base)+' vs '+escHtml(dp.comp)+'</td><td class="td-num">'+dp.test.z+'</td><td class="td-num"><span class="tag '+(dSig?'tag-green':'tag-gray')+'">'+dp.test.p_fmt+'</span></td><td>'+(dSig?'Significant difference':'No significant difference')+'</td></tr>';
+          });
+          html+='</tbody></table></div>';
+        }
+        html+='</div>';
+      }
       html+='<div style="margin-top:12px"><div class="sec-hd" style="margin-bottom:6px">AUC Interpretation Guide</div>';
       html+='<div class="tbl-wrap"><table><thead><tr><th>AUC Range</th><th>Discriminative Ability</th></tr></thead><tbody>';
       [['0.90 – 1.00','Excellent'],['0.80 – 0.89','Good'],['0.70 – 0.79','Acceptable'],['0.60 – 0.69','Poor'],['0.50 – 0.59','Fail (no better than chance)']].forEach(function(row){

@@ -145,7 +145,7 @@ function renderAnovaForm(){
     };
     html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="runANOVA()">▶ Run</button>';
     if(prv&&!prv._err){
-      html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:11px">'+stCard('F',prv.F)+stCard('p',prv.p_fmt)+stCard('&#x03b7;&#x00b2;',prv.eta2,prv.eta2Interp)+'</div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:11px">'+stCard('F',prv.F)+stCard('p',prv.p_fmt)+stCard('η²',prv.eta2,prv.eta2Interp)+'</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(prv.p)+'</div>';
     }
     html+='</div>';
@@ -182,7 +182,7 @@ function renderRmanovaForm(){
       html+='<div class="stats-grid2" style="margin-top:11px">';
       html+=stCard('F',rmPrv.F,'df='+rmPrv.dfB+','+rmPrv.dfE);
       html+=stCard('p',rmPrv.p_fmt,'');
-      html+=stCard('&#x03b7;&#x00b2;p',rmPrv.etaSq,'Effect size');
+      html+=stCard('η²p',rmPrv.etaSq,'Effect size');
       html+=stCard('k',rmPrv.k,'Time points');
       html+='</div>';
       html+='<div class="row" style="margin-top:8px">'+sigBadge(rmPrv.p)+'</div>';
@@ -198,7 +198,7 @@ function renderRmanovaForm(){
       });
       var rmMax=Math.max.apply(null,rmMeans);var rmMin=Math.min.apply(null,rmMeans);
       var rmRange=rmMax-rmMin||1;
-      var svgW=220,svgH=120,padL=30,padB=20,padT=12,padR=14;
+      var svgW=220,svgH=124,padL=30,padB=20,padT=16,padR=28;
       var plotW=svgW-padL-padR,plotH=svgH-padB-padT;
       var pts=rmVars.map(function(v,i){
         var x=padL+(i/(rmVars.length-1))*plotW;
@@ -977,7 +977,7 @@ function renderRecodeForm(){
       html+='<div style="max-height:180px;overflow-y:auto;margin:9px 0">';
       html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;font-size:10px;color:var(--ink-muted);margin-bottom:3px"><span>Original</span><span></span><span>New Value</span></div>';
       rcUniq.forEach((v,i)=>html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center;margin-bottom:4px"><div style="padding:5px 8px;background:var(--surface-alt);border:1px solid var(--line-soft);border-radius:var(--r-sm);font-size:11.5px;color:var(--ink)">'+escHtml(String(v))+'</div><span style="color:var(--ink-subtle)">→</span><input class="inp" style="padding:5px 8px;font-size:11.5px" id="rc-exact-'+i+'" placeholder="new"/></div>');
-      html+='</div><button class="btn btn-primary btn-sm" onclick="runRecodeExact('+JSON.stringify(rcUniq)+')">▶ Run</button>';
+      html+='</div><button class="btn btn-primary btn-sm" onclick="runRecodeExact('+escHtmlAttr(JSON.stringify(rcUniq))+')">▶ Run</button>';
     } else {
       html+='<div style="margin:9px 0">';
       for(let i=0;i<3;i++)html+='<div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:4px;align-items:center;margin-bottom:5px"><input class="inp" id="rc-from-'+i+'" placeholder="From" style="font-size:11px;padding:5px 8px"/><span style="color:var(--ink-subtle)">–</span><input class="inp" id="rc-to-'+i+'" placeholder="To" style="font-size:11px;padding:5px 8px"/><span style="color:var(--ink-subtle)">→</span><input class="inp" id="rc-new-'+i+'" placeholder="Label" style="font-size:11px;padding:5px 8px"/></div>';
@@ -1190,7 +1190,7 @@ function renderMiForm(){
     });
     html+='</div>';
     if(missVars.length&&(!aState.miVars||!aState.miVars.length)){
-      html+='<button class="btn btn-ghost btn-sm" style="margin-bottom:10px" onclick="aState.miVars='+JSON.stringify(missVars)+';renderASub()">Auto-select variables with missing</button>';
+      html+='<button class="btn btn-ghost btn-sm" style="margin-bottom:10px" onclick="aState.miVars='+escHtmlAttr(JSON.stringify(missVars))+';renderASub()">Auto-select variables with missing</button>';
     }
     html+='<div class="grid2" style="gap:8px;margin-bottom:10px">';
     html+='<div><label class="lbl">M (# imputations)</label>';
@@ -1637,7 +1637,15 @@ function renderHlmForm(){
     if(!aState.hlmGroup2)  aState.hlmGroup2  = aF[1]||aF[0]||'';
     if(!aState.hlmModelType) aState.hlmModelType = 'intercept';
 
-    var hlmRes=aState.hlmDep&&aState.hlmGroup?tryStats(function(){return computeHLMBasics(aState.hlmDep,aState.hlmGroup);}):null;
+    var hlmIccRes=(currentASub==='hlm-icc'&&aState.hlmDep&&aState.hlmGroup)
+      ?tryStats(function(){return computeHLMICC(aState.hlmDep,aState.hlmGroup);})
+      :null;
+    var hlm2Res=(currentASub==='hlm-2level'&&aState.hlmDep&&aState.hlmGroup)
+      ?tryStats(function(){return computeHLMTwoLevel(aState.hlmDep,aState.hlmGroup,aState.hlmL1Preds,aState.hlmL2Preds,aState.hlmModelType);})
+      :null;
+    var hlm3Res=(currentASub==='hlm-3level'&&aState.hlmDep&&aState.hlmGroup&&aState.hlmGroup2)
+      ?tryStats(function(){return computeHLMThreeLevel(aState.hlmDep,aState.hlmGroup,aState.hlmGroup2,aState.hlmL1Preds);})
+      :null;
 
     if(currentASub==='hlm-icc'){
       html+='<div class="grid2">';
@@ -1648,23 +1656,23 @@ function renderHlmForm(){
       html+='</div>';
 
       html+='<div class="card"><div class="sec-hd">Preview</div>';
-      if(hlmRes&&!hlmRes._err){
-        var iccVal=parseFloat(hlmRes.ICC);
+      if(hlmIccRes&&!hlmIccRes._err){
+        var iccVal=parseFloat(hlmIccRes.ICC);
         var iccLabel=iccVal<.05?'Negligible clustering':iccVal<.10?'Small clustering':iccVal<.25?'Moderate clustering':'Strong clustering';
         html+='<div class="stats-grid2" style="margin-bottom:11px">';
-        html+=stCard('ICC',hlmRes.ICC,iccLabel)+stCard('Groups (k)',hlmRes.k,'Level-2 units');
-        html+=stCard('τ₀₀ (Between)',hlmRes.varBetween,'σ²='+hlmRes.varWithin)+stCard('Design Effect',hlmRes.design_effect,'F='+hlmRes.F+(hlmRes.sig?' *':''));
+        html+=stCard('ICC (1)',hlmIccRes.ICC,iccLabel)+stCard('ICC (2)',hlmIccRes.ICC2,'Group-mean reliability');
+        html+=stCard('τ₀₀ (Between)',hlmIccRes.varBetween,hlmIccRes.pctBetween+'% | σ²='+hlmIccRes.varWithin)+stCard('Design Effect',hlmIccRes.design_effect,'Eff N='+hlmIccRes.effectiveN+' | F='+hlmIccRes.F+(hlmIccRes.sig?' *':''));
         html+='</div>';
-        if(hlmRes.grpStats&&hlmRes.grpStats.length){
-          html+='<div class="sec-hd-sub" style="margin-top:4px">Group-Level Descriptives</div>';
+        if(hlmIccRes.grpStats&&hlmIccRes.grpStats.length){
+          html+='<div class="sec-hd-sub" style="margin-top:4px">Group-Level Descriptives (k='+hlmIccRes.k+')</div>';
           html+='<div class="tbl-wrap"><table><thead><tr><th>Group</th><th style="text-align:right">n</th><th style="text-align:right">Mean</th><th style="text-align:right">SD</th></tr></thead><tbody>';
-          hlmRes.grpStats.slice(0,12).forEach(function(g){
+          hlmIccRes.grpStats.slice(0,12).forEach(function(g){
             html+='<tr><td class="td-str">'+escHtml(g.group)+'</td><td class="td-num">'+g.n+'</td><td class="td-num">'+g.mean+'</td><td class="td-num">'+g.sd+'</td></tr>';
           });
           html+='</tbody></table></div>';
         }
-      } else if(hlmRes&&hlmRes._err){
-        html+='<div class="notice-box notice-err">⚠ '+escHtml(hlmRes._err)+'</div>';
+      } else if(hlmIccRes&&hlmIccRes._err){
+        html+='<div class="notice-box notice-err">⚠ '+escHtml(hlmIccRes._err)+'</div>';
       } else {
         html+='<div class="chart-empty">Pilih outcome dan variabel pengelompokan Level-2 untuk menghitung ICC preview.</div>';
       }
@@ -1689,7 +1697,7 @@ function renderHlmForm(){
       html+='</div></div>';
       html+='<div style="margin-bottom:12px"><label class="lbl">Level-2 Predictors <span style="color:var(--ink-muted)">(between-group)</span></label>';
       html+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px">';
-      nF.concat(aF).filter(function(f,i,a){return a.indexOf(f)===i&&f!==aState.hlmDep&&f!==aState.hlmGroup;}).forEach(function(f){
+      nF.filter(function(f,i,a){return a.indexOf(f)===i&&f!==aState.hlmDep&&f!==aState.hlmGroup&&!aState.hlmL1Preds.includes(f);}).forEach(function(f){
         var sel=aState.hlmL2Preds.includes(f);
         html+='<label class="chip-opt'+(sel?' sel':'')+'">'
           +'<input type="checkbox" '+(sel?'checked':'')
@@ -1708,25 +1716,26 @@ function renderHlmForm(){
       html+='</div>';
 
       html+='<div class="card"><div class="sec-hd">Preview</div>';
-      if(hlmRes&&!hlmRes._err){
+      if(hlm2Res&&!hlm2Res._err){
         html+='<div class="stats-grid2" style="margin-bottom:11px">';
-        html+=stCard('ICC',hlmRes.ICC,'Clustering')+stCard('Groups (k)',hlmRes.k,'n='+hlmRes.n);
-        html+=stCard('τ₀₀ (Between)',hlmRes.varBetween,'Intercept var')+stCard('σ² (Within)',hlmRes.varWithin,'Residual var');
+        html+=stCard('Conditional ICC',hlm2Res.ICC,'Null ICC='+hlm2Res.ICC_null)+stCard('Pseudo-R² (L1 / L2)',hlm2Res.pseudoR2_L1+' / '+hlm2Res.pseudoR2_L2,'Variance explained');
+        html+=stCard('τ₀₀ / σ²',hlm2Res.varBetween+' / '+hlm2Res.varWithin,(hlm2Res.tau11!==null?'τ₁₁ slope='+hlm2Res.tau11:'Random intercept'))+stCard('AIC / BIC',hlm2Res.AIC+' / '+hlm2Res.BIC,'-2LL='+hlm2Res.deviance);
         html+='</div>';
-        if(hlmRes.grpStats&&hlmRes.grpStats.length){
-          html+='<div class="sec-hd-sub" style="margin-top:4px">Cluster Summary</div>';
-          html+=mkTable(['Cluster','n','Mean','SD'],hlmRes.grpStats.slice(0,10).map(function(g){return[escHtml(g.group),g.n,g.mean,g.sd];}));
+        if(hlm2Res.fixedEffects&&hlm2Res.fixedEffects.length){
+          html+='<div class="sec-hd-sub" style="margin-top:4px">Fixed Effects (IGLS)</div>';
+          html+=mkTable(['Parameter','Level','γ','SE','t','p'],hlm2Res.fixedEffects.map(function(fe){
+            return[escHtml(fe.name),escHtml(fe.level),fe.gamma,fe.se,fe.t,fe.p_fmt+(fe.sig?' *':'')];
+          }));
         }
-      } else if(hlmRes&&hlmRes._err){
-        html+='<div class="notice-box notice-err">⚠ '+escHtml(hlmRes._err)+'</div>';
+      } else if(hlm2Res&&hlm2Res._err){
+        html+='<div class="notice-box notice-err">⚠ '+escHtml(hlm2Res._err)+'</div>';
       } else {
-        html+='<div class="chart-empty">Pilih Outcome dan Level-2 Grouping untuk melihat preview null model HLM.</div>';
+        html+='<div class="chart-empty">Pilih Outcome dan Level-2 Grouping untuk melihat preview Two-Level HLM.</div>';
       }
       html+='</div></div>';
     }
 
     else if(currentASub==='hlm-3level'){
-      var hlmRes3=aState.hlmGroup2&&aState.hlmDep?tryStats(function(){return computeHLMBasics(aState.hlmDep,aState.hlmGroup2);}):null;
       html+='<div class="grid2">';
       html+='<div class="card"><div class="sec-hd">Three-Level HLM'+ossGuideBtn('hlm-3level')+'</div>';
       html+='<div style="margin-bottom:9px">'+mkSelect('hlm3-dep',nF,aState.hlmDep,'aState.hlmDep=val;renderASub()','Outcome (Level-1 numeric)')+'</div>';
@@ -1747,17 +1756,23 @@ function renderHlmForm(){
       html+='</div>';
 
       html+='<div class="card"><div class="sec-hd">Preview</div>';
-      if(hlmRes&&!hlmRes._err&&hlmRes3&&!hlmRes3._err){
+      if(hlm3Res&&!hlm3Res._err){
         html+='<div class="stats-grid2" style="margin-bottom:11px">';
-        html+=stCard('ICC (L2)',hlmRes.ICC,'τ₀₀ L2='+hlmRes.varBetween);
-        html+=stCard('ICC (L3)',hlmRes3.ICC,'τ₀₀ L3='+hlmRes3.varBetween);
-        html+=stCard('σ² (Within)',hlmRes.varWithin,'Grand Mean='+hlmRes.grandMean);
-        html+=stCard('Units (L2/L3)',hlmRes.k+' / '+hlmRes3.k,'N='+hlmRes.n);
+        html+=stCard('ICC (L3)',hlm3Res.ICC_L3,'τ_β='+hlm3Res.varL3+' ('+hlm3Res.vpcL3+'%)');
+        html+=stCard('ICC (L2|L3)',hlm3Res.ICC_L2_within_L3,'τ_π='+hlm3Res.varL2+' ('+hlm3Res.vpcL2+'%)');
+        html+=stCard('σ² (L1 Residual)',hlm3Res.varL1,hlm3Res.vpcL1+'% | Grand Mean='+hlm3Res.grandMean);
+        html+=stCard('Hierarchy (K3 / J2)',hlm3Res.k3+' / '+hlm3Res.k2,'N='+hlm3Res.n+' | AIC='+hlm3Res.AIC);
         html+='</div>';
-      } else if((hlmRes&&hlmRes._err)||(hlmRes3&&hlmRes3._err)){
-        html+='<div class="notice-box notice-err">⚠ '+escHtml((hlmRes&&hlmRes._err)||(hlmRes3&&hlmRes3._err))+'</div>';
+        if(hlm3Res.fixedEffects&&hlm3Res.fixedEffects.length){
+          html+='<div class="sec-hd-sub" style="margin-top:4px">Fixed Effects (3-Level GLS)</div>';
+          html+=mkTable(['Parameter','Level','γ','SE','t','p'],hlm3Res.fixedEffects.map(function(fe){
+            return[escHtml(fe.name),escHtml(fe.level),fe.gamma,fe.se,fe.t,fe.p_fmt+(fe.sig?' *':'')];
+          }));
+        }
+      } else if(hlm3Res&&hlm3Res._err){
+        html+='<div class="notice-box notice-err">⚠ '+escHtml(hlm3Res._err)+'</div>';
       } else {
-        html+='<div class="chart-empty">Pilih Outcome, Level-2 Grouping, dan Level-3 Grouping untuk melihat preview partisi varians.</div>';
+        html+='<div class="chart-empty">Pilih Outcome, Level-2 Grouping, dan Level-3 Grouping yang berbeda untuk melihat preview Three-Level HLM.</div>';
       }
       html+='</div></div>';
     }
@@ -2469,97 +2484,116 @@ function renderRocForm(){
   const nF=numFields(),aF=allFields();
   var T=ossChartTheme();
   let html='';
-    if(!aState.rocProb&&nF.length) aState.rocProb=nF[0];
-    if(!aState.rocTrue&&aF.length) aState.rocTrue=aF[aF.length>1?aF.length-1:0];
+    if(!aState.rocTrue&&aF.length){
+      var binCand=aF.find(function(f){var u=new Set(data.map(function(r){return r[f];}).filter(function(v){return v!==null&&v!==undefined&&v!=='';}));return u.size===2;});
+      aState.rocTrue=binCand||aF[aF.length>1?aF.length-1:0];
+    }
+    if(!aState.rocProb&&nF.length){
+      var scoreCand=nF.find(function(f){if(f===aState.rocTrue)return false;var u=new Set(data.map(function(r){return r[f];}).filter(function(v){return v!==null&&v!==undefined&&v!=='';}));return u.size>2;});
+      aState.rocProb=scoreCand||nF.find(function(f){return f!==aState.rocTrue;})||nF[0];
+    }
     if(!aState.rocCompare) aState.rocCompare=[];
     var rocPrv=aState.rocProb&&aState.rocTrue?tryStats(function(){return computeROC(data,aState.rocProb,aState.rocTrue,aState.rocPosClass);}):null;
 
-    if(currentASub==='roc'){
-      html+='<div class="grid2">';
-      html+='<div class="card"><div class="sec-hd">ROC Curve Analysis'+ossGuideBtn('roc')+'</div>';
-      html+=mkSelect('roc-prob',nF,aState.rocProb,'aState.rocProb=val;renderASub()','Predicted Probability / Score');
-      html+='<div style="margin-top:8px">'+mkSelect('roc-true',aF,aState.rocTrue,'aState.rocTrue=val;renderASub()','True Binary Outcome')+'</div>';
-      if(aState.rocTrue){
-        var uniq=[...new Set(data.map(function(r){return String(r[aState.rocTrue]||'');}).filter(Boolean))].slice(0,10);
-        if(uniq.length>=2){
-          html+='<div style="margin-top:8px"><label class="lbl">Positive Class (event=1)</label>';
-          html+='<div class="row" style="gap:5px;margin-top:5px;flex-wrap:wrap">';
-          uniq.forEach(function(u){html+='<button class="btn '+(aState.rocPosClass===u?'btn-active':'btn-ghost')+' btn-sm" onclick="aState.rocPosClass=this.dataset.v;renderASub()" data-v="'+escHtmlAttr(u)+'">'+escHtml(u)+'</button>';});
-          html+='</div></div>';
-        }
+    // Build comparison curves when Compare Curves (DeLong Test) toggle is active
+    var otherScores=nF.filter(function(v){return v!==aState.rocProb;});
+    var cmpVars=aState.rocCompareMode&&aState.rocProb
+      ?[aState.rocProb].concat((aState.rocCompare||[]).filter(function(v){return v!==aState.rocProb&&nF.includes(v);}))
+      :[];
+    var cmpCurves=(aState.rocCompareMode&&aState.rocTrue&&cmpVars.length>=2)
+      ?cmpVars.map(function(v){
+        try{return {name:v,roc:computeROC(data,v,aState.rocTrue,aState.rocPosClass)};}
+        catch(e){return {name:v,roc:{_err:true}};}
+      }).filter(function(c){return !c.roc._err;})
+      :[];
+
+    html+='<div class="grid2">';
+    html+='<div class="card"><div class="sec-hd">ROC Curve Analysis'+ossGuideBtn('roc')+'</div>';
+    html+=mkSelect('roc-prob',nF,aState.rocProb,'aState.rocProb=val;renderASub()','Predicted Probability / Score');
+    html+='<div style="margin-top:8px">'+mkSelect('roc-true',aF,aState.rocTrue,'aState.rocTrue=val;renderASub()','True Binary Outcome')+'</div>';
+    if(aState.rocTrue){
+      var uniq=[...new Set(data.map(function(r){return String(r[aState.rocTrue]||'');}).filter(Boolean))].slice(0,10);
+      if(uniq.length>=2){
+        html+='<div style="margin-top:8px"><label class="lbl">Positive Class (event=1)</label>';
+        html+='<div class="row" style="gap:5px;margin-top:5px;flex-wrap:wrap">';
+        uniq.forEach(function(u){html+='<button class="btn '+(aState.rocPosClass===u?'btn-active':'btn-ghost')+' btn-sm" onclick="aState.rocPosClass=this.dataset.v;renderASub()" data-v="'+escHtmlAttr(u)+'">'+escHtml(u)+'</button>';});
+        html+='</div></div>';
       }
-      html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runROC()">▶ Run</button>';
-      if(rocPrv&&!rocPrv._err){
-        html+='<div class="stats-grid2" style="margin-top:12px">';
-        html+=stCard('AUC',rocPrv.auc,rocPrv.aucInterp);
-        html+=stCard('95% CI',rocPrv.aucCI,'');
-        html+=stCard('Optimal Cutoff',rocPrv.optThresh,'Youden index');
-        html+=stCard('Sens / Spec',rocPrv.optSens+' / '+rocPrv.optSpec,'pos='+rocPrv.nPos+' neg='+rocPrv.nNeg);
+    }
+
+    // ANOVA-style Compare Curves (DeLong Test) post-hoc switch
+    html+='<div style="margin-top:10px">';
+    html+='<label class="lbl">Compare Curves (DeLong Test)</label>';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-top:4px">';
+    html+='<button type="button" role="switch" aria-checked="'+(aState.rocCompareMode?'true':'false')+'" aria-label="Enable ROC curve comparison" onclick="aState.rocCompareMode=!aState.rocCompareMode;renderASub()" style="cursor:pointer;width:36px;height:20px;border-radius:var(--r-sm);background:'+(aState.rocCompareMode?'var(--gold)':'var(--surface-alt)')+';position:relative;flex-shrink:0;transition:background .15s;border:1px solid '+(aState.rocCompareMode?'var(--gold)':'var(--line-soft)')+';padding:0"><span style="position:absolute;top:2px;left:'+(aState.rocCompareMode?'18px':'2px')+';width:14px;height:14px;border-radius:1px;background:'+(aState.rocCompareMode?'var(--ink)':'var(--ink-muted)')+';transition:left .15s"></span></button>';
+    html+='<span style="font-size:12px;color:'+(aState.rocCompareMode?'var(--ink)':'var(--ink-muted)')+'">'+(aState.rocCompareMode?'Bandingkan dengan skor lain (DeLong Test)':'Uji kurva ROC tunggal')+'</span>';
+    html+='</div>';
+    if(aState.rocCompareMode){
+      html+='<div style="margin-top:8px">';
+      if(otherScores.length){
+        html+='<div style="font-size:11px;color:var(--ink-muted);margin-bottom:5px">Pilih ≥1 skor pembanding terhadap <b>'+escHtml(aState.rocProb)+'</b>:</div>';
+        html+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+        otherScores.forEach(function(v){
+          var sel=(aState.rocCompare||[]).includes(v);
+          html+='<label class="chip-opt'+(sel?' sel':'')+'">';
+          html+='<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleROCCompare(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(v)+'"/>'+escHtml(v)+'</label>';
+        });
         html+='</div>';
-      }
-      if(rocPrv&&rocPrv._err) html+='<div class="notice-box notice-err" style="margin-top:8px">'+escHtml(rocPrv.msg)+'</div>';
-      html+='</div>';
-
-      html+='<div class="card"><div class="sec-hd">Preview</div>';
-      if(rocPrv&&!rocPrv._err){
-        html+='<div class="sec-hd-sub" style="margin-top:0">ROC Plot</div>';
-        html+=svgROC(rocPrv);
-        html+='<div style="margin-top:12px"><div class="sec-hd-sub">Optimal Operating Point (Youden)</div>';
-        html+='<div class="tbl-wrap"><table><thead><tr><th style="text-align:right">Threshold</th><th style="text-align:right">Sens</th><th style="text-align:right">Spec</th><th style="text-align:right">PPV</th><th style="text-align:right">NPV</th><th style="text-align:right">F1</th><th style="text-align:right">Youden J</th></tr></thead><tbody>';
-        html+='<tr><td class="td-num" style="color:var(--gold-text);font-weight:700">'+rocPrv.optThresh+'</td><td class="td-num">'+rocPrv.optSens+'</td><td class="td-num">'+rocPrv.optSpec+'</td><td class="td-num">'+rocPrv.optPPV+'</td><td class="td-num">'+rocPrv.optNPV+'</td><td class="td-num">'+rocPrv.optF1+'</td><td class="td-num" style="color:var(--ok);font-weight:700">'+rocPrv.optYouden+'</td></tr>';
-        html+='</tbody></table></div></div>';
-        html+='<div style="margin-top:12px"><div class="sec-hd-sub">Threshold Table</div>';
-        html+='<div class="tbl-wrap"><table><thead><tr><th style="text-align:right">Threshold</th><th style="text-align:right">TPR</th><th style="text-align:right">FPR</th><th style="text-align:right">Precision</th><th style="text-align:right">F1</th></tr></thead><tbody>';
-        var step=Math.max(1,Math.floor(rocPrv.curve.length/12));
-        rocPrv.curve.filter(function(_,i){return i%step===0;}).slice(0,14).forEach(function(pt){
-          html+='<tr><td class="td-num">'+SE.f4(pt.t)+'</td><td class="td-num">'+SE.f4(pt.tpr)+'</td><td class="td-num">'+SE.f4(pt.fpr)+'</td><td class="td-num">'+SE.f4(pt.ppv||0)+'</td><td class="td-num">'+SE.f4(pt.f1||0)+'</td></tr>';
-        });
-        html+='</tbody></table></div></div>';
-      } else { html+='<div class="chart-empty">Pilih probability score dan outcome biner untuk melihat kurva ROC.</div>'; }
-      html+='</div></div>';
-    }
-
-    else if(currentASub==='roc_compare'){
-      var cmpCurves=(aState.rocTrue&&aState.rocCompare&&aState.rocCompare.length>=2)
-        ?aState.rocCompare.map(function(v){
-          try{return {name:v,roc:computeROC(data,v,aState.rocTrue,aState.rocPosClass)};}
-          catch(e){return {name:v,roc:{_err:true}};}
-        }).filter(function(c){return !c.roc._err;})
-        :[];
-      html+='<div class="grid2">';
-      html+='<div class="card"><div class="sec-hd">Compare ROC Curves'+ossGuideBtn('roc_compare')+'</div>';
-      html+='<div style="margin-bottom:10px">'+mkSelect('roc-true-cmp',aF,aState.rocTrue,'aState.rocTrue=val;renderASub()','True Binary Outcome')+'</div>';
-      html+='<label class="lbl">Predicted Scores to Compare (≥2)</label>';
-      html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px">';
-      nF.forEach(function(v){
-        var sel=(aState.rocCompare||[]).includes(v);
-        html+='<label class="chip-opt'+(sel?' sel':'')+'">';
-        html+='<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleROCCompare(this.dataset.fld,this.checked)" data-fld="'+escHtmlAttr(v)+'"/>'+escHtml(v)+'</label>';
-      });
-      html+='</div>';
-      html+='<button class="btn btn-primary btn-sm" onclick="runROC()">▶ Run</button>';
-      html+='</div>';
-
-      html+='<div class="card"><div class="sec-hd">Preview</div>';
-      if(cmpCurves.length>=2){
-        html+=svgROCCompare(cmpCurves);
-        html+='<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Model / Score</th><th style="text-align:right">AUC</th><th style="text-align:right">95% CI</th><th style="text-align:right">Cutoff</th><th style="text-align:right">Sens</th><th style="text-align:right">Spec</th></tr></thead><tbody>';
-        cmpCurves.forEach(function(c,ci){
-          var r=c.roc;
-          var col=T.series[ci%T.series.length];
-          html+='<tr><td class="td-label"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:'+col+';display:inline-block"></span>'+escHtml(c.name)+'</span></td><td class="td-num" style="color:var(--gold-text);font-weight:700">'+r.auc+'</td><td class="td-num" style="font-size:11px">'+r.aucCI+'</td><td class="td-num">'+r.optThresh+'</td><td class="td-num">'+r.optSens+'</td><td class="td-num">'+r.optSpec+'</td></tr>';
-        });
-        html+='</tbody></table></div>';
-        try{
-          var dlong=deLongTest(cmpCurves[0].roc,cmpCurves[1].roc);
-          var dSig=parseFloat(dlong.p)<0.05;
-          html+='<div class="notice-box '+(dSig?'notice-ok':'')+'" style="margin-top:10px"><b style="color:var(--gold-text)">DeLong ('+escHtml(cmpCurves[0].name)+' vs '+escHtml(cmpCurves[1].name)+'):</b> z='+dlong.z+', p='+dlong.p_fmt+' — '+(dSig?'<span style="color:var(--ok);font-weight:700">Significant difference</span>':'<span style="color:var(--warn)">No significant difference</span>')+'</div>';
-        }catch(e){}
       } else {
-        html+='<div class="chart-empty">Pilih outcome dan minimal 2 skor prediktor untuk membandingkan kurva ROC.</div>';
+        html+='<div style="font-size:11px;color:var(--ink-subtle)">Perlu ≥2 variabel numerik di dataset untuk perbandingan kurva ROC.</div>';
       }
-      html+='</div></div>';
+      html+='</div>';
     }
+    html+='</div>';
+
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="runROC()">▶ Run</button>';
+    if(rocPrv&&!rocPrv._err){
+      html+='<div class="stats-grid2" style="margin-top:12px">';
+      html+=stCard('AUC',rocPrv.auc,rocPrv.aucInterp);
+      html+=stCard('95% CI',rocPrv.aucCI,'');
+      html+=stCard('Optimal Cutoff',rocPrv.optThresh,'Youden index');
+      html+=stCard('Sens / Spec',rocPrv.optSens+' / '+rocPrv.optSpec,'pos='+rocPrv.nPos+' neg='+rocPrv.nNeg);
+      html+='</div>';
+    }
+    if(rocPrv&&rocPrv._err) html+='<div class="notice-box notice-err" style="margin-top:8px">'+escHtml(rocPrv.msg)+'</div>';
+    html+='</div>';
+
+    html+='<div class="card"><div class="sec-hd">Preview</div>';
+    if(aState.rocCompareMode&&cmpCurves.length>=2){
+      html+='<div class="sec-hd-sub" style="margin-top:0">ROC Curves Comparison (DeLong Test)</div>';
+      html+=svgROCCompare(cmpCurves);
+      html+='<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Model / Score</th><th style="text-align:right">AUC</th><th style="text-align:right">95% CI</th><th style="text-align:right">Cutoff</th><th style="text-align:right">Sens</th><th style="text-align:right">Spec</th></tr></thead><tbody>';
+      cmpCurves.forEach(function(c,ci){
+        var r=c.roc;
+        var col=T.series[ci%T.series.length];
+        html+='<tr><td class="td-label"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:'+col+';display:inline-block"></span>'+escHtml(c.name)+'</span></td><td class="td-num" style="color:var(--gold-text);font-weight:700">'+r.auc+'</td><td class="td-num" style="font-size:11px">'+r.aucCI+'</td><td class="td-num">'+r.optThresh+'</td><td class="td-num">'+r.optSens+'</td><td class="td-num">'+r.optSpec+'</td></tr>';
+      });
+      html+='</tbody></table></div>';
+      for(var ci=1;ci<cmpCurves.length;ci++){
+        try{
+          var dlong=deLongTest(cmpCurves[0].roc,cmpCurves[ci].roc);
+          var dSig=parseFloat(dlong.p)<0.05;
+          html+='<div class="notice-box '+(dSig?'notice-ok':'')+'" style="margin-top:8px"><b style="color:var(--gold-text)">DeLong ('+escHtml(cmpCurves[0].name)+' vs '+escHtml(cmpCurves[ci].name)+'):</b> z='+dlong.z+', p='+dlong.p_fmt+' — '+(dSig?'<span style="color:var(--ok);font-weight:700">Significant difference</span>':'<span style="color:var(--warn)">No significant difference</span>')+'</div>';
+        }catch(e){}
+      }
+    } else if(rocPrv&&!rocPrv._err){
+      html+='<div class="sec-hd-sub" style="margin-top:0">ROC Plot</div>';
+      html+=svgROC(rocPrv);
+      html+='<div style="margin-top:12px"><div class="sec-hd-sub">Optimal Operating Point (Youden)</div>';
+      html+='<div class="tbl-wrap"><table><thead><tr><th style="text-align:right">Threshold</th><th style="text-align:right">Sens</th><th style="text-align:right">Spec</th><th style="text-align:right">PPV</th><th style="text-align:right">NPV</th><th style="text-align:right">F1</th><th style="text-align:right">Youden J</th></tr></thead><tbody>';
+      html+='<tr><td class="td-num" style="color:var(--gold-text);font-weight:700">'+rocPrv.optThresh+'</td><td class="td-num">'+rocPrv.optSens+'</td><td class="td-num">'+rocPrv.optSpec+'</td><td class="td-num">'+rocPrv.optPPV+'</td><td class="td-num">'+rocPrv.optNPV+'</td><td class="td-num">'+rocPrv.optF1+'</td><td class="td-num" style="color:var(--ok);font-weight:700">'+rocPrv.optYouden+'</td></tr>';
+      html+='</tbody></table></div></div>';
+      html+='<div style="margin-top:12px"><div class="sec-hd-sub">Threshold Table</div>';
+      html+='<div class="tbl-wrap"><table><thead><tr><th style="text-align:right">Threshold</th><th style="text-align:right">TPR</th><th style="text-align:right">FPR</th><th style="text-align:right">Precision</th><th style="text-align:right">F1</th></tr></thead><tbody>';
+      var step=Math.max(1,Math.floor(rocPrv.curve.length/12));
+      rocPrv.curve.filter(function(_,i){return i%step===0;}).slice(0,14).forEach(function(pt){
+        html+='<tr><td class="td-num">'+SE.f4(pt.t)+'</td><td class="td-num">'+SE.f4(pt.tpr)+'</td><td class="td-num">'+SE.f4(pt.fpr)+'</td><td class="td-num">'+SE.f4(pt.ppv||0)+'</td><td class="td-num">'+SE.f4(pt.f1||0)+'</td></tr>';
+      });
+      html+='</tbody></table></div></div>';
+    } else {
+      html+='<div class="chart-empty">Pilih probability score dan outcome biner untuk melihat kurva ROC.</div>';
+    }
+    html+='</div></div>';
   return html;
 }
 
@@ -3548,7 +3582,7 @@ function renderASub(){
 
 
   // ROC CURVE
-  else if(currentASub==='roc'||currentASub==='roc_compare'){
+  else if(currentASub==='roc'){
     html+=renderRocForm();
   }
 

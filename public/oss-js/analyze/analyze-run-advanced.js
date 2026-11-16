@@ -40,8 +40,26 @@ function runROC(){
     if(!aState.rocProb) throw new Error('Select Predicted Probability variable');
     if(!aState.rocTrue) throw new Error('Select True Outcome variable');
     var res=computeROC(data,aState.rocProb,aState.rocTrue,aState.rocPosClass);
-    var title='ROC Curve: '+aState.rocProb+' → '+aState.rocTrue+' | AUC='+res.auc+' ('+res.aucInterp+')';
-    addOutput({type:'roc',title:title,res:res,rocProb:aState.rocProb,rocTrue:aState.rocTrue});
+    var compare=null;
+    if(aState.rocCompareMode){
+      var others=(aState.rocCompare||[]).filter(function(v){return v&&v!==aState.rocProb;});
+      if(others.length){
+        var curves=[{name:aState.rocProb,roc:res}];
+        var delongPairs=[];
+        others.forEach(function(v){
+          try{
+            var r2=computeROC(data,v,aState.rocTrue,aState.rocPosClass);
+            curves.push({name:v,roc:r2});
+            delongPairs.push({base:aState.rocProb,comp:v,test:deLongTest(res,r2)});
+          }catch(e){}
+        });
+        if(curves.length>=2){
+          compare={curves:curves,delongPairs:delongPairs};
+        }
+      }
+    }
+    var title='ROC Curve'+(compare?' + Compare ('+compare.curves.length+' models)':'')+': '+aState.rocProb+' → '+aState.rocTrue+' | AUC='+res.auc+' ('+res.aucInterp+')';
+    addOutput({type:'roc',title:title,res:res,rocProb:aState.rocProb,rocTrue:aState.rocTrue,compare:compare});
   },'ROC Analysis');
 }
 
@@ -166,45 +184,27 @@ function runHLM(){
     if(!aState.hlmDep) throw new Error('Select an outcome variable');
     if(!aState.hlmGroup) throw new Error('Select a Level-2 grouping variable');
 
-    // Build group map
-    var groups={};
-    data.forEach(function(r){
-      var g=r[aState.hlmGroup]; var y=parseFloat(r[aState.hlmDep]);
-      if(g===undefined||g===null||isNaN(y)) return;
-      if(!groups[g]) groups[g]=[];
-      groups[g].push(y);
-    });
-    var gkeys=Object.keys(groups);
-    if(gkeys.length<2) throw new Error('Need at least 2 groups for HLM');
-    var allY=[]; gkeys.forEach(function(g){ groups[g].forEach(function(v){ allY.push(v); }); });
-    var n=allY.length;
-    var grandMean=SE.mean(allY);
-    var SSB=0,SSW=0;
-    gkeys.forEach(function(g){
-      var gv=groups[g]; var gm=SE.mean(gv);
-      SSB+=gv.length*Math.pow(gm-grandMean,2);
-      gv.forEach(function(y){ SSW+=Math.pow(y-gm,2); });
-    });
-    var k=gkeys.length, dfB=k-1, dfW=n-k;
-    var MSB=SSB/dfB, MSW=SSW/dfW;
-    var avgN=n/k;
-    var varBetween=Math.max(0,(MSB-MSW)/avgN);
-    var varWithin=MSW;
-    var ICC=(varBetween+varWithin)>0?varBetween/(varBetween+varWithin):0;
-    var Fval=MSW>0?MSB/MSW:NaN;
-    var pF=isNaN(Fval)?NaN:1-SE.fCDF(Fval,dfB,dfW);
-    var grpStats=gkeys.map(function(g){
-      var gv=groups[g]; return {group:g,n:gv.length,mean:SE.f4(SE.mean(gv)),sd:gv.length>=2?SE.f4(SE.std(gv)):'N/A'};
-    });
-    var res={k:k,n:n,grandMean:SE.f4(grandMean),ICC:SE.f4(ICC),
-      varBetween:SE.f4(varBetween),varWithin:SE.f4(varWithin),
-      MSB:SE.f4(MSB),MSW:SE.f4(MSW),F:SE.f4(Fval),p_fmt:SE.pFmt(pF),sig:pF<.05,
-      design_effect:SE.f4(1+(avgN-1)*ICC),grpStats:grpStats,
-      l1preds:aState.hlmL1Preds,l2preds:aState.hlmL2Preds,
-      subtype:currentASub};
-    var label=currentASub==='hlm-icc'?'ICC & Variance Partitioning':currentASub==='hlm-3level'?'Three-Level HLM':'Two-Level HLM';
-    var title='HLM ('+label+'): '+aState.hlmDep+' by '+aState.hlmGroup;
-    addOutput({type:'hlm',title:title,res:res,dep:aState.hlmDep,group:aState.hlmGroup});
+    var res=null;
+    var label='';
+    var title='';
+    if(currentASub==='hlm-icc'){
+      res=computeHLMICC(aState.hlmDep,aState.hlmGroup);
+      if(!res||res._err) throw new Error((res&&res._err)||'ICC computation failed');
+      label='ICC & Variance Partitioning';
+      title='HLM ('+label+'): '+aState.hlmDep+' by '+aState.hlmGroup+' | ICC='+res.ICC;
+    } else if(currentASub==='hlm-3level'){
+      if(!aState.hlmGroup2) throw new Error('Select a Level-3 grouping variable');
+      res=computeHLMThreeLevel(aState.hlmDep,aState.hlmGroup,aState.hlmGroup2,aState.hlmL1Preds||[]);
+      if(!res||res._err) throw new Error((res&&res._err)||'Three-Level HLM failed');
+      label='Three-Level HLM';
+      title='HLM ('+label+'): '+aState.hlmDep+' by '+aState.hlmGroup+' ⊂ '+aState.hlmGroup2;
+    } else {
+      res=computeHLMTwoLevel(aState.hlmDep,aState.hlmGroup,aState.hlmL1Preds||[],aState.hlmL2Preds||[],aState.hlmModelType||'intercept');
+      if(!res||res._err) throw new Error((res&&res._err)||'Two-Level HLM failed');
+      label='Two-Level HLM';
+      title='HLM ('+label+'): '+aState.hlmDep+' by '+aState.hlmGroup;
+    }
+    addOutput({type:'hlm',title:title,res:res,dep:aState.hlmDep,group:aState.hlmGroup,group2:aState.hlmGroup2||null});
   },'HLM');
 }
 

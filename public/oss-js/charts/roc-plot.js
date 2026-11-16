@@ -2,7 +2,7 @@
 function svgROC(roc,W,H){
   W=W||380;H=H||260;
   var T=ossChartTheme();
-  var P={l:38,r:12,t:12,b:40};
+  var P={l:38,r:12,t:12,b:44};
   var cw=W-P.l-P.r,ch=H-P.t-P.b;
   function tx(x){return P.l+x*cw;}
   function ty(y){return P.t+ch*(1-y);}
@@ -35,7 +35,7 @@ function svgROC(roc,W,H){
   // Axes
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="'+T.axis+'" stroke-width="1.2"/>';
   svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="'+T.axis+'" stroke-width="1.2"/>';
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="'+T.muted+'">1 − Specificity (FPR)</text>';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+(H-5)+'" text-anchor="middle" font-size="9" fill="'+T.muted+'">1 − Specificity (FPR)</text>';
   svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9" fill="'+T.muted+'" transform="rotate(-90,12,'+(P.t+ch/2)+')">Sensitivity (TPR)</text>';
   return svg+'</svg>';
 }
@@ -43,13 +43,18 @@ function svgROC(roc,W,H){
 function svgROCCompare(curves,W,H){
   W=W||420;H=H||280;
   var T=ossChartTheme();
-  var P={l:38,r:12,t:14,b:40};
+  var P={l:38,r:12,t:14,b:44};
   var cw=W-P.l-P.r,ch=H-P.t-P.b;
   function tx(x){return P.l+x*cw;}
   function ty(y){return P.t+ch*(1-y);}
   var colors=T.series;
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">';
-  [0,.25,.5,.75,1].forEach(function(v){svg+='<line x1="'+tx(v)+'" x2="'+tx(v)+'" y1="'+P.t+'" y2="'+(P.t+ch)+'" stroke="'+T.grid+'"/><line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+ty(v)+'" y2="'+ty(v)+'" stroke="'+T.grid+'"/>';});
+  [0,.25,.5,.75,1].forEach(function(v){
+    var x=tx(v),y=ty(v);
+    svg+='<line x1="'+x+'" x2="'+x+'" y1="'+P.t+'" y2="'+(P.t+ch)+'" stroke="'+T.grid+'"/><line x1="'+P.l+'" x2="'+(P.l+cw)+'" y1="'+y+'" y2="'+y+'" stroke="'+T.grid+'"/>';
+    svg+='<text x="'+x+'" y="'+(H-P.b+13)+'" text-anchor="middle" font-size="8" fill="'+T.subtle+'">'+escHtml(v)+'</text>';
+    svg+='<text x="'+(P.l-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="8" fill="'+T.subtle+'">'+escHtml(v)+'</text>';
+  });
   svg+='<line x1="'+tx(0)+'" y1="'+ty(0)+'" x2="'+tx(1)+'" y2="'+ty(1)+'" stroke="'+T.axis+'" stroke-width="1" stroke-dasharray="4,3"/>';
   curves.forEach(function(c,ci){
     var r=c.roc,col=colors[ci%colors.length];
@@ -61,6 +66,7 @@ function svgROCCompare(curves,W,H){
   });
   svg+='<line x1="'+P.l+'" y1="'+P.t+'" x2="'+P.l+'" y2="'+(P.t+ch)+'" stroke="'+T.axis+'" stroke-width="1.2"/>';
   svg+='<line x1="'+P.l+'" y1="'+(P.t+ch)+'" x2="'+(P.l+cw)+'" y2="'+(P.t+ch)+'" stroke="'+T.axis+'" stroke-width="1.2"/>';
-  svg+='<text x="'+(P.l+cw/2)+'" y="'+H+'" text-anchor="middle" font-size="9" fill="'+T.muted+'">1 − Specificity (FPR)</text>';
+  svg+='<text x="'+(P.l+cw/2)+'" y="'+(H-5)+'" text-anchor="middle" font-size="9" fill="'+T.muted+'">1 − Specificity (FPR)</text>';
+  svg+='<text x="12" y="'+(P.t+ch/2)+'" text-anchor="middle" font-size="9" fill="'+T.muted+'" transform="rotate(-90,12,'+(P.t+ch/2)+')">Sensitivity (TPR)</text>';
   return svg+'</svg>';
 }

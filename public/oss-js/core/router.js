@@ -109,7 +109,7 @@ var SUB_TO_GROUP={
   'moderation':'moderation','simpleslopes':'moderation','jn':'moderation',
   'transform':'transform','recode':'transform','filter':'transform',
   'impute':'imputation','mi':'imputation',
-  'roc':'roc','roc_compare':'roc',
+  'roc':'roc',
   'survival':'survival','km':'survival','logrank':'survival','cox':'survival',
   'bayesian':'bayesian','bayesian_corr':'bayesian','bayesian_posterior':'bayesian',
   'timeseries':'timeseries',

@@ -236,6 +236,12 @@ function _buildInterp(o){
     return 'Interpretasi Bayesian: BF₁₀ > 3 menunjukkan dukungan moderat untuk H₁; BF₁₀ < 1/3 mendukung H₀. Posterior distribution merangkum estimasi parameter.';
   }
   if(o.type==='hlm'){
+    if(r&&r.subtype==='hlm-3level'){
+      return 'Three-Level HLM selesai: '+r.vpcL3+'% varians berada di Level-3 (ICC L3='+r.ICC_L3+'), '+r.vpcL2+'% di Level-2, dan '+r.vpcL1+'% di Level-1.';
+    }
+    if(r&&r.subtype==='hlm-2level'){
+      return 'Two-Level HLM ('+r.modelType+') selesai: Conditional ICC='+r.ICC+' (Null ICC='+r.ICC_null+'), Pseudo-R² L1='+r.pseudoR2_L1+', L2='+r.pseudoR2_L2+'.';
+    }
     var icc=r&&r.ICC;
     return icc!==undefined
       ?'ICC='+icc+' — '+Math.round(parseFloat(icc)*100)+'% varians '+escHtml(o.dep)+' berada di level kelompok. '+(parseFloat(icc)>.05?'HLM justified untuk data ini.':'Varians kelompok rendah; regresi OLS mungkin cukup.')

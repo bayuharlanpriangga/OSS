@@ -91,8 +91,7 @@ function renderAnalyze(el){
       {id:'mi',label:'Multiple Imputation',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="8" width="20" height="8" rx="4"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="18" y1="10" x2="18" y2="14"/></svg>'}
     ],
     'roc':[
-      {id:'roc',label:'ROC Curve',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 6 14 10 17 15 8 20 4"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="2" y1="2" x2="2" y2="20"/></svg>'},
-      {id:'roc_compare',label:'Compare ROC',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 7 12 12 16 17 7 22 4"/><polyline points="2 20 7 15 12 18 17 10" stroke-dasharray="3 2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>'}
+      {id:'roc',label:'ROC Curve',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 6 14 10 17 15 8 20 4"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="2" y1="2" x2="2" y2="20"/></svg>'}
     ],
     'survival':[
       {id:'survival',label:'Survival Analysis',ic:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 20 6 20 6 14 10 14 10 10 14 10 14 7 18 7 18 4 22 4"/><line x1="2" y1="20" x2="22" y2="20"/></svg>'}
